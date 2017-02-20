@@ -46,7 +46,7 @@ class ConfigReader extends scala.annotation.StaticAnnotation {
       val constructor = Ctor.Ref.Name(typ.syntax)
       val bind = Term.Name("x")
       val patTyped = Pat.Typed(Pat.Var.Term(bind), typ.asInstanceOf[Pat.Type])
-      q"""val reader = new _root_.metaconfig.Reader[$typ] {
+      q"""val reader: _root_.metaconfig.Reader[$typ] = new _root_.metaconfig.Reader[$typ] {
           override def read(any: Any): _root_.metaconfig.Result[$typ] = {
             any match {
               case ($patTyped) => Right($bind)

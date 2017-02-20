@@ -5,13 +5,25 @@
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/metaconfig/Lobby)
 [![Scaladex](https://index.scala-lang.org/olafurpg/metaconfix/metaconfig-core/latest.svg)](https://index.scala-lang.org/olafurpg/metaconfig/metaconfig-core) 
 
-Aim of metaconfig:
+Aim of metaconfig: make it easy to support a large and deeply-nested set of
+configuration options in a type-safe and user-friendly manner.
 
-- Untie case class from configuration format (hocon, yaml, toml, ...)
-- User does not need to define all fields of case class
-- Missing fields use default value from a runtime instance of of case class. Note, any runtime value, not only fallback to default parameter value in case class definition.
-- Unknown fields in configuration file trigger error with useful message, e.g., "Invalid field 'maxs' in class T, did you mean 'max'?"
-- Scala.js support, no runtime reflection
+Key goals:
+- No boilerplate (enabled with macro magic)
+- Default settings are defined in regular Scala code (not configuration format!)
+- Users override only the fields that differ from the default settings.
+- Unknown fields in config file trigger error with useful message, e.g., "Invalid field 'maxs' in class T, did you mean 'max'?".
+- Extensible, it's possible to read fields of any arbitrary type.
+- Scala.js support (no runtime reflection).
+
+Nice-to-have:
+
+- IDE support, macro-generated fields appear in IntelliJ! ![IntelliJ autocompletion](project/intellij.png)
+
+Typesafe config (aka Hocon) is only supported for now.
+Support for yaml, toml or other syntax should be straightforward to add.
+The [metaconfig-hocon](https://github.com/olafurpg/metaconfig/blob/1d75ecb43a577a87e06682053d59e9dd9f5693cd/metaconfig-hocon/src/main/scala/metaconfig/hocon/Hocon2Class.scala)
+implementation is only a few lines of code.
 
 To use metaconfig:
 ```scala
@@ -70,6 +82,6 @@ There are ton of great alternatives to metaconfig, to name a few:
 - [Ficus](https://github.com/iheartradio/ficus)
 - [Circe](https://github.com/circe/circe) "patch" readers, see [this SO answer](http://stackoverflow.com/a/39639397/1469245)
 
-I did not find an alternative that fits all requirements in the "aim of metaconfig" listed above.
-I also wanted to experiment with new-style macro annotations using scala.meta.
+I did not find an alternative that fits my personal needs, so I created metaconfig
+(I also wanted an excuse to use the new scala.meta macro system!).
 
