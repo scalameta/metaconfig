@@ -27,6 +27,8 @@ implementation is only a few lines of code.
 
 To use metaconfig:
 ```scala
+// only necessary until https://github.com/scalameta/paradise/pull/171 is merged and scala.meta 1.6 is released
+resolvers += Resolver.bintrayIvyRepo("scalameta", "maven")
 libraryDependencies += "com.geirsson" % "metaconfig-core" % "latest.integration"
 libraryDependencies += "com.geirsson" % "metaconfig-hocon" % "latest.integration"
 
