@@ -42,8 +42,10 @@ class ConfigReaderTest extends FunSuite {
   }
   test("unexpected type") {
     val msg =
-      "Error reading field 'i' on class Bar. Expected argument of type int. Obtained value 'str' of type String."
-    assert(b.reader.read(Map("i" -> "str")) == Left(ConfigError(msg)))
+      "Error reading field 'i'. Expected argument of type int. Obtained value 'str' of type String."
+    val Left(e @ FailedToReadClass("Bar", _)) =
+      b.reader.read(Map("i" -> "str"))
+    assert(e.getMessage.endsWith(msg))
   }
 
   test("write OK") {
@@ -76,6 +78,24 @@ class ConfigReaderTest extends FunSuite {
     assert(
       lst.reader.read(Map("i" -> Map(666 -> 777))) ==
         Right(HasMap(Map(666 -> 777))))
+  }
+
+  case object Kase
+  @ConfigReader
+  case class Ob(kase: Kase.type) {
+    implicit val KaseReader: Reader[Kase.type] = Reader.stringR.flatMap { x =>
+      ???
+    }
+  }
+
+  test("Runtime ???") {
+    val m: Map[String, Any] = Map(
+      "kase" -> "string"
+    )
+    val Left(e @ FailedToReadClass("Ob", _: NotImplementedError)) =
+      Ob(Kase).reader.read(m)
+    org.scalameta.logger.elem(e)
+    assert(e.getMessage().startsWith("Failed to read 'Ob'"))
   }
 
   @ConfigReader

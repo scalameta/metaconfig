@@ -4,7 +4,7 @@ lazy val ParadiseVersion = "3.0.0-M7"
 inThisBuild(
   Seq(
     organization := "com.geirsson",
-    version := "0.1.1",
+    version := "0.1.2",
     // Only needed when using bintray snapshot versions
 //    resolvers += Resolver.bintrayIvyRepo("scalameta", "maven"),
     scalaVersion := ScalaVersions.head,

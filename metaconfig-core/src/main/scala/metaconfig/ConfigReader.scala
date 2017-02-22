@@ -8,6 +8,8 @@ import scala.meta.tokens.Token.Constant
 import scala.reflect.ClassTag
 
 class Error(msg: String) extends Exception(msg)
+case class FailedToReadClass(className: String, error: Throwable)
+    extends Error(s"Failed to read '$className'. ${error.getMessage}")
 case class ConfigError(msg: String) extends Error(msg)
 case class ConfigErrors(es: scala.Seq[Throwable])
     extends Error(s"Errors: ${es.mkString("\n")}")
@@ -62,7 +64,8 @@ class ConfigReader extends scala.annotation.StaticAnnotation {
                   try {
                       Right(new $constructor(..$defaultArgs))
                   } catch {
-                    case _root_.scala.util.control.NonFatal(e) => Left(e)
+                    case _root_.scala.util.control.NonFatal(e) =>
+                      Left(_root_.metaconfig.FailedToReadClass(${typ.syntax}, e))
                   }
                 }
               case els =>

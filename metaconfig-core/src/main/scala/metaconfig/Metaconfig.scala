@@ -17,7 +17,7 @@ object Metaconfig {
       case Left(e: java.lang.IllegalArgumentException) =>
         val simpleName = clazz.runtimeClass.getSimpleName
         val msg =
-          s"Error reading field '$path' on class $className. " +
+          s"Error reading field '$path'. " +
             s"Expected argument of type $simpleName. " +
             s"Obtained ${e.getMessage}"
         throw _root_.metaconfig.ConfigError(msg)
