@@ -27,16 +27,16 @@ implementation is only a few lines of code.
 
 To use metaconfig:
 ```scala
-// only necessary until https://github.com/scalameta/paradise/pull/171 is merged and scala.meta 1.6 is released
-resolvers += Resolver.bintrayIvyRepo("scalameta", "maven")
+// if only using core to extend support for other config syntax
 libraryDependencies += "com.geirsson" % "metaconfig-core" % "latest.integration"
+// OR if using only hocon integration
 libraryDependencies += "com.geirsson" % "metaconfig-hocon" % "latest.integration"
 
 // pass settings to projects using @ConfigReader annotation.
-lazy val metaMacroSettings: Seq[Def.Setting[_]] = Seq(
+lazy val metaconfigSettings: Seq[Def.Setting[_]] = Seq(
   addCompilerPlugin(
-    ("org.scalameta" % "paradise" % ParadiseVersion).cross(CrossVersion.full)),
-  libraryDependencies += "org.scalameta" %% "scalameta" % MetaVersion % Provided,
+    ("org.scalameta" % "paradise" % "3.0.0-M7").cross(CrossVersion.full)),
+  libraryDependencies += "org.scalameta" %% "scalameta" % "1.6.0" % Provided,
   scalacOptions += "-Xplugin-require:macroparadise",
   scalacOptions in (Compile, console) := Seq(), // macroparadise plugin doesn't work in repl yet.
   sources in (Compile, doc) := Nil // macroparadise doesn't work with scaladoc yet.
@@ -87,3 +87,7 @@ There are ton of great alternatives to metaconfig, to name a few:
 I did not find an alternative that fits my personal needs, so I created metaconfig
 (I also wanted an excuse to use the new scala.meta macro system!).
 
+## Changelog
+
+* 0.1.1 Upgraded paradise dependency from Bintray snapshot to Sonatype release.
+* 0.1.0 First release, moved code out of scalafmt repo into here.
