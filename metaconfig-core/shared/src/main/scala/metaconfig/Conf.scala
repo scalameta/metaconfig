@@ -14,8 +14,8 @@ sealed abstract class Conf extends Product with Serializable {
   }
   def simpleValue: String = this match {
     case Str(v) => v
-    case Num(v) => s"$v"
-    case Bool(v) => s"$v"
+    case Num(v) => v.toString()
+    case Bool(v) => v.toString
     case Lst(vs) => vs.mkString("[", ", ", "]")
     case Obj(vs) =>
       vs.map { case (a, b) => s"$a: $b" }.mkString("{", ", ", "}")

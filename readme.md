@@ -89,6 +89,9 @@ I did not find an alternative that fits my personal needs, so I created metaconf
 
 ## Changelog
 
+* 0.2.0 Introduce `metaconfig.Conf`, a json-like ast, and remove all runtime reflection.
+  - To migrate from 0.1.x, replace all matches on `Int/String/Boolean/Seq/Map`
+    with `Conf.Num/Str/Bool/Lst/Obj`.
 * 0.1.3 Cross-build to Scala.js. NOTE. Depends on scala.meta pre-release which is available
   with `resolvers += Resolver.bintrayIvyRepo("scalameta", "maven")`.
 * 0.1.2 Skipped.
