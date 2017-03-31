@@ -20,31 +20,39 @@ class ConfigReaderTest extends FunSuite {
   case class HasList(i: Seq[Int])
 
   @ConfigReader
-  case class HasMap(i: Map[Int, Int])
+  case class HasMap(i: Map[String, Int])
 
   val b = Bar(0, true, "str")
   test("invalid field") {
-    assert(b.reader.read(Map("is" -> 2, "var" -> 3)) ==
-      Left(ConfigError("Error reading class 'Bar'. Invalid fields: is, var")))
+    assert(
+      b.reader.read(Conf.Obj("is" -> Conf.Num(2), "var" -> Conf.Num(3))) ==
+        Left(
+          ConfigError("Error reading class 'Bar'. Invalid fields: is, var")))
   }
 
   test("read OK") {
-    assert(b.reader.read(Map("i" -> 2)) == Right(b.copy(i = 2)))
-    assert(b.reader.read(Map("s" -> "str")) == Right(b.copy(s = "str")))
-    assert(b.reader.read(Map("b" -> true)) == Right(b.copy(b = true)))
+    assert(
+      b.reader.read(Conf.Obj("i" -> Conf.Num(2))) ==
+        Right(b.copy(i = 2)))
+    assert(
+      b.reader.read(Conf.Obj("s" -> Conf.Str("str"))) ==
+        Right(b.copy(s = "str")))
+    assert(
+      b.reader.read(Conf.Obj("b" -> Conf.Bool(true))) ==
+        Right(b.copy(b = true)))
     assert(
       b.reader.read(
-        Map(
-          "i" -> 3,
-          "b" -> true,
-          "s" -> "rand"
+        Conf.Obj(
+          "i" -> Conf.Num(3),
+          "b" -> Conf.Bool(true),
+          "s" -> Conf.Str("rand")
         )) == Right(b.copy(i = 3, s = "rand", b = true)))
   }
   test("unexpected type") {
     val msg =
       "Error reading field 'i'. Expected argument of type int. Obtained value 'str' of type String."
     val Left(e @ FailedToReadClass("Bar", _)) =
-      b.reader.read(Map("i" -> "str"))
+      b.reader.read(Conf.Obj("i" -> Conf.Str("str")))
     assert(e.getMessage.endsWith(msg))
   }
 
@@ -57,10 +65,10 @@ class ConfigReaderTest extends FunSuite {
       ))
   }
   test("nested OK") {
-    val m: Map[String, Any] = Map(
-      "i" -> 4,
-      "inner" -> Map(
-        "nest" -> 5
+    val m = Conf.Obj(
+      "i" -> Conf.Num(4),
+      "inner" -> Conf.Obj(
+        "nest" -> Conf.Num(5)
       )
     )
     val o = Outer(2, Inner(3)).reader.read(m)
@@ -69,15 +77,16 @@ class ConfigReaderTest extends FunSuite {
   test("Seq") {
     val lst = HasList(List(1, 2, 3))
     assert(
-      lst.reader.read(Map("i" -> Seq(666, 777))) == Right(
-        HasList(Seq(666, 777))))
+      lst.reader
+        .read(Conf.Obj("i" -> Conf.Lst(Conf.Num(666), Conf.Num(777)))) ==
+        Right(HasList(Seq(666, 777))))
   }
 
-  test("Map") {
-    val lst = HasMap(Map(1 -> 2))
+  test("Conf.Obj") {
+    val lst = HasMap(Map("1" -> 2))
     assert(
-      lst.reader.read(Map("i" -> Map(666 -> 777))) ==
-        Right(HasMap(Map(666 -> 777))))
+      lst.reader.read(Conf.Obj("i" -> Conf.Obj("666" -> Conf.Num(777)))) ==
+        Right(HasMap(Map("666" -> 777))))
   }
 
   case object Kase
@@ -89,8 +98,8 @@ class ConfigReaderTest extends FunSuite {
   }
 
   test("Runtime ???") {
-    val m: Map[String, Any] = Map(
-      "kase" -> "string"
+    val m = Conf.Obj(
+      "kase" -> Conf.Str("string")
     )
     val Left(e @ FailedToReadClass("Ob", _: NotImplementedError)) =
       Ob(Kase).reader.read(m)
@@ -102,8 +111,8 @@ class ConfigReaderTest extends FunSuite {
   case class HasExtra(@ExtraName("b") @metaconfig.ExtraName("c") a: Int)
   test("@ExtraName") {
     val x = HasExtra(1)
-    val Right(HasExtra(2)) = x.reader.read(Map("b" -> 2))
-    val Right(HasExtra(3)) = x.reader.read(Map("c" -> 3))
-    val Left(_) = x.reader.read(Map("d" -> 3))
+    val Right(HasExtra(2)) = x.reader.read(Conf.Obj("b" -> Conf.Num(2)))
+    val Right(HasExtra(3)) = x.reader.read(Conf.Obj("c" -> Conf.Num(3)))
+    val Left(_) = x.reader.read(Conf.Obj("d" -> Conf.Num(3)))
   }
 }

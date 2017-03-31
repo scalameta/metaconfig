@@ -3,25 +3,30 @@ package metaconfig
 import scala.reflect.ClassTag
 
 object Metaconfig {
-  def getKey(map: Map[String, Any], keys: Seq[String]): Option[Any] =
+  def getKey(obj: Conf.Obj, keys: Seq[String]): Option[Conf] =
     if (keys.isEmpty) None
-    else map.get(keys.head).orElse(getKey(map, keys.tail))
+    else
+      obj.values
+        .collectFirst { case (key, value) if key == keys.head => value }
+        .orElse(getKey(obj, keys.tail))
 
-  def get[T](map: Map[String, Any], className: String)(
-      default: T,
-      path: String,
-      extraNames: String*)(implicit ev: Reader[T], clazz: ClassTag[T]) = {
-    val value = getKey(map, path +: extraNames).getOrElse(default)
-    ev.read(value) match {
-      case Right(e) => e
-      case Left(e: java.lang.IllegalArgumentException) =>
-        val simpleName = clazz.runtimeClass.getSimpleName
-        val msg =
-          s"Error reading field '$path'. " +
-            s"Expected argument of type $simpleName. " +
-            s"Obtained ${e.getMessage}"
-        throw _root_.metaconfig.ConfigError(msg)
-      case Left(e) => throw e
+  def get[T](conf: Conf.Obj)(default: T, path: String, extraNames: String*)(
+      implicit ev: Reader[T],
+      clazz: ClassTag[T]): T = {
+    getKey(conf, path +: extraNames) match {
+      case Some(value) =>
+        ev.read(value) match {
+          case Right(e) => e
+          case Left(e: java.lang.IllegalArgumentException) =>
+            val simpleName = clazz.runtimeClass.getSimpleName
+            val msg =
+              s"Error reading field '$path'. " +
+                s"Expected argument of type $simpleName. " +
+                s"Obtained ${e.getMessage}"
+            throw _root_.metaconfig.ConfigError(msg)
+          case Left(e) => throw e
+        }
+      case None => default
     }
   }
 }
