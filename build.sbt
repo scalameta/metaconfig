@@ -1,13 +1,20 @@
 lazy val ScalaVersions = Seq("2.11.8", "2.12.1")
 
+version in ThisBuild := "0.1.3"
 organization in ThisBuild := "com.geirsson"
 scalaVersion in ThisBuild := ScalaVersions.head
 crossScalaVersions in ThisBuild := ScalaVersions
+noPublish
+
+commands += Command.command("release") { s =>
+  "+publishSigned" ::
+    "sonatypeRelease" ::
+    s
+}
 
 lazy val MetaVersion = "1.7.0-487-13087aaf"
 lazy val ParadiseVersion = "3.0.0-185"
 lazy val baseSettings = Seq(
-  version := "0.1.3",
   // Only needed when using bintray snapshot versions
   resolvers += Resolver.bintrayIvyRepo("scalameta", "maven"),
   libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.1" % Test
@@ -72,3 +79,9 @@ lazy val `metaconfig-hocon` = crossProject
   .dependsOn(`metaconfig-core`)
 lazy val `metaconfig-hoconJVM` = `metaconfig-hocon`.jvm
 lazy val `metaconfig-hoconJS` = `metaconfig-hocon`.js
+
+lazy val noPublish = Seq(
+  publishArtifact := false,
+  publish := {},
+  publishLocal := {}
+)
