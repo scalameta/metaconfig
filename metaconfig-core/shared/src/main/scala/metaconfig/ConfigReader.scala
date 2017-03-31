@@ -22,7 +22,7 @@ class ConfigReader extends scala.annotation.StaticAnnotation {
   inline def apply(defn: Any): Any = meta {
     def genReader(typ: Type, params: Seq[Term.Param] = Seq.empty): Defn.Val = {
       val mapName = Term.Name("map")
-      val classLit = Lit(typ.syntax)
+      val classLit = Lit.String(typ.syntax)
       val extraNames: Map[String, Seq[Term.Arg]] = params.collect {
         case p: Term.Param =>
           p.name.syntax -> p.mods.collect {
@@ -33,7 +33,7 @@ class ConfigReader extends scala.annotation.StaticAnnotation {
       def defaultArgs: Seq[Term.Arg] = {
         params.collect {
           case Term.Param(mods, pName: Term.Name, Some(pTyp: Type), _) =>
-            val nameLit = Lit(pName.syntax)
+            val nameLit = Lit.String(pName.syntax)
             val args = Seq(pName, nameLit) ++ extraNames(pName.syntax)
             Term.Arg.Named(
               pName,
@@ -43,10 +43,11 @@ class ConfigReader extends scala.annotation.StaticAnnotation {
         }
       }
       val argLits =
-        params.map(x => Lit(x.name.syntax)) ++
+        params.map(x => Lit.String(x.name.syntax)) ++
           extraNames.values.flatten
       val constructor = Ctor.Ref.Name(typ.syntax)
       val bind = Term.Name("x")
+      val x = q"""val x = "string""""
       val patTyped = Pat.Typed(Pat.Var.Term(bind), typ.asInstanceOf[Pat.Type])
       q"""val reader: _root_.metaconfig.Reader[$typ] = new _root_.metaconfig.Reader[$typ] {
           override def read(any: Any): _root_.metaconfig.Result[$typ] = {
@@ -91,7 +92,7 @@ class ConfigReader extends scala.annotation.StaticAnnotation {
       val flatParams = paramss.flatten
       val fields: Seq[Term.Tuple] = flatParams.collect {
         case Term.Param(_, name: Term.Name, _, _) =>
-          q"(${Lit(name.syntax)}, $name)"
+          q"(${Lit.String(name.syntax)}, $name)"
       }
       val fieldsDef: Stat = {
         val body =
