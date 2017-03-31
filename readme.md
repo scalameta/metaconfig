@@ -89,5 +89,8 @@ I did not find an alternative that fits my personal needs, so I created metaconf
 
 ## Changelog
 
+* 0.1.3 Cross-build to Scala.js. NOTE. Depends on scala.meta pre-release which is available
+  with `resolvers += Resolver.bintrayIvyRepo("scalameta", "maven")`.
+* 0.1.2 Skipped.
 * 0.1.1 Upgraded paradise dependency from Bintray snapshot to Sonatype release.
 * 0.1.0 First release, moved code out of scalafmt repo into here.
