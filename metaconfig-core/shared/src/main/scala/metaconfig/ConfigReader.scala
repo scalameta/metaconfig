@@ -21,7 +21,7 @@ class ConfigReader extends scala.annotation.StaticAnnotation {
 
   inline def apply(defn: Any): Any = meta {
     def genReader(typ: Type, params: Seq[Term.Param] = Seq.empty): Defn.Val = {
-      val mapName = Term.Name("map")
+      val mapName = Term.Name("obj")
       val classLit = Lit.String(typ.syntax)
       val extraNames: Map[String, Seq[Term.Arg]] = params.collect {
         case p: Term.Param =>
@@ -37,8 +37,7 @@ class ConfigReader extends scala.annotation.StaticAnnotation {
             val args = Seq(pName, nameLit) ++ extraNames(pName.syntax)
             Term.Arg.Named(
               pName,
-              q"""_root_.metaconfig.Metaconfig.get[$pTyp](
-                    $mapName, $classLit)(..$args)"""
+              q"""_root_.metaconfig.Metaconfig.get[$pTyp](obj)(..$args)"""
             )
         }
       }
@@ -50,12 +49,11 @@ class ConfigReader extends scala.annotation.StaticAnnotation {
       val x = q"""val x = "string""""
       val patTyped = Pat.Typed(Pat.Var.Term(bind), typ.asInstanceOf[Pat.Type])
       q"""val reader: _root_.metaconfig.Reader[$typ] = new _root_.metaconfig.Reader[$typ] {
-          override def read(any: Any): _root_.metaconfig.Result[$typ] = {
+          override def read(any: _root_.metaconfig.Conf): _root_.metaconfig.Result[$typ] = {
             any match {
-              case ($patTyped) => Right($bind)
-              case _root_.metaconfig.String2AnyMap(${Pat.Var.Term(mapName)}) =>
+              case obj @ _root_.metaconfig.Conf.Obj(_) =>
                 val validFields = _root_.scala.collection.immutable.Set(..$argLits)
-                val invalidFields = $mapName.keys.filterNot(validFields)
+                val invalidFields = obj.keys.filterNot(validFields)
                 if (invalidFields.nonEmpty) {
                   val msg =
                     "Error reading class '" + $classLit + "'. " +
@@ -72,7 +70,7 @@ class ConfigReader extends scala.annotation.StaticAnnotation {
               case els =>
                 val msg =
                   $classLit + " cannot be '" + els +
-                    "' (of class " + els.getClass.getSimpleName + ")."
+                    "' (of class " + els.simpleType + ")."
                 Left(_root_.metaconfig.ConfigError(msg))
             }
           }

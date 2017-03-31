@@ -7,13 +7,14 @@ trait HasFields {
 }
 
 trait Reader[T] { self =>
-  def read(any: Any): Result[T]
+  // NOTE. This signature is a mess. It should be `read(conf: Conf): Result[T]`.
+  def read(any: Conf): Result[T]
 
   def map[TT](f: T => TT): Reader[TT] = self.flatMap(x => Right(f(x)))
 
   def flatMap[TT](f: T => Result[TT]): Reader[TT] =
     new Reader[TT] {
-      override def read(any: Any): Result[TT] = self.read(any) match {
+      override def read(any: Conf): Result[TT] = self.read(any) match {
         case Right(x) => f(x)
         case Left(x) => Left(x)
       }
@@ -22,70 +23,57 @@ trait Reader[T] { self =>
 
 object Reader {
 
-  def fail[T: ClassTag](x: Any): Result[T] = {
-    val clz = x.getClass.getSimpleName
-    Left(new IllegalArgumentException(s"value '$x' of type $clz."))
+  def fail[T: ClassTag](x: Conf): Result[T] = {
+    Left(
+      new IllegalArgumentException(
+        s"value '${x.simpleValue}' of type ${x.simpleType}."))
   }
 
-  def instance[T](f: PartialFunction[Any, Result[T]])(
+  def instance[T](f: PartialFunction[Conf, Result[T]])(
       implicit ev: ClassTag[T]) =
     new Reader[T] {
-      override def read(any: Any): Result[T] = {
-        try {
-          if (ev.runtimeClass.isInstance(any)) {
-            Right(any.asInstanceOf[T])
-          } else {
-            f.applyOrElse(any, (x: Any) => fail[T](x))
-          }
-        } catch {
-          case e: ConfigError => Left(e)
-        }
+      override def read(any: Conf): Result[T] = {
+        f.applyOrElse(any, (x: Conf) => fail[T](x))
       }
     }
-  implicit val intR = instance[Int] { case x: Int => Right(x) }
-  implicit val stringR = instance[String] { case x: String => Right(x) }
-  implicit val boolR = instance[scala.Boolean] {
-    case x: Boolean => Right(x)
+  implicit val intR: Reader[Int] = instance[Int] {
+    case Conf.Num(x) => Right(x.toInt)
+  }
+  implicit val stringR: Reader[String] = instance[String] {
+    case Conf.Str(x) => Right(x)
+  }
+  implicit val boolR: Reader[Boolean] = instance[scala.Boolean] {
+    case Conf.Bool(x) => Right(x)
   }
 
   implicit def seqR[T](implicit ev: Reader[T]): Reader[Seq[T]] =
     instance[Seq[T]] {
-      case lst: Seq[_] =>
+      case Conf.Lst(lst) =>
         val res = lst.map(ev.read)
-        val lefts = res.collect { case Left(e) => e }.to[Seq]
+        val lefts = res.collect { case Left(e) => e }
         if (lefts.nonEmpty) Left(ConfigErrors(lefts))
         else Right(res.collect { case Right(e) => e })
     }
 
   implicit def setR[T](implicit ev: Reader[T]): Reader[Set[T]] =
     instance[Set[T]] {
-      case lst: Set[_] => Right(lst.asInstanceOf[Set[T]])
-      case lst: Seq[_] =>
-        val res = lst.map(ev.read)
-        val lefts = res.collect { case Left(e) => e }
-        if (lefts.nonEmpty) Left(ConfigErrors(lefts))
-        else Right(res.collect({ case Right(e) => e }).to[Set])
+      case e => seqR[T].read(e).right.map(_.toSet)
     }
 
   // TODO(olafur) generic can build from reader
-  implicit def mapR[K, V](implicit evK: Reader[K],
-                          evV: Reader[V]): Reader[Map[K, V]] =
-    instance[Map[K, V]] {
-      case map: Map[_, _] =>
-        val res = map.map {
+  implicit def mapR[V](implicit evV: Reader[V]): Reader[Map[String, V]] =
+    instance[Map[String, V]] {
+      case Conf.Obj(values) =>
+        val res = values.map {
           case (k, v) =>
-            for {
-              kk <- evK.read(k).right
-              vv <- evV.read(v).right
-            } yield (kk, vv)
+            k -> evV.read(v)
         }
-        val sRes = Seq(res.toSeq: _*)
-        val lefts: Seq[Throwable] = sRes.collect {
-          case Left(e) => e
+        val lefts: Seq[Throwable] = res.collect {
+          case (_, Left(e)) => e
         }
-        if (lefts.nonEmpty) Left(ConfigErrors(lefts.toSeq))
+        if (lefts.nonEmpty) Left(ConfigErrors(lefts))
         else {
-          val resultMap = sRes.collect { case Right(e) => e }
+          val resultMap = res.collect { case (key, Right(e)) => key -> e }
           Right(resultMap.toMap)
         }
     }

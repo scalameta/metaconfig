@@ -14,6 +14,10 @@ cache:
   - $HOME/.ivy2/cache
   - $HOME/.nvm
 
+branches:
+  only:
+    - master
+
 before_cache:
   - du -h -d 1 $HOME/.ivy2/cache
   - du -h -d 2 $HOME/.sbt/
