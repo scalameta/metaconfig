@@ -6,9 +6,10 @@ import scala.collection.immutable.Seq
 import scala.meta._
 import scala.meta.tokens.Token.Constant
 
-class Error(msg: String) extends Exception(msg)
+sealed class Error(msg: String) extends Exception(msg)
 case class FailedToReadClass(className: String, error: Throwable)
     extends Error(s"Failed to read '$className'. ${error.getMessage}")
+case class ParseError(msg: String) extends Error(msg)
 case class ConfigError(msg: String) extends Error(msg)
 case class ConfigErrors(es: scala.Seq[Throwable])
     extends Error(s"Errors: ${es.mkString("\n")}")

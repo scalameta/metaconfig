@@ -1,3 +1,4 @@
+// ORIGINAL LICENCE
 /* Copyright 2016 UniCredit S.p.A.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,34 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.unicredit.shocon
+/* Olafur Pall Geirsson has modified the original file contents
+ * to better fit metaconfig needs and structure.
+ */
+package metaconfig
+package hocon
 
-import eu.unicredit.shocon.Config
 import fastparse.all._
+import fastparse.core.Parser
+import metaconfig.Conf.Obj
 
-object ConfigParser {
+object HoconParser {
   case class NamedFunction[T, V](f: T => V, name: String) extends (T => V) {
     def apply(t: T) = f(t)
     override def toString() = name
 
   }
 
-  val isWhitespace = (c: Char) =>
-    c match {
-      // try to hit the most common ASCII ones first, then the nonbreaking
-      // spaces that Java brokenly leaves out of isWhitespace.
-      case ' ' | '\n' | '\u00A0' | '\u2007' | '\u202F' | '\uFEFF' /* BOM */ =>
-        true;
-      case _ => Character.isWhitespace(c);
+  val isWhitespace: (Char) => Boolean = {
+    // try to hit the most common ASCII ones first, then the nonbreaking
+    // spaces that Java brokenly leaves out of isWhitespace.
+    case ' ' | '\n' | '\u00A0' | '\u2007' | '\u202F' | '\uFEFF' /* BOM */ =>
+      true;
+    case c => Character.isWhitespace(c);
   }
 
   val isWhitespaceNoNl = (c: Char) => c != '\n' && isWhitespace(c)
 
   // *** Lexing ***
   //  val Whitespace = NamedFunction(isWhitespace, "Whitespace")
-  val letter = P(lowercase | uppercase)
   val lowercase = P(CharIn('a' to 'z'))
   val uppercase = P(CharIn('A' to 'Z'))
+  val letter = P(lowercase | uppercase)
   val digit = P(CharIn('0' to '9'))
 
   val Digits = NamedFunction('0' to '9' contains (_: Char), "Digits")
@@ -63,46 +68,49 @@ object ConfigParser {
   val strChars = P(CharsWhile(StringChars))
   val quotedString = P("\"" ~/ (strChars | escape).rep.! ~ "\"")
   val unquotedString = P(
-    ((letter | digit | "_" | "-" | ".")
+    (letter | digit | "_" | "-" | ".")
       .rep(min = 1)
-      .!)
+      .! // .log() // .log() // .log() // .log() // .log() // .log() // .log() // .log()
       .rep(min = 1, sep = CharsWhile(_.isSpaceChar))
       .!)
-  val string = P(nlspace) ~ P(quotedString | unquotedString | CharsWhile(
-    _.isSpaceChar).!) // bit of an hack: this would parse whitespace to the end of line
-    .rep(min = 1)
-    .map(_.mkString.trim) // so we will trim the remaining right-side
-    .map(Config.StringLiteral)
+  val string = P(nlspace) ~
+    P(
+      quotedString |
+        unquotedString |
+        CharsWhile(_.isSpaceChar).!) // bit of an hack: this would parse whitespace to the end of line
+      .rep(min = 1)
+      .map(_.mkString.trim) // so we will trim the remaining right-side
+      .map(Conf.Str)
 
   // *** Parsing ***
-  val array: P[Seq[Config.Value]] = P(
-    "[" ~/ jsonExpr.rep(sep = itemSeparator) ~ nlspace ~ "]")
+  val itemSeparator = P(("\n" ~ nlspace ~ ",".?) | ",".~/)
 
-  val repeatedArray: P[Config.Array] =
-    array
+  val objBody = P(pair.rep(sep = itemSeparator) ~ nlspace) // .log()
+
+  val obj: P[Seq[(String, Conf)]] = P("{" ~/ objBody ~ "}")
+
+  val repeatedObj: P[Conf.Obj] =
+    obj
       .rep(min = 1, sep = nlspace)
-      .map((arrays: Seq[Seq[Config.Value]]) => Config.Array(arrays.flatten))
+      .map(fields => Conf.Obj(fields.flatten.toList))
 
-  val pair: P[(String, Config.Value)] = P(
+  val pair: P[(String, Conf)] = P(
     string.map(_.value) ~/ space ~
       ((keyValueSeparator ~/ jsonExpr)
         | (repeatedObj ~ space)))
 
-  val obj: P[Seq[(String, Config.Value)]] = P("{" ~/ objBody ~ "}")
+  val array: P[Seq[Conf]] = P(
+    "[" ~/ jsonExpr.rep(sep = itemSeparator) ~ nlspace ~ "]")
 
-  val repeatedObj: P[Config.Object] =
-    obj
+  val repeatedLst: P[Conf.Lst] =
+    array
       .rep(min = 1, sep = nlspace)
-      .map(fields => Config.Object(Map(fields.flatten: _*)))
+      .map((arrays: Seq[Seq[Conf]]) => Conf.Lst(arrays.flatten.toList))
 
-  val itemSeparator = P(("\n" ~ nlspace ~ ",".?) | (",".~/))
+  val jsonExpr: P[Conf] = P(
+    space ~ (repeatedObj | repeatedLst | string) ~ space) // .log()
 
-  val objBody = P(pair.rep(sep = itemSeparator) ~ nlspace) // .log()
-
-  val jsonExpr: P[Config.Value] = P(
-    space ~ (repeatedObj | repeatedArray | string) ~ space) // .log()
-
-  val root = P((&(space ~ "{") ~/ obj) | (objBody) ~ End).map(x =>
-    Config.Object.fromPairs(x)) // .log()
+  val root: Parser[Obj, Char, String] =
+    P((&(space ~ "{") ~/ obj) | objBody ~ End).map(x => Conf.Obj(x.toList))
 
 }
