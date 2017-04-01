@@ -6,14 +6,14 @@ trait HasFields {
   def fields: Map[String, Any]
 }
 
-trait Reader[T] { self =>
+trait ConfDecoder[T] { self =>
   // NOTE. This signature is a mess. It should be `read(conf: Conf): Result[T]`.
   def read(any: Conf): Result[T]
 
-  def map[TT](f: T => TT): Reader[TT] = self.flatMap(x => Right(f(x)))
+  def map[TT](f: T => TT): ConfDecoder[TT] = self.flatMap(x => Right(f(x)))
 
-  def flatMap[TT](f: T => Result[TT]): Reader[TT] =
-    new Reader[TT] {
+  def flatMap[TT](f: T => Result[TT]): ConfDecoder[TT] =
+    new ConfDecoder[TT] {
       override def read(any: Conf): Result[TT] = self.read(any) match {
         case Right(x) => f(x)
         case Left(x) => Left(x)
@@ -21,7 +21,7 @@ trait Reader[T] { self =>
     }
 }
 
-object Reader {
+object ConfDecoder {
 
   def fail[T: ClassTag](x: Conf): Result[T] = {
     Left(
@@ -31,22 +31,22 @@ object Reader {
 
   def instance[T](f: PartialFunction[Conf, Result[T]])(
       implicit ev: ClassTag[T]) =
-    new Reader[T] {
+    new ConfDecoder[T] {
       override def read(any: Conf): Result[T] = {
         f.applyOrElse(any, (x: Conf) => fail[T](x))
       }
     }
-  implicit val intR: Reader[Int] = instance[Int] {
+  implicit val intR: ConfDecoder[Int] = instance[Int] {
     case Conf.Num(x) => Right(x.toInt)
   }
-  implicit val stringR: Reader[String] = instance[String] {
+  implicit val stringR: ConfDecoder[String] = instance[String] {
     case Conf.Str(x) => Right(x)
   }
-  implicit val boolR: Reader[Boolean] = instance[scala.Boolean] {
+  implicit val boolR: ConfDecoder[Boolean] = instance[scala.Boolean] {
     case Conf.Bool(x) => Right(x)
   }
 
-  implicit def seqR[T](implicit ev: Reader[T]): Reader[Seq[T]] =
+  implicit def seqR[T](implicit ev: ConfDecoder[T]): ConfDecoder[Seq[T]] =
     instance[Seq[T]] {
       case Conf.Lst(lst) =>
         val res = lst.map(ev.read)
@@ -55,13 +55,14 @@ object Reader {
         else Right(res.collect { case Right(e) => e })
     }
 
-  implicit def setR[T](implicit ev: Reader[T]): Reader[Set[T]] =
+  implicit def setR[T](implicit ev: ConfDecoder[T]): ConfDecoder[Set[T]] =
     instance[Set[T]] {
       case e => seqR[T].read(e).right.map(_.toSet)
     }
 
   // TODO(olafur) generic can build from reader
-  implicit def mapR[V](implicit evV: Reader[V]): Reader[Map[String, V]] =
+  implicit def mapR[V](
+      implicit evV: ConfDecoder[V]): ConfDecoder[Map[String, V]] =
     instance[Map[String, V]] {
       case Conf.Obj(values) =>
         val res = values.map {

@@ -5,7 +5,6 @@ import scala.collection.immutable.Map
 import scala.collection.immutable.Seq
 import scala.meta._
 import scala.meta.tokens.Token.Constant
-import scala.reflect.ClassTag
 
 class Error(msg: String) extends Exception(msg)
 case class FailedToReadClass(className: String, error: Throwable)
@@ -17,7 +16,7 @@ case class ConfigErrors(es: scala.Seq[Throwable])
 class ExtraName(string: String) extends scala.annotation.StaticAnnotation
 
 @compileTimeOnly("@metaconfig.Config not expanded")
-class ConfigReader extends scala.annotation.StaticAnnotation {
+class DeriveConfDecoder extends scala.annotation.StaticAnnotation {
 
   inline def apply(defn: Any): Any = meta {
     def genReader(typ: Type, params: Seq[Term.Param] = Seq.empty): Defn.Val = {
@@ -48,7 +47,7 @@ class ConfigReader extends scala.annotation.StaticAnnotation {
       val bind = Term.Name("x")
       val x = q"""val x = "string""""
       val patTyped = Pat.Typed(Pat.Var.Term(bind), typ.asInstanceOf[Pat.Type])
-      q"""val reader: _root_.metaconfig.Reader[$typ] = new _root_.metaconfig.Reader[$typ] {
+      q"""val reader: _root_.metaconfig.ConfDecoder[$typ] = new _root_.metaconfig.ConfDecoder[$typ] {
           override def read(any: _root_.metaconfig.Conf): _root_.metaconfig.Result[$typ] = {
             any match {
               case obj @ _root_.metaconfig.Conf.Obj(_) =>
