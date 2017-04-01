@@ -70,7 +70,7 @@ class DeriveConfDecoder extends scala.annotation.StaticAnnotation {
               case els =>
                 val msg =
                   $classLit + " cannot be '" + els +
-                    "' (of class " + els.simpleType + ")."
+                    "' (of class " + els.kind + ")."
                 Left(_root_.metaconfig.ConfigError(msg))
             }
           }

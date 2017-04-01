@@ -24,9 +24,7 @@ trait ConfDecoder[T] { self =>
 object ConfDecoder {
 
   def fail[T: ClassTag](x: Conf): Result[T] = {
-    Left(
-      new IllegalArgumentException(
-        s"value '${x.simpleValue}' of type ${x.simpleType}."))
+    Left(new IllegalArgumentException(s"value '${x.show}' of type ${x.kind}."))
   }
 
   def instance[T](f: PartialFunction[Conf, Result[T]])(
