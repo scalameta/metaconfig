@@ -10,9 +10,15 @@ class Hocon2ClassTest extends FunSuite {
       b: String = "banana"
   )
   val default = MyConfig()
-  val config =
+  val config: String =
     """
       |a = 666
+      |b.c.d = 3
+      |b {
+      |  c {
+      |    d = 5
+      |  }
+      |}
     """.stripMargin
 
   test("field 'a' is overwritten") {

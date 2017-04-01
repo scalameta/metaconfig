@@ -2,6 +2,9 @@ package metaconfig
 
 import scala.util.Try
 
+import metaconfig.Extractors._
+import org.scalameta.logger
+
 // This structure is like JSON except it doesn't support null.
 sealed abstract class Conf extends Product with Serializable {
   def normalize: Conf = this
@@ -20,19 +23,17 @@ sealed abstract class Conf extends Product with Serializable {
     case Bool(v) => v.toString
     case Lst(vs) => vs.mkString("[", ", ", "]")
     case Obj(vs) =>
-      vs.map { case (a, b) => s"$a: $b" }.mkString("{", ", ", "}")
+      vs.map { case (a, b) => s"'$a': $b" }.mkString("{", ", ", "}")
   }
+
+  override def toString: String = show
 }
 object Conf {
-  private object num {
-    def unapply(arg: String): Option[BigDecimal] =
-      Try(BigDecimal(arg)).toOption
-  }
   case class Str(value: String) extends Conf {
     override def normalize: Conf = value match {
       case "true" | "on" | "yes" => Bool(true)
       case "false" | "off" | "no" => Bool(false)
-      case num(n) => Num(n)
+      case Number(n) => Num(n)
       case _ => this
     }
   }
@@ -46,10 +47,33 @@ object Conf {
     def keys: List[String] = values.map(_._1)
     override def normalize: Conf =
       Obj(values.map {
-        case (key, value) => key -> value.normalize
+        case (NestedKey(key, rest), value) =>
+          logger.elem(logger.revealWhitespace(key))
+          key -> Obj(rest -> value).normalize
+        case (key, value) =>
+          key -> value.normalize
       })
   }
   object Obj {
     def apply(values: (String, Conf)*): Obj = Obj(values.toList)
+  }
+}
+
+object Extractors {
+  object Number {
+    def unapply(arg: String): Option[BigDecimal] =
+      Try(BigDecimal(arg)).toOption
+  }
+  object NestedKey {
+    def unapply(arg: String): Option[(String, String)] = {
+      val idx = arg.indexOf('.')
+      if (idx == -1) None
+      else {
+        arg.splitAt(idx) match {
+          case (_, "") => None
+          case (a, b) => Some(a -> b.stripPrefix("."))
+        }
+      }
+    }
   }
 }
