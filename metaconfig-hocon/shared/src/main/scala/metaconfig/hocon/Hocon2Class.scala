@@ -10,9 +10,7 @@ object Hocon2Class {
   def gimmeConfig(str: String): metaconfig.Result[Conf] = {
     try {
       HoconParser.root.parse(str) match {
-        case Parsed.Success(value, _) =>
-          logger.elem(value.normalize)
-          Right(value.normalize)
+        case Parsed.Success(value, _) => Right(value)
         case e @ Parsed.Failure(_, _, _) => Left(metaconfig.ParseError(e.msg))
       }
     } catch {
@@ -25,7 +23,7 @@ object Hocon2Class {
                     path: Option[String] = None): metaconfig.Result[T] = {
     for {
       config <- gimmeConfig(configStr).right
-      clz <- reader.read(config).right
+      clz <- reader.read(config.normalize).right
     } yield clz
   }
 
