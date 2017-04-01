@@ -13,13 +13,14 @@ case class ConfigError(msg: String) extends Error(msg)
 case class ConfigErrors(es: scala.Seq[Throwable])
     extends Error(s"Errors: ${es.mkString("\n")}")
 
+class Recurse extends scala.annotation.StaticAnnotation
 class ExtraName(string: String) extends scala.annotation.StaticAnnotation
 
 @compileTimeOnly("@metaconfig.Config not expanded")
 class DeriveConfDecoder extends scala.annotation.StaticAnnotation {
 
   inline def apply(defn: Any): Any = meta {
-    def genReader(typ: Type, params: Seq[Term.Param] = Seq.empty): Defn.Val = {
+    def derviveDecoder(typ: Type, params: Seq[Term.Param] = Seq.empty): Defn.Val = {
       val mapName = Term.Name("obj")
       val classLit = Lit.String(typ.syntax)
       val extraNames: Map[String, Seq[Term.Arg]] = params.collect {
@@ -96,8 +97,28 @@ class DeriveConfDecoder extends scala.annotation.StaticAnnotation {
           Term.Apply(q"_root_.scala.collection.immutable.Map", fields)
         q"def fields: Map[String, Any] = $body"
       }
-      val typReader = genReader(tname, flatParams)
-      val newStats = stats ++ Seq(fieldsDef) ++ Seq(typReader)
+      val typReader = derviveDecoder(tname, flatParams)
+
+      def implicitName(p: Term.Param): Term.Name =
+        Term.Name(p.name.value + p.decltpe.map(_.syntax).getOrElse("")  + "Decoder")
+      val recurses: Seq[Stat] = flatParams.collect {
+        case p: Term.Param if p.mods.exists {
+          case mod"@Recurse" => true
+          case mod"@metaconfig.Recurse" =>  true
+          case _ => false
+        } =>
+          val tpe = p.decltpe.get.asInstanceOf[Type]
+          q"""
+              implicit val ${Pat.Var.Term(implicitName(p))}: _root_.metaconfig.ConfDecoder[$tpe] =
+                ${Term.Name(p.name.value)}.reader
+           """
+      }
+      val lowPriorityImplicits = q""" object LowPriImplicits { ..$recurses } """
+      val newStats =
+        recurses ++
+            stats ++
+            Seq(fieldsDef) ++
+            Seq(typReader)
       val newTemplate = template"""
         { ..$earlyStats } with ..$newCtorCalls { $param => ..$newStats }
                                   """

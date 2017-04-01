@@ -2,7 +2,7 @@ package metaconfig
 
 import org.scalatest.FunSuite
 
-class ConfigConfDecoderTest extends FunSuite {
+class DerivationTest extends FunSuite {
   type Result[T] = Either[Throwable, T]
 
   @DeriveConfDecoder
@@ -12,6 +12,9 @@ class ConfigConfDecoderTest extends FunSuite {
   case class Outer(i: Int, inner: Inner) {
     implicit val innerReader: ConfDecoder[Inner] = inner.reader
   }
+
+  @DeriveConfDecoder
+  case class OuterRecurse(i: Int, @metaconfig.Recurse inner: Inner)
 
   @DeriveConfDecoder
   case class Bar(i: Int, b: Boolean, s: String)
@@ -71,7 +74,10 @@ class ConfigConfDecoderTest extends FunSuite {
         "nest" -> Conf.Num(5)
       )
     )
-    val o = Outer(2, Inner(3)).reader.read(m)
+    val Right(n) = OuterRecurse(2, Inner(3)).reader.read(m)
+    val Right(o) = Outer(2, Inner(3)).reader.read(m)
+    assert(o == Outer(4, Inner(5)))
+    assert(n == OuterRecurse(4, Inner(5)))
   }
 
   test("Seq") {
