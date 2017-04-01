@@ -61,7 +61,7 @@ object Hocon2Class {
   }
 
   def gimmeClass[T](configStr: String,
-                    reader: metaconfig.Reader[T],
+                    reader: metaconfig.ConfDecoder[T],
                     path: Option[String] = None): metaconfig.Result[T] = {
     for {
       config <- gimmeConfig(configStr, path).right

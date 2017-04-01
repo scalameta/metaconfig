@@ -5,7 +5,6 @@ import scala.collection.immutable.Map
 import scala.collection.immutable.Seq
 import scala.meta._
 import scala.meta.tokens.Token.Constant
-import scala.reflect.ClassTag
 
 class Error(msg: String) extends Exception(msg)
 case class FailedToReadClass(className: String, error: Throwable)
@@ -14,13 +13,14 @@ case class ConfigError(msg: String) extends Error(msg)
 case class ConfigErrors(es: scala.Seq[Throwable])
     extends Error(s"Errors: ${es.mkString("\n")}")
 
+class Recurse extends scala.annotation.StaticAnnotation
 class ExtraName(string: String) extends scala.annotation.StaticAnnotation
 
 @compileTimeOnly("@metaconfig.Config not expanded")
-class ConfigReader extends scala.annotation.StaticAnnotation {
+class DeriveConfDecoder extends scala.annotation.StaticAnnotation {
 
   inline def apply(defn: Any): Any = meta {
-    def genReader(typ: Type, params: Seq[Term.Param] = Seq.empty): Defn.Val = {
+    def derviveDecoder(typ: Type, params: Seq[Term.Param] = Seq.empty): Defn.Val = {
       val mapName = Term.Name("obj")
       val classLit = Lit.String(typ.syntax)
       val extraNames: Map[String, Seq[Term.Arg]] = params.collect {
@@ -48,7 +48,7 @@ class ConfigReader extends scala.annotation.StaticAnnotation {
       val bind = Term.Name("x")
       val x = q"""val x = "string""""
       val patTyped = Pat.Typed(Pat.Var.Term(bind), typ.asInstanceOf[Pat.Type])
-      q"""val reader: _root_.metaconfig.Reader[$typ] = new _root_.metaconfig.Reader[$typ] {
+      q"""val reader: _root_.metaconfig.ConfDecoder[$typ] = new _root_.metaconfig.ConfDecoder[$typ] {
           override def read(any: _root_.metaconfig.Conf): _root_.metaconfig.Result[$typ] = {
             any match {
               case obj @ _root_.metaconfig.Conf.Obj(_) =>
@@ -70,7 +70,7 @@ class ConfigReader extends scala.annotation.StaticAnnotation {
               case els =>
                 val msg =
                   $classLit + " cannot be '" + els +
-                    "' (of class " + els.simpleType + ")."
+                    "' (of class " + els.kind + ")."
                 Left(_root_.metaconfig.ConfigError(msg))
             }
           }
@@ -97,8 +97,28 @@ class ConfigReader extends scala.annotation.StaticAnnotation {
           Term.Apply(q"_root_.scala.collection.immutable.Map", fields)
         q"def fields: Map[String, Any] = $body"
       }
-      val typReader = genReader(tname, flatParams)
-      val newStats = stats ++ Seq(fieldsDef) ++ Seq(typReader)
+      val typReader = derviveDecoder(tname, flatParams)
+
+      def implicitName(p: Term.Param): Term.Name =
+        Term.Name(p.name.value + p.decltpe.map(_.syntax).getOrElse("")  + "Decoder")
+      val recurses: Seq[Stat] = flatParams.collect {
+        case p: Term.Param if p.mods.exists {
+          case mod"@Recurse" => true
+          case mod"@metaconfig.Recurse" =>  true
+          case _ => false
+        } =>
+          val tpe = p.decltpe.get.asInstanceOf[Type]
+          q"""
+              implicit val ${Pat.Var.Term(implicitName(p))}: _root_.metaconfig.ConfDecoder[$tpe] =
+                ${Term.Name(p.name.value)}.reader
+           """
+      }
+      val lowPriorityImplicits = q""" object LowPriImplicits { ..$recurses } """
+      val newStats =
+        recurses ++
+            stats ++
+            Seq(fieldsDef) ++
+            Seq(typReader)
       val newTemplate = template"""
         { ..$earlyStats } with ..$newCtorCalls { $param => ..$newStats }
                                   """

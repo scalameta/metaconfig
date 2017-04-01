@@ -2,24 +2,27 @@ package metaconfig
 
 import org.scalatest.FunSuite
 
-class ConfigReaderTest extends FunSuite {
+class DerivationTest extends FunSuite {
   type Result[T] = Either[Throwable, T]
 
-  @ConfigReader
+  @DeriveConfDecoder
   case class Inner(nest: Int)
 
-  @ConfigReader
+  @DeriveConfDecoder
   case class Outer(i: Int, inner: Inner) {
-    implicit val innerReader: Reader[Inner] = inner.reader
+    implicit val innerReader: ConfDecoder[Inner] = inner.reader
   }
 
-  @ConfigReader
+  @DeriveConfDecoder
+  case class OuterRecurse(i: Int, @metaconfig.Recurse inner: Inner)
+
+  @DeriveConfDecoder
   case class Bar(i: Int, b: Boolean, s: String)
 
-  @ConfigReader
+  @DeriveConfDecoder
   case class HasList(i: Seq[Int])
 
-  @ConfigReader
+  @DeriveConfDecoder
   case class HasMap(i: Map[String, Int])
 
   val b = Bar(0, true, "str")
@@ -71,7 +74,10 @@ class ConfigReaderTest extends FunSuite {
         "nest" -> Conf.Num(5)
       )
     )
-    val o = Outer(2, Inner(3)).reader.read(m)
+    val Right(n) = OuterRecurse(2, Inner(3)).reader.read(m)
+    val Right(o) = Outer(2, Inner(3)).reader.read(m)
+    assert(o == Outer(4, Inner(5)))
+    assert(n == OuterRecurse(4, Inner(5)))
   }
 
   test("Seq") {
@@ -90,11 +96,12 @@ class ConfigReaderTest extends FunSuite {
   }
 
   case object Kase
-  @ConfigReader
+  @DeriveConfDecoder
   case class Ob(kase: Kase.type) {
-    implicit val KaseReader: Reader[Kase.type] = Reader.stringR.flatMap { x =>
-      ???
-    }
+    implicit val KaseReader: ConfDecoder[Kase.type] =
+      ConfDecoder.stringR.flatMap { x =>
+        ???
+      }
   }
 
   test("Runtime ???") {
@@ -107,7 +114,7 @@ class ConfigReaderTest extends FunSuite {
     assert(e.getMessage().startsWith("Failed to read 'Ob'"))
   }
 
-  @ConfigReader
+  @DeriveConfDecoder
   case class HasExtra(@ExtraName("b") @metaconfig.ExtraName("c") a: Int)
   test("@ExtraName") {
     val x = HasExtra(1)

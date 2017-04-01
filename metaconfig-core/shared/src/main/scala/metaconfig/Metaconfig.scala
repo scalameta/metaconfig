@@ -11,7 +11,7 @@ object Metaconfig {
         .orElse(getKey(obj, keys.tail))
 
   def get[T](conf: Conf.Obj)(default: T, path: String, extraNames: String*)(
-      implicit ev: Reader[T],
+      implicit ev: ConfDecoder[T],
       clazz: ClassTag[T]): T = {
     getKey(conf, path +: extraNames) match {
       case Some(value) =>
