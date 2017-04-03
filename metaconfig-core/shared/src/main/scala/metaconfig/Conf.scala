@@ -12,6 +12,7 @@ sealed abstract class Conf extends Product with Serializable {
   final def diff(other: Conf): Option[(Conf, Conf)] = ConfOps.diff(this, other)
   final override def toString: String = show
 }
+
 object Conf {
   case class Str(value: String) extends Conf
   case class Num(value: BigDecimal) extends Conf
@@ -74,10 +75,17 @@ object ConfOps {
       obj(x).mapValues(y => fold(y)(str, num, bool, lst, obj))
   }
 
+  def escape(str: String): String =
+    str.flatMap {
+      case '\\' => "\\\\"
+      case '\n' => "\\n"
+      case '"' => "\""
+      case other => other.toString
+    }
+
   // TODO(olafur) use something like Paiges to get pretty output.
   final def show(conf: Conf): String = conf match {
-    case Str("") => "\"\""
-    case Str(v) => v
+    case Str(v) => "\"%s\"".format(escape(v))
     case Num(v) => v.toString()
     case Bool(v) => v.toString
     case Lst(vs) => vs.map(show).mkString("[", ", ", "]")
