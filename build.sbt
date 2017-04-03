@@ -17,6 +17,7 @@ lazy val ParadiseVersion = "3.0.0-185"
 lazy val baseSettings = Seq(
   // Only needed when using bintray snapshot versions
   resolvers += Resolver.bintrayIvyRepo("scalameta", "maven"),
+  libraryDependencies += "org.scalacheck" %%% "scalacheck" % "1.13.5" % Test,
   libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.1" % Test
 )
 
@@ -73,10 +74,14 @@ lazy val `metaconfig-coreJS` = `metaconfig-core`.js
 lazy val `metaconfig-hocon` = crossProject
   .settings(
     allSettings,
-    metaMacroSettings,
-    libraryDependencies += "eu.unicredit" %%% "shocon" % "0.1.6"
+    metaMacroSettings
   )
-  .dependsOn(`metaconfig-core`)
+  .jvmSettings(
+    libraryDependencies ++= Seq(
+      "com.typesafe" % "config" % "1.3.1" % Test
+    )
+  )
+  .dependsOn(`metaconfig-core` % "test->test;compile->compile")
 lazy val `metaconfig-hoconJVM` = `metaconfig-hocon`.jvm
 lazy val `metaconfig-hoconJS` = `metaconfig-hocon`.js
 

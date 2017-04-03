@@ -53,7 +53,7 @@ class DerivationTest extends FunSuite {
   }
   test("unexpected type") {
     val msg =
-      "Error reading field 'i'. Expected argument of type int. Obtained value 'str' of type String."
+      "Error reading field 'i'. Expected argument of type int. Obtained value '\"str\"' of type String."
     val Left(e @ FailedToReadClass("Bar", _)) =
       b.reader.read(Conf.Obj("i" -> Conf.Str("str")))
     assert(e.getMessage.endsWith(msg))
