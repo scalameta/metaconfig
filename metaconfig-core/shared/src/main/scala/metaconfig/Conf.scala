@@ -1,15 +1,25 @@
 package metaconfig
 
+import scala.meta.inputs.Position
 import scala.util.Try
 
 import metaconfig.Extractors._
+import org.scalameta.logger
 
 // This structure is like JSON except it doesn't support null.
 sealed abstract class Conf extends Product with Serializable {
+  def pos: Position = Position.None
+  final def withPos(pos: Position): Conf = ConfOps.withPos(this, pos)
   final def normalize: Conf = ConfOps.normalize(this)
   final def kind: String = ConfOps.kind(this)
   final def show: String = ConfOps.show(this)
+  final def foreach(f: Conf => Unit): Unit = ConfOps.foreach(this)(f)
   final def diff(other: Conf): Option[(Conf, Conf)] = ConfOps.diff(this, other)
+  // Customize equals because we subtype classes (which is bad)
+  override final def equals(obj: scala.Any): Boolean = obj match {
+    case other: Conf => ConfOps.diff(this, other).isEmpty
+    case _ => false
+  }
   final override def toString: String = show
 }
 
@@ -34,6 +44,22 @@ object Conf {
 
 object ConfOps {
   import Conf._
+  def withPos(conf: Conf, newPos: Position): Conf = conf match {
+    case Conf.Obj(value) =>
+      // Subtyping case classes is bad, but I'm too lazy and I couldn't find a less
+      // verbose way to include positions. The alternative I could think of was
+      // to write the custom apply/unapply/toString OR pattern match on
+      // `case Obj(value, pos)`, which I don't want to do either.
+      new Conf.Obj(value) { override def pos: Position = newPos }
+    case Conf.Lst(value) =>
+      new Conf.Lst(value) { override def pos: Position = newPos }
+    case Conf.Str(value) =>
+      new Conf.Str(value) { override def pos: Position = newPos }
+    case Conf.Bool(value) =>
+      new Conf.Bool(value) { override def pos: Position = newPos }
+    case Conf.Num(value) =>
+      new Conf.Num(value) { override def pos: Position = newPos }
+  }
 
   def diff(a: Conf, b: Conf): Option[(Conf, Conf)] = (a, b) match {
     case (o1 @ Obj(v1), o2 @ Obj(v2)) =>
@@ -61,6 +87,11 @@ object ConfOps {
   def sortKeys(c: Conf): Conf =
     ConfOps.fold(c)(obj = x => Conf.Obj(x.values.sortBy(_._1)))
 
+  def foreach(conf: Conf)(f: Conf => Unit): Unit = conf match {
+    case Str(_) | Bool(_) | Num(_) => f(conf)
+    case Lst(values) => f(conf); values.foreach(x => foreach(x)(f))
+    case Obj(values) => f(conf); values.foreach(x => foreach(x._2)(f))
+  }
   def fold(conf: Conf)(str: Str => Str = identity,
                        num: Num => Num = identity,
                        bool: Bool => Bool = identity,

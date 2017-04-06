@@ -66,19 +66,31 @@ lazy val allSettings = baseSettings ++ publishSettings ++ metaMacroSettings
 lazy val `metaconfig-core` = crossProject
   .settings(
     allSettings,
+    // Position/Input
+    libraryDependencies += "org.scalameta" %% "inputs" % MetaVersion,
     metaMacroSettings
   )
 lazy val `metaconfig-coreJVM` = `metaconfig-core`.jvm
 lazy val `metaconfig-coreJS` = `metaconfig-core`.js
 
+lazy val typesafeConfig = "com.typesafe" % "config" % "1.2.1"
+
+lazy val `metaconfig-typesafe-config` = project
+  .settings(
+    allSettings,
+    description := "Integration for HOCON using typesafehub/config.",
+    libraryDependencies += typesafeConfig
+  )
+  .dependsOn(`metaconfig-coreJVM` % "test->test;compile->compile")
+
 lazy val `metaconfig-hocon` = crossProject
   .settings(
     allSettings,
-    metaMacroSettings
+    description := "Integration for HOCON using custom parser."
   )
   .jvmSettings(
     libraryDependencies ++= Seq(
-      "com.typesafe" % "config" % "1.3.1" % Test
+      typesafeConfig % Test
     )
   )
   .dependsOn(`metaconfig-core` % "test->test;compile->compile")
