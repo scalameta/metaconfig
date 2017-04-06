@@ -6,13 +6,12 @@ import scala.collection.immutable.Seq
 import scala.meta._
 import scala.meta.tokens.Token.Constant
 
-sealed class Error(msg: String) extends Exception(msg)
-case class FailedToReadClass(className: String, error: Throwable)
-    extends Error(s"Failed to read '$className'. ${error.getMessage}")
-case class ParseError(msg: String) extends Error(msg)
-case class ConfigError(msg: String) extends Error(msg)
+case class InvalidField(className: String, invalidFields: Seq[String])
+    extends IllegalArgumentException(
+      s"""Error reading '$className'. Invalid fields: ${invalidFields.mkString(", ")}"""
+    )
 case class ConfigErrors(es: scala.Seq[Throwable])
-    extends Error(s"Errors: ${es.mkString("\n")}")
+    extends Exception(es.map(_.getMessage).mkString("\n"))
 
 class Recurse extends scala.annotation.StaticAnnotation
 class ExtraName(string: String) extends scala.annotation.StaticAnnotation
@@ -56,23 +55,21 @@ class DeriveConfDecoder extends scala.annotation.StaticAnnotation {
                 val validFields = _root_.scala.collection.immutable.Set(..$argLits)
                 val invalidFields = obj.keys.filterNot(validFields)
                 if (invalidFields.nonEmpty) {
-                  val msg =
-                    "Error reading class '" + $classLit + "'. " +
-                    "Invalid fields: " + invalidFields.mkString(", ")
-                  Left(_root_.metaconfig.ConfigError(msg))
+                  Left(_root_.metaconfig.InvalidField($classLit, invalidFields))
                 } else {
                   try {
                       Right(new $constructor(..$defaultArgs))
                   } catch {
                     case _root_.scala.util.control.NonFatal(e) =>
-                      Left(_root_.metaconfig.FailedToReadClass(${typ.syntax}, e))
+                      Left(new _root_.java.lang.IllegalArgumentException(
+                          "Failed to read class '" + $classLit + "'", e))
                   }
                 }
               case els =>
                 val msg =
                   $classLit + " cannot be '" + els +
                     "' (of class " + els.kind + ")."
-                Left(_root_.metaconfig.ConfigError(msg))
+                Left(new _root_.java.lang.IllegalArgumentException(msg))
             }
           }
         }

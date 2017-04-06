@@ -1,6 +1,8 @@
 package metaconfig
 
+import scala.meta.inputs.Position
 import scala.reflect.ClassTag
+import scala.meta.internal.inputs._
 
 object Metaconfig {
   def getKey(obj: Conf.Obj, keys: Seq[String]): Option[Conf] =
@@ -23,7 +25,12 @@ object Metaconfig {
               s"Error reading field '$path'. " +
                 s"Expected argument of type $simpleName. " +
                 s"Obtained ${e.getMessage}"
-            throw _root_.metaconfig.ConfigError(msg)
+            val formatted = conf.pos match {
+              case Position.None => msg
+              case Position.Range(_, start, _) =>
+                start.formatMessage("error", msg)
+            }
+            throw new IllegalArgumentException(formatted, e)
           case Left(e) => throw e
         }
       case None => default

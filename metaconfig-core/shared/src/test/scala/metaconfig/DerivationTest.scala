@@ -29,8 +29,7 @@ class DerivationTest extends FunSuite {
   test("invalid field") {
     assert(
       b.reader.read(Conf.Obj("is" -> Conf.Num(2), "var" -> Conf.Num(3))) ==
-        Left(
-          ConfigError("Error reading class 'Bar'. Invalid fields: is, var")))
+        Left(InvalidField("Bar", List("is", "var"))))
   }
 
   test("read OK") {
@@ -54,9 +53,9 @@ class DerivationTest extends FunSuite {
   test("unexpected type") {
     val msg =
       "Error reading field 'i'. Expected argument of type int. Obtained value '\"str\"' of type String."
-    val Left(e @ FailedToReadClass("Bar", _)) =
+    val Left(e: IllegalArgumentException) =
       b.reader.read(Conf.Obj("i" -> Conf.Str("str")))
-    assert(e.getMessage.endsWith(msg))
+    assert(e.getCause != null)
   }
 
   test("write OK") {
@@ -108,10 +107,9 @@ class DerivationTest extends FunSuite {
     val m = Conf.Obj(
       "kase" -> Conf.Str("string")
     )
-    val Left(e @ FailedToReadClass("Ob", _: NotImplementedError)) =
+    val Left(e: IllegalArgumentException) =
       Ob(Kase).reader.read(m)
-    org.scalameta.logger.elem(e)
-    assert(e.getMessage().startsWith("Failed to read 'Ob'"))
+    assert(e.getCause != null)
   }
 
   @DeriveConfDecoder

@@ -11,7 +11,8 @@ object Hocon2Class {
     try {
       HoconParser.root.parse(str) match {
         case Parsed.Success(value, _) => Right(value)
-        case e @ Parsed.Failure(_, _, _) => Left(metaconfig.ParseError(e.msg))
+        case e @ Parsed.Failure(_, _, _) =>
+          Left(new IllegalArgumentException(e.msg))
       }
     } catch {
       case NonFatal(e) => Left(e)
