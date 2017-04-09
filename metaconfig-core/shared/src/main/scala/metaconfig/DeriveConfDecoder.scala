@@ -6,12 +6,7 @@ import scala.collection.immutable.Seq
 import scala.meta._
 import scala.meta.tokens.Token.Constant
 
-case class InvalidField(className: String, invalidFields: Seq[String])
-    extends IllegalArgumentException(
-      s"""Error reading '$className'. Invalid fields: ${invalidFields.mkString(", ")}"""
-    )
-case class ConfigErrors(es: scala.Seq[Throwable])
-    extends Exception(es.map(_.getMessage).mkString("\n"))
+import org.scalameta.logger
 
 class Recurse extends scala.annotation.StaticAnnotation
 class ExtraName(string: String) extends scala.annotation.StaticAnnotation
@@ -21,8 +16,6 @@ class DeriveConfDecoder extends scala.annotation.StaticAnnotation {
 
   inline def apply(defn: Any): Any = meta {
     def derviveDecoder(typ: Type, params: Seq[Term.Param] = Seq.empty): Defn.Val = {
-      val mapName = Term.Name("obj")
-      val classLit = Lit.String(typ.syntax)
       val extraNames: Map[String, Seq[Term.Arg]] = params.collect {
         case p: Term.Param =>
           p.name.syntax -> p.mods.collect {
@@ -30,46 +23,42 @@ class DeriveConfDecoder extends scala.annotation.StaticAnnotation {
             case mod"@metaconfig.ExtraName(..${List(extraName)})" => extraName
           }
       }.toMap
-      def defaultArgs: Seq[Term.Arg] = {
-        params.collect {
-          case Term.Param(mods, pName: Term.Name, Some(pTyp: Type), _) =>
-            val nameLit = Lit.String(pName.syntax)
-            val args = Seq(pName, nameLit) ++ extraNames(pName.syntax)
-            Term.Arg.Named(
-              pName,
-              q"""_root_.metaconfig.Metaconfig.get[$pTyp](obj)(..$args)"""
-            )
-        }
+      val namesAndType = params.collect {
+        case Term.Param(mods, name: Term.Name, Some(typ: Type), _) =>
+          name -> typ
       }
+      val names = namesAndType.map {
+        case (Term.Name(name), _) =>
+          Term.Name("p" + name)
+      }
+      val ctor = Ctor.Ref.Name(typ.syntax)
+      val constructor = q"new $ctor(..$names)"
+      val deconstruct = Case(names.foldRight[Pat](Lit.Unit(())) {
+        case (name, accum) => p"(${Pat.Var.Term(name)}, $accum)"
+      }, None, constructor)
+      val product = namesAndType.foldRight[Term](q"_root_.metaconfig.Configured.unit") {
+        case ((tName @ Term.Name(name), tpe), accum) =>
+          val extraName = extraNames(name)
+          val get = q"_root_.metaconfig.Metaconfig.get[$tpe](obj)($tName, $name, ..$extraName)"
+          q"$get.product($accum)"
+      }
+      val mapFromProduct = Term.Apply(q"$product.map",Seq(Term.PartialFunction(Seq(deconstruct))))
       val argLits =
         params.map(x => Lit.String(x.name.syntax)) ++
           extraNames.values.flatten
-      val constructor = Ctor.Ref.Name(typ.syntax)
-      val bind = Term.Name("x")
-      val x = q"""val x = "string""""
-      val patTyped = Pat.Typed(Pat.Var.Term(bind), typ.asInstanceOf[Pat.Type])
       q"""val reader: _root_.metaconfig.ConfDecoder[$typ] = new _root_.metaconfig.ConfDecoder[$typ] {
-          override def read(any: _root_.metaconfig.Conf): _root_.metaconfig.Result[$typ] = {
-            any match {
+          override def read(conf: _root_.metaconfig.Conf): _root_.metaconfig.Configured[$typ] = {
+            conf match {
               case obj @ _root_.metaconfig.Conf.Obj(_) =>
                 val validFields = _root_.scala.collection.immutable.Set(..$argLits)
                 val invalidFields = obj.keys.filterNot(validFields)
                 if (invalidFields.nonEmpty) {
-                  Left(_root_.metaconfig.InvalidField($classLit, invalidFields))
+                  Configured.NotOk(_root_.metaconfig.ConfError.invalidFields(invalidFields, validFields))
                 } else {
-                  try {
-                      Right(new $constructor(..$defaultArgs))
-                  } catch {
-                    case _root_.scala.util.control.NonFatal(e) =>
-                      Left(new _root_.java.lang.IllegalArgumentException(
-                          "Failed to read class '" + $classLit + "'", e))
-                  }
+                  $mapFromProduct
                 }
               case els =>
-                val msg =
-                  $classLit + " cannot be '" + els +
-                    "' (of class " + els.kind + ")."
-                Left(new _root_.java.lang.IllegalArgumentException(msg))
+                Configured.NotOk(_root_.metaconfig.ConfError.typeMismatch(${typ.syntax}, els))
             }
           }
         }
@@ -111,7 +100,6 @@ class DeriveConfDecoder extends scala.annotation.StaticAnnotation {
                 ${Term.Name(p.name.value)}.reader
            """
       }
-      val lowPriorityImplicits = q""" object LowPriImplicits { ..$recurses } """
       val newStats =
         recurses ++
             stats ++

@@ -14,7 +14,7 @@ class Hocon2ClassTest extends FunSuite {
 
   def check(config: String, expected: Conf): Unit = {
     test(expected.show) {
-      val Right(obtained) = Hocon2Class.gimmeConfig(config)
+      val Configured.Ok(obtained) = Hocon2Class.gimmeConfig(config)
       assert(obtained.normalize == expected)
     }
   }
@@ -41,7 +41,7 @@ class Hocon2ClassTest extends FunSuite {
       """
         |a = 666
       """.stripMargin
-    val Right(obtained) =
+    val Configured.Ok(obtained) =
       Hocon2Class.gimmeClass[MyConfig](config, default.reader)
     val expected = default.copy(a = 666)
     assert(obtained == expected)

@@ -1,5 +1,6 @@
 package metaconfig
 
+import org.scalameta.logger
 import org.scalatest.FunSuite
 
 class DerivationTest extends FunSuite {
@@ -28,34 +29,33 @@ class DerivationTest extends FunSuite {
   val b = Bar(0, true, "str")
   test("invalid field") {
     assert(
-      b.reader.read(Conf.Obj("is" -> Conf.Num(2), "var" -> Conf.Num(3))) ==
-        Left(InvalidField("Bar", List("is", "var"))))
+      b.reader
+        .read(Conf.Obj("is" -> Conf.Num(2), "var" -> Conf.Num(3)))
+        .isNotOk)
   }
 
   test("read OK") {
     assert(
       b.reader.read(Conf.Obj("i" -> Conf.Num(2))) ==
-        Right(b.copy(i = 2)))
+        Configured.Ok(b.copy(i = 2)))
     assert(
       b.reader.read(Conf.Obj("s" -> Conf.Str("str"))) ==
-        Right(b.copy(s = "str")))
+        Configured.Ok(b.copy(s = "str")))
     assert(
       b.reader.read(Conf.Obj("b" -> Conf.Bool(true))) ==
-        Right(b.copy(b = true)))
+        Configured.Ok(b.copy(b = true)))
     assert(
       b.reader.read(
         Conf.Obj(
           "i" -> Conf.Num(3),
           "b" -> Conf.Bool(true),
           "s" -> Conf.Str("rand")
-        )) == Right(b.copy(i = 3, s = "rand", b = true)))
+        )) == Configured.Ok(b.copy(i = 3, s = "rand", b = true)))
   }
   test("unexpected type") {
     val msg =
       "Error reading field 'i'. Expected argument of type int. Obtained value '\"str\"' of type String."
-    val Left(e: IllegalArgumentException) =
-      b.reader.read(Conf.Obj("i" -> Conf.Str("str")))
-    assert(e.getCause != null)
+    assert(b.reader.read(Conf.Obj("i" -> Conf.Str("str"))).isNotOk)
   }
 
   test("write OK") {
@@ -73,8 +73,8 @@ class DerivationTest extends FunSuite {
         "nest" -> Conf.Num(5)
       )
     )
-    val Right(n) = OuterRecurse(2, Inner(3)).reader.read(m)
-    val Right(o) = Outer(2, Inner(3)).reader.read(m)
+    val Configured.Ok(n) = OuterRecurse(2, Inner(3)).reader.read(m)
+    val Configured.Ok(o) = Outer(2, Inner(3)).reader.read(m)
     assert(o == Outer(4, Inner(5)))
     assert(n == OuterRecurse(4, Inner(5)))
   }
@@ -84,21 +84,21 @@ class DerivationTest extends FunSuite {
     assert(
       lst.reader
         .read(Conf.Obj("i" -> Conf.Lst(Conf.Num(666), Conf.Num(777)))) ==
-        Right(HasList(Seq(666, 777))))
+        Configured.Ok(HasList(Seq(666, 777))))
   }
 
   test("Conf.Obj") {
     val lst = HasMap(Map("1" -> 2))
     assert(
       lst.reader.read(Conf.Obj("i" -> Conf.Obj("666" -> Conf.Num(777)))) ==
-        Right(HasMap(Map("666" -> 777))))
+        Configured.Ok(HasMap(Map("666" -> 777))))
   }
 
   case object Kase
   @DeriveConfDecoder
   case class Ob(kase: Kase.type) {
     implicit val KaseReader: ConfDecoder[Kase.type] =
-      ConfDecoder.stringR.flatMap { x =>
+      ConfDecoder.stringConfDecoder.flatMap { x =>
         ???
       }
   }
@@ -107,17 +107,25 @@ class DerivationTest extends FunSuite {
     val m = Conf.Obj(
       "kase" -> Conf.Str("string")
     )
-    val Left(e: IllegalArgumentException) =
-      Ob(Kase).reader.read(m)
-    assert(e.getCause != null)
+    intercept[NotImplementedError] { Ob(Kase).reader.read(m).isNotOk }
   }
 
   @DeriveConfDecoder
   case class HasExtra(@ExtraName("b") @metaconfig.ExtraName("c") a: Int)
   test("@ExtraName") {
     val x = HasExtra(1)
-    val Right(HasExtra(2)) = x.reader.read(Conf.Obj("b" -> Conf.Num(2)))
-    val Right(HasExtra(3)) = x.reader.read(Conf.Obj("c" -> Conf.Num(3)))
-    val Left(_) = x.reader.read(Conf.Obj("d" -> Conf.Num(3)))
+    val Configured.Ok(HasExtra(2)) =
+      x.reader.read(Conf.Obj("b" -> Conf.Num(2)))
+    val Configured.Ok(HasExtra(3)) =
+      x.reader.read(Conf.Obj("c" -> Conf.Num(3)))
+    val Configured.NotOk(_) = x.reader.read(Conf.Obj("d" -> Conf.Num(3)))
   }
+
+  import Configured._
+  val merged = Ok(1)
+    .product(Ok("a"))
+    .product(Ok("b"))
+    .product(NotOk(ConfError.typeMismatch("Ok", Conf.Num(1))))
+    .product(NotOk(ConfError.typeMismatch("bar", Conf.Str("booze"))))
+  logger.elem(merged)
 }
