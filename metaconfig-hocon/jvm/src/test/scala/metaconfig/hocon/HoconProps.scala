@@ -33,8 +33,8 @@ class HoconProps extends Properties("Compliance") {
   property("normalized") = forAll { conf: ConfShow =>
     val typesafeConf =
       sortKeys(config2map(ConfigFactory.parseString(conf.str)).normalize)
-    val Right(metaconfigConf) =
-      Hocon2Class.gimmeConfig(conf.str).right.map(x => sortKeys(x.normalize))
+    val Configured.Ok(metaconfigConf) =
+      Hocon2Class.gimmeConfig(conf.str).map(x => sortKeys(x.normalize))
     metaconfigConf == typesafeConf
   }
 }

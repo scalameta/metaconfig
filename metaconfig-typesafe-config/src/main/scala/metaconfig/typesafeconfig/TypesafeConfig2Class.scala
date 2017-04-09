@@ -8,14 +8,20 @@ import scala.meta.inputs._
 import scala.meta.io.AbsolutePath
 
 object TypesafeConfig2Class {
-  def gimmeConfFromString(string: String): Result[Conf] =
+  def gimmeConfFromString(string: String): Configured[Conf] =
     gimmeSafeConf(() => ConfigFactory.parseString(string))
-  def gimmeConfFromFile(file: java.io.File): Result[Conf] =
-    gimmeSafeConf(() => ConfigFactory.parseFile(file))
-  def gimmeConf(config: Config): Result[Conf] =
+  def gimmeConfFromFile(file: java.io.File): Configured[Conf] = {
+    if (!file.exists())
+      Configured.NotOk(ConfError.fileDoesNotExist(file.getAbsolutePath))
+    else if (file.isDirectory)
+      Configured.NotOk(
+        ConfError.msg(s"File ${file.getAbsolutePath} is a directory"))
+    else gimmeSafeConf(() => ConfigFactory.parseFile(file))
+  }
+  def gimmeConf(config: Config): Configured[Conf] =
     gimmeSafeConf(() => config)
 
-  private def gimmeSafeConf(f: () => Config): Result[Conf] = {
+  private def gimmeSafeConf(config: () => Config): Configured[Conf] = {
     val cache = mutable.Map.empty[Input, Array[Int]]
     def loop(value: ConfigValue): Conf = {
       val conf = value match {
@@ -36,39 +42,34 @@ object TypesafeConfig2Class {
                 s"Unexpected config value $value with unwrapped value $x")
           }
       }
-      getPosition(value, cache).fold(conf)(conf.withPos)
+      getPositionOpt(value.origin(), cache).fold(conf)(conf.withPos)
     }
     try {
-      Right(loop(f().resolve().root()))
+      Configured.Ok(loop(config().resolve().root()))
     } catch {
-      case scala.util.control.NonFatal(e) =>
-        Left(e)
+      case e: ConfigException.Parse =>
+        Configured.NotOk(
+          ConfError.parseError(getPosition(e.origin(), cache), e.getMessage))
     }
   }
 
-  // Copy-pasted from scala.meta inputs because it's private.
-  // TODO(olafur) expose utility in inputs to get offset from line
-  private def getOffsetByLine(chars: Array[Char]): Array[Int] = {
-    val buf = new mutable.ArrayBuffer[Int]
-    buf += 0
-    var i = 0
-    while (i < chars.length) {
-      if (chars(i) == '\n') buf += (i + 1)
-      i += 1
-    }
-    if (buf.last != chars.length) buf += chars.length // sentinel value used for binary search
-    buf.toArray
-  }
+  private def getPosition(originOrNull: ConfigOrigin,
+                          cache: mutable.Map[Input, Array[Int]]): Position =
+    getPositionOpt(originOrNull, cache).getOrElse(Position.None)
 
-  private def getPosition(
-      value: ConfigValue,
+  private def getPositionOpt(
+      originOrNull: ConfigOrigin,
       cache: mutable.Map[Input, Array[Int]]): Option[Position] =
     for {
-      origin <- Option(value.origin())
+      origin <- Option(originOrNull)
       url <- Option(origin.url())
-      line <- Option(origin.lineNumber())
+      linePlus1 <- Option(origin.lineNumber())
+      line = linePlus1 - 1
       input = Input.File(new java.io.File(url.toURI))
-      offsetByLine = cache.getOrElseUpdate(input, getOffsetByLine(input.chars))
+      offsetByLine = cache.getOrElseUpdate(
+        input,
+        Metaconfig.getOffsetByLine(input.chars))
+      if line < offsetByLine.length
       point = Point.Offset(input, offsetByLine(line))
     } yield Position.Range(input, point, point)
 

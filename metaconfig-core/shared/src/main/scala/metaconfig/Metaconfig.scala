@@ -1,10 +1,12 @@
 package metaconfig
 
+import scala.collection.mutable
 import scala.meta.inputs.Position
 import scala.reflect.ClassTag
 import scala.meta.internal.inputs._
 
 object Metaconfig {
+
   def getKey(obj: Conf.Obj, keys: Seq[String]): Option[Conf] =
     if (keys.isEmpty) None
     else
@@ -13,27 +15,23 @@ object Metaconfig {
         .orElse(getKey(obj, keys.tail))
 
   def get[T](conf: Conf.Obj)(default: T, path: String, extraNames: String*)(
-      implicit ev: ConfDecoder[T],
-      clazz: ClassTag[T]): T = {
+      implicit ev: ConfDecoder[T]): Configured[T] = {
     getKey(conf, path +: extraNames) match {
-      case Some(value) =>
-        ev.read(value) match {
-          case Right(e) => e
-          case Left(e: java.lang.IllegalArgumentException) =>
-            val simpleName = clazz.runtimeClass.getSimpleName
-            val msg =
-              s"Error reading field '$path'. " +
-                s"Expected argument of type $simpleName. " +
-                s"Obtained ${e.getMessage}"
-            val formatted = conf.pos match {
-              case Position.None => msg
-              case Position.Range(_, start, _) =>
-                start.formatMessage("error", msg)
-            }
-            throw new IllegalArgumentException(formatted, e)
-          case Left(e) => throw e
-        }
-      case None => default
+      case Some(value) => ev.read(value)
+      case None => Configured.Ok(default)
     }
+  }
+  // Copy-pasted from scala.meta inputs because it's private.
+  // TODO(olafur) expose utility in inputs to get offset from line
+  private[metaconfig] def getOffsetByLine(chars: Array[Char]): Array[Int] = {
+    val buf = new mutable.ArrayBuffer[Int]
+    buf += 0
+    var i = 0
+    while (i < chars.length) {
+      if (chars(i) == '\n') buf += (i + 1)
+      i += 1
+    }
+    if (buf.last != chars.length) buf += chars.length // sentinel value used for binary search
+    buf.toArray
   }
 }

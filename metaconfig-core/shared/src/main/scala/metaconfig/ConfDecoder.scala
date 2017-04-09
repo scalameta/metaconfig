@@ -1,79 +1,95 @@
 package metaconfig
 
+import scala.collection.generic.CanBuildFrom
 import scala.reflect.ClassTag
+
+import metaconfig.Configured._
 
 trait HasFields {
   def fields: Map[String, Any]
 }
 
-trait ConfDecoder[T] { self =>
-  // NOTE. This signature is a mess. It should be `read(conf: Conf): Result[T]`.
-  def read(any: Conf): Result[T]
-
-  def map[TT](f: T => TT): ConfDecoder[TT] = self.flatMap(x => Right(f(x)))
-
-  def flatMap[TT](f: T => Result[TT]): ConfDecoder[TT] =
+trait ConfDecoder[A] { self =>
+  def read(conf: Conf): Configured[A]
+  def map[B](f: A => B): ConfDecoder[B] =
+    self.flatMap(x => Ok(f(x)))
+  def flatMap[TT](f: A => Configured[TT]): ConfDecoder[TT] =
     new ConfDecoder[TT] {
-      override def read(any: Conf): Result[TT] = self.read(any) match {
-        case Right(x) => f(x)
-        case Left(x) => Left(x)
+      override def read(any: Conf): Configured[TT] = self.read(any) match {
+        case Ok(x) => f(x)
+        case NotOk(x) => Configured.NotOk(x)
       }
     }
 }
 
 object ConfDecoder {
 
-  def fail[T: ClassTag](x: Conf): Result[T] = {
-    Left(new IllegalArgumentException(s"value '${x.show}' of type ${x.kind}."))
-  }
+  // TODO(olafur) remove in favor of instanceExpect.
+  def instance[T](f: PartialFunction[Conf, Configured[T]])(
+      implicit ev: ClassTag[T]): ConfDecoder[T] = instanceExpect("Unknown")(f)
 
-  def instance[T](f: PartialFunction[Conf, Result[T]])(
-      implicit ev: ClassTag[T]) =
+  def instanceExpect[T](expect: String)(
+      f: PartialFunction[Conf, Configured[T]])(
+      implicit ev: ClassTag[T]): ConfDecoder[T] =
     new ConfDecoder[T] {
-      override def read(any: Conf): Result[T] = {
-        f.applyOrElse(any, (x: Conf) => fail[T](x))
-      }
-    }
-  implicit val intR: ConfDecoder[Int] = instance[Int] {
-    case Conf.Num(x) => Right(x.toInt)
-  }
-  implicit val stringR: ConfDecoder[String] = instance[String] {
-    case Conf.Str(x) => Right(x)
-  }
-  implicit val boolR: ConfDecoder[Boolean] = instance[scala.Boolean] {
-    case Conf.Bool(x) => Right(x)
-  }
-
-  implicit def seqR[T](implicit ev: ConfDecoder[T]): ConfDecoder[Seq[T]] =
-    instance[Seq[T]] {
-      case Conf.Lst(lst) =>
-        val res = lst.map(ev.read)
-        val lefts = res.collect { case Left(e) => e }
-        if (lefts.nonEmpty) Left(ConfigErrors(lefts))
-        else Right(res.collect { case Right(e) => e })
+      override def read(any: Conf): Configured[T] =
+        f.applyOrElse(any,
+                      (x: Conf) => NotOk(ConfError.typeMismatch(expect, x)))
     }
 
-  implicit def setR[T](implicit ev: ConfDecoder[T]): ConfDecoder[Set[T]] =
-    instance[Set[T]] {
-      case e => seqR[T].read(e).right.map(_.toSet)
+  implicit val intConfDecoder: ConfDecoder[Int] =
+    instanceExpect[Int]("Number") {
+      case Conf.Num(x) => Ok(x.toInt)
     }
-
-  // TODO(olafur) generic can build from reader
-  implicit def mapR[V](
-      implicit evV: ConfDecoder[V]): ConfDecoder[Map[String, V]] =
-    instance[Map[String, V]] {
+  implicit val bigDecimalConfDecoder: ConfDecoder[BigDecimal] =
+    instanceExpect[BigDecimal]("Number") {
+      case Conf.Num(x) => Ok(x)
+    }
+  implicit val stringConfDecoder: ConfDecoder[String] =
+    instanceExpect[String]("String") { case Conf.Str(x) => Ok(x) }
+  implicit val booleanConfDecoder: ConfDecoder[Boolean] =
+    instanceExpect[Boolean]("Bool") { case Conf.Bool(x) => Ok(x) }
+  implicit def canBuildFromMapWithStringKey[A](
+      implicit ev: ConfDecoder[A],
+      classTag: ClassTag[A]): ConfDecoder[Map[String, A]] =
+    instanceExpect[Map[String, A]](
+      s"Map[String, ${classTag.runtimeClass.getName}]") {
       case Conf.Obj(values) =>
-        val res = values.map {
-          case (k, v) =>
-            k -> evV.read(v)
+        val results = values.map {
+          case (key, value) => ev.read(value).map(key -> _)
         }
-        val lefts: Seq[Throwable] = res.collect {
-          case (_, Left(e)) => e
+        ConfError.fromResults(results) match {
+          case Some(err) => NotOk(err)
+          case None =>
+            Ok(results.collect { case Configured.Ok(x) => x }.toMap)
         }
-        if (lefts.nonEmpty) Left(ConfigErrors(lefts))
-        else {
-          val resultMap = res.collect { case (key, Right(e)) => key -> e }
-          Right(resultMap.toMap)
-        }
+    }
+
+  import scala.language.higherKinds
+  implicit def canBuildFromConfDecoder[C[_], A](
+      implicit ev: ConfDecoder[A],
+      cbf: CanBuildFrom[Nothing, A, C[A]],
+      classTag: ClassTag[A]): ConfDecoder[C[A]] =
+    new ConfDecoder[C[A]] {
+      override def read(conf: Conf): Configured[C[A]] = conf match {
+        case Conf.Lst(values) =>
+          val successB = cbf()
+          val errorB = List.newBuilder[ConfError]
+          successB.sizeHint(values.length)
+          values.foreach { value =>
+            ev.read(value) match {
+              case NotOk(e) => errorB += e
+              case Ok(e) => successB += e
+            }
+          }
+          ConfError(errorB.result()) match {
+            case Some(x) => NotOk(x)
+            case None => Ok(successB.result())
+          }
+        case _ =>
+          NotOk(
+            ConfError.typeMismatch(s"List[${classTag.runtimeClass.getName}]",
+                                   conf))
+      }
     }
 }

@@ -5,7 +5,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 import metaconfig.Conf
-import metaconfig.ConfOps
+import metaconfig.Configured
 import org.scalameta.logger
 import org.scalatest.FunSuite
 
@@ -21,9 +21,7 @@ class TypesafeConfig2ClassTest extends FunSuite {
          |]
          |a += true""".stripMargin.getBytes()
     )
-    val Right(obtained) = TypesafeConfig2Class.gimmeConfFromFile(file)
-    ConfOps.foreach(obtained)(x => logger.elem(x, x.pos))
-    logger.elem(obtained.pos)
+    val obtained = TypesafeConfig2Class.gimmeConfFromFile(file).get
     val expected = Conf.Obj(
       "a" -> Conf.Lst(
         Conf.Num(1),
@@ -32,5 +30,11 @@ class TypesafeConfig2ClassTest extends FunSuite {
       )
     )
     assert(obtained == expected)
+  }
+
+  test("file not found") {
+    val f = File.createTempFile("doesnotexist", "conf")
+    f.delete()
+    assert(TypesafeConfig2Class.gimmeConfFromFile(f).isNotOk)
   }
 }
