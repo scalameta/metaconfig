@@ -1,6 +1,6 @@
 lazy val ScalaVersions = Seq("2.11.9", "2.12.1")
 
-version in ThisBuild := "0.2.2"
+version in ThisBuild := "0.3.0-RC1"
 organization in ThisBuild := "com.geirsson"
 scalaVersion in ThisBuild := ScalaVersions.head
 crossScalaVersions in ThisBuild := ScalaVersions
