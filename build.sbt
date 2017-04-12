@@ -1,4 +1,4 @@
-lazy val ScalaVersions = Seq("2.11.9", "2.12.1")
+lazy val ScalaVersions = Seq("2.11.10", "2.12.1")
 
 version in ThisBuild := "0.3.0-RC1"
 organization in ThisBuild := "com.geirsson"
@@ -12,8 +12,8 @@ commands += Command.command("release") { s =>
     s
 }
 
-lazy val MetaVersion = "1.7.0-496-5f890293"
-lazy val ParadiseVersion = "3.0.0-300-0dbf9cb7"
+lazy val MetaVersion = "1.7.0"
+lazy val ParadiseVersion = "3.0.0-M8"
 lazy val baseSettings = Seq(
   // Only needed when using bintray snapshot versions
   resolvers += Resolver.bintrayRepo("scalameta", "maven"),
