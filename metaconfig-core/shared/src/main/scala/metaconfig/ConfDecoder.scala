@@ -26,7 +26,8 @@ object ConfDecoder {
 
   // TODO(olafur) remove in favor of instanceExpect.
   def instance[T](f: PartialFunction[Conf, Configured[T]])(
-      implicit ev: ClassTag[T]): ConfDecoder[T] = instanceExpect("Unknown")(f)
+      implicit ev: ClassTag[T]): ConfDecoder[T] =
+    instanceExpect(ev.runtimeClass.getName)(f)
 
   def instanceExpect[T](expect: String)(
       f: PartialFunction[Conf, Configured[T]])(
