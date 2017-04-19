@@ -1,5 +1,6 @@
 package metaconfig
 
+import metaconfig.Configured.Ok
 import org.scalameta.logger
 import org.scalatest.FunSuite
 
@@ -121,6 +122,23 @@ class DerivationTest extends FunSuite {
     val Configured.NotOk(_) = x.reader.read(Conf.Obj("d" -> Conf.Num(3)))
   }
 
+  @DeriveConfDecoder
+  case class HasTypeParam[T: ConfDecoder](x: T)
+
+  test("type param") {
+    val int: HasTypeParam[Int] = HasTypeParam(1)
+    implicit val confDecoderDecoderHasTypeParam =
+      ConfDecoder.instance[HasTypeParam[Int]] {
+        case Conf.Str("abb") => Ok(HasTypeParam(123))
+      }
+    val tparamInt: HasTypeParam[HasTypeParam[Int]] = HasTypeParam(int)
+
+    val Configured.Ok(HasTypeParam(2)) =
+      int.reader.read(Conf.Obj("x" -> Conf.Num(2)))
+    val Configured.Ok(HasTypeParam(HasTypeParam(123))) =
+      tparamInt.reader.read(Conf.Obj("x" -> Conf.Str("abb")))
+  }
+
   import Configured._
   val merged = Ok(1)
     .product(Ok("a"))
@@ -128,4 +146,5 @@ class DerivationTest extends FunSuite {
     .product(NotOk(ConfError.typeMismatch("Ok", Conf.Num(1))))
     .product(NotOk(ConfError.typeMismatch("bar", Conf.Str("booze"))))
   logger.elem(merged)
+
 }

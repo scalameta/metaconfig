@@ -1,9 +1,11 @@
 package metaconfig
 
-import org.scalameta.logger
-
 sealed abstract class Configured[+A] extends Product with Serializable {
   import Configured._
+  def getOrElse[B >: A](els: => B): B = this match {
+    case Ok(value) => value
+    case NotOk(_) => els
+  }
   def get: A = this match {
     case Ok(value) => value
     case NotOk(error) => throw new IllegalStateException(error.msg)
