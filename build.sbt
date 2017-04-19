@@ -1,4 +1,4 @@
-lazy val ScalaVersions = Seq("2.11.10", "2.12.1")
+lazy val ScalaVersions = Seq("2.11.11", "2.12.2")
 
 version in ThisBuild := "0.3.1"
 organization in ThisBuild := "com.geirsson"
