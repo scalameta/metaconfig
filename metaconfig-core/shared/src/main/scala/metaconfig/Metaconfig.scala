@@ -1,9 +1,13 @@
 package metaconfig
 
 import scala.collection.mutable
+import scala.meta.inputs.Input
 import scala.meta.inputs.Position
-import scala.reflect.ClassTag
 import scala.meta.internal.inputs._
+
+trait MetaconfigParser {
+  def fromInput(input: Input): Configured[Conf]
+}
 
 object Metaconfig {
 

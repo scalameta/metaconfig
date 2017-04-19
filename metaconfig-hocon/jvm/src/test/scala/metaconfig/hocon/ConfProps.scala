@@ -10,7 +10,7 @@ import org.scalameta.logger
 class ConfProps extends Properties("Conf") {
   import metaconfig.Generators.argConfShow
   property(".normalise is idempotent") = forAll { show: ConfShow =>
-    val Configured.Ok(conf) = Hocon2Class.gimmeConfig(show.str)
+    val Configured.Ok(conf) = Hocon2Class.gimmeConfig(show.input)
     val diff = conf.normalize.diff(conf.normalize.normalize)
     if (diff.nonEmpty)
       logger.elem(conf.normalize, conf.normalize.normalize, diff)

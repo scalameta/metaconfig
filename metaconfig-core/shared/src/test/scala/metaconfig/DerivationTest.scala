@@ -1,5 +1,6 @@
 package metaconfig
 
+import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok
 import org.scalameta.logger
 import org.scalatest.FunSuite
@@ -138,13 +139,5 @@ class DerivationTest extends FunSuite {
     val Configured.Ok(HasTypeParam(HasTypeParam(123))) =
       tparamInt.reader.read(Conf.Obj("x" -> Conf.Str("abb")))
   }
-
-  import Configured._
-  val merged = Ok(1)
-    .product(Ok("a"))
-    .product(Ok("b"))
-    .product(NotOk(ConfError.typeMismatch("Ok", Conf.Num(1))))
-    .product(NotOk(ConfError.typeMismatch("bar", Conf.Str("booze"))))
-  logger.elem(merged)
 
 }
