@@ -1,5 +1,7 @@
 package metaconfig
 
+import scala.meta.inputs.Input
+
 import org.scalacheck.Prop.forAll
 import org.scalacheck._
 import org.scalameta.logger
@@ -29,4 +31,6 @@ object Generators {
   implicit val argConfShow: Arbitrary[ConfShow] = Arbitrary(genConfShow)
 }
 
-case class ConfShow(str: String)
+case class ConfShow(str: String) {
+  def input = Input.String(str)
+}

@@ -86,8 +86,7 @@ lazy val `metaconfig-typesafe-config` = project
 lazy val `metaconfig-hocon` = crossProject
   .settings(
     allSettings,
-    noPublish, // This module is a WIP, use typesafe-config
-    description := "Integration for HOCON using custom parser."
+    description := "EXPERIMENTAL Integration for HOCON using custom parser. On JVM, use metaconfig-typesafe-config."
   )
   .jvmSettings(
     libraryDependencies ++= Seq(
