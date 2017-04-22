@@ -8,6 +8,7 @@ import org.scalameta.logger
 
 // This structure is like JSON except it doesn't support null.
 sealed abstract class Conf extends Product with Serializable {
+  def dynamic: ConfDynamic = ConfDynamic(Configured.Ok(this))
   def pos: Position = Position.None
   final def withPos(pos: Position): Conf = ConfOps.withPos(this, pos)
   final def normalize: Conf = ConfOps.normalize(this)
