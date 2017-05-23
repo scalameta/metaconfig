@@ -12,8 +12,8 @@ commands += Command.command("release") { s =>
     s
 }
 
-lazy val MetaVersion = "1.7.0"
-lazy val ParadiseVersion = "3.0.0-M8"
+lazy val MetaVersion = "1.8.0"
+lazy val ParadiseVersion = "3.0.0-M9"
 lazy val baseSettings = Seq(
   // Only needed when using bintray snapshot versions
   resolvers += Resolver.bintrayRepo("scalameta", "maven"),
@@ -86,6 +86,9 @@ lazy val `metaconfig-typesafe-config` = project
 lazy val `metaconfig-hocon` = crossProject
   .settings(
     allSettings,
+    libraryDependencies ++= Seq(
+      "com.lihaoyi" %%% "fastparse" % "0.4.3"
+    ),
     description := "EXPERIMENTAL Integration for HOCON using custom parser. On JVM, use metaconfig-typesafe-config."
   )
   .jvmSettings(
