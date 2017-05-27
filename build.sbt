@@ -1,13 +1,13 @@
 lazy val ScalaVersions = Seq("2.11.11", "2.12.2")
 
-version in ThisBuild := "0.3.3"
 organization in ThisBuild := "com.geirsson"
 scalaVersion in ThisBuild := ScalaVersions.head
 crossScalaVersions in ThisBuild := ScalaVersions
 noPublish
 
 commands += Command.command("release") { s =>
-  "+publishSigned" ::
+  "clean" ::
+    "+publishSigned" ::
     "sonatypeRelease" ::
     s
 }
