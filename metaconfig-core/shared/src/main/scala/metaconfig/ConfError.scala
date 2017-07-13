@@ -75,8 +75,9 @@ object ConfError {
   }
 
   // TOOD(olafur) levenshtein
-  def invalidFields(invalid: Iterable[String],
-                    valid: Iterable[String]): ConfError =
+  def invalidFields(
+      invalid: Iterable[String],
+      valid: Iterable[String]): ConfError =
     new ConfError(s"Invalid fields: ${invalid.mkString(", ")}") {}
 
   def fromResults(results: Seq[Configured[_]]): Option[ConfError] =

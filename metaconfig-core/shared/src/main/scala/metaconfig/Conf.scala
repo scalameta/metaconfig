@@ -93,11 +93,12 @@ object ConfOps {
     case Lst(values) => f(conf); values.foreach(x => foreach(x)(f))
     case Obj(values) => f(conf); values.foreach(x => foreach(x._2)(f))
   }
-  def fold(conf: Conf)(str: Str => Str = identity,
-                       num: Num => Num = identity,
-                       bool: Bool => Bool = identity,
-                       lst: Lst => Lst = identity,
-                       obj: Obj => Obj = identity): Conf = conf match {
+  def fold(conf: Conf)(
+      str: Str => Str = identity,
+      num: Num => Num = identity,
+      bool: Bool => Bool = identity,
+      lst: Lst => Lst = identity,
+      obj: Obj => Obj = identity): Conf = conf match {
     case x @ Str(_) => str(x)
     case x @ Bool(_) => bool(x)
     case x @ Num(_) => num(x)

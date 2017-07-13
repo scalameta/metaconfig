@@ -53,8 +53,9 @@ object TypesafeConfig2Class {
     }
   }
 
-  private def getPosition(originOrNull: ConfigOrigin,
-                          cache: mutable.Map[Input, Array[Int]]): Position =
+  private def getPosition(
+      originOrNull: ConfigOrigin,
+      cache: mutable.Map[Input, Array[Int]]): Position =
     getPositionOpt(originOrNull, cache).getOrElse(Position.None)
 
   private def getPositionOpt(

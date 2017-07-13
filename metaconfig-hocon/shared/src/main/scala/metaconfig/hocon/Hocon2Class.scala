@@ -19,9 +19,10 @@ object Hocon2Class {
     }
   }
 
-  def gimmeClass[T](configStr: Input,
-                    reader: metaconfig.ConfDecoder[T],
-                    path: Option[String] = None): metaconfig.Configured[T] = {
+  def gimmeClass[T](
+      configStr: Input,
+      reader: metaconfig.ConfDecoder[T],
+      path: Option[String] = None): metaconfig.Configured[T] = {
     for {
       config <- gimmeConfig(configStr)
       clz <- reader.read(config.normalize)

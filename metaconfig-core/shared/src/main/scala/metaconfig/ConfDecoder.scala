@@ -34,8 +34,9 @@ object ConfDecoder {
       implicit ev: ClassTag[T]): ConfDecoder[T] =
     new ConfDecoder[T] {
       override def read(any: Conf): Configured[T] =
-        f.applyOrElse(any,
-                      (x: Conf) => NotOk(ConfError.typeMismatch(expect, x)))
+        f.applyOrElse(
+          any,
+          (x: Conf) => NotOk(ConfError.typeMismatch(expect, x)))
     }
 
   implicit val intConfDecoder: ConfDecoder[Int] =
@@ -89,8 +90,8 @@ object ConfDecoder {
           }
         case _ =>
           NotOk(
-            ConfError.typeMismatch(s"List[${classTag.runtimeClass.getName}]",
-                                   conf))
+            ConfError
+              .typeMismatch(s"List[${classTag.runtimeClass.getName}]", conf))
       }
     }
 }
