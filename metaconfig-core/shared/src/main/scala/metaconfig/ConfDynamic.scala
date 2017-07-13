@@ -3,6 +3,8 @@ package metaconfig
 import scala.language.dynamics
 
 class ConfDynamic(val asConf: Configured[Conf]) extends Dynamic {
+  def as[T](implicit ev: ConfDecoder[T]): Configured[T] =
+    asConf.flatMap(_.as[T])
   def selectDynamic(name: String): ConfDynamic = {
     val result =
       asConf.flatMap {

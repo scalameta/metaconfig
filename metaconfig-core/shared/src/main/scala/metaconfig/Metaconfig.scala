@@ -11,20 +11,39 @@ trait MetaconfigParser {
 
 object Metaconfig {
 
-  def getKey(obj: Conf.Obj, keys: Seq[String]): Option[Conf] =
+  def getKey(obj: Conf, keys: Seq[String]): Option[Conf] =
     if (keys.isEmpty) None
-    else
-      obj.values
-        .collectFirst { case (key, value) if key == keys.head => value }
-        .orElse(getKey(obj, keys.tail))
+    else {
+      obj match {
+        case obj @ Conf.Obj(_) =>
+          obj.values
+            .collectFirst { case (key, value) if key == keys.head => value }
+            .orElse(getKey(obj, keys.tail))
+        case _ => None
+      }
+    }
 
-  def get[T](conf: Conf.Obj)(default: T, path: String, extraNames: String*)(
+  def getOrElse[T](conf: Conf, default: T, path: String, extraNames: String*)(
       implicit ev: ConfDecoder[T]): Configured[T] = {
     getKey(conf, path +: extraNames) match {
       case Some(value) => ev.read(value)
       case None => Configured.Ok(default)
     }
   }
+
+  def get[T](conf: Conf, path: String, extraNames: String*)(
+      implicit ev: ConfDecoder[T]): Configured[T] = {
+    getKey(conf, path +: extraNames) match {
+      case Some(value) => ev.read(value)
+      case None =>
+        conf match {
+          case obj @ Conf.Obj(_) => ConfError.missingField(obj, path).notOk
+          case _ =>
+            ConfError.typeMismatch(s"Conf.Obj with field $path", conf).notOk
+        }
+    }
+  }
+
   // Copy-pasted from scala.meta inputs because it's private.
   // TODO(olafur) expose utility in inputs to get offset from line
   private[metaconfig] def getOffsetByLine(chars: Array[Char]): Array[Int] = {

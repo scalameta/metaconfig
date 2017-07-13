@@ -3,14 +3,19 @@ package hocon
 
 import scala.meta.inputs.Input
 
-import metaconfig.DeriveConfDecoder
 import org.scalatest.FunSuite
 
-@DeriveConfDecoder
 case class MyConfig(
     a: Int = 22,
     b: String = "banana"
-)
+) {
+  val reader: ConfDecoder[MyConfig] = ConfDecoder.instanceF[MyConfig] { c =>
+    (
+      c.getOrElse[Int]("a")(a) :+:
+        c.getOrElse[String]("b")(b)
+    ).map(MyConfig.tupled.apply)
+  }
+}
 
 class Hocon2ClassTest extends FunSuite {
 
