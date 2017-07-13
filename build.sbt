@@ -3,6 +3,7 @@ lazy val ScalaVersions = Seq("2.11.11", "2.12.2")
 organization in ThisBuild := "com.geirsson"
 scalaVersion in ThisBuild := ScalaVersions.head
 crossScalaVersions in ThisBuild := ScalaVersions
+version in ThisBuild := customVersion.getOrElse(version.in(ThisBuild).value)
 noPublish
 
 commands += Command.command("release") { s =>
@@ -33,12 +34,14 @@ lazy val metaMacroSettings: Seq[Def.Setting[_]] = Seq(
 
 lazy val publishSettings = Seq(
   publishTo := {
-    val nexus = "https://oss.sonatype.org/"
-    if (version.value.endsWith("-SNAPSHOT"))
-      Some("snapshots" at nexus + "content/repositories/snapshots")
+    if (customVersion.isDefined)
+      Some(
+        "releases" at "https://oss.sonatype.org/service/local/staging/deploy/maven2")
     else
-      Some("releases" at nexus + "service/local/staging/deploy/maven2")
+      publishTo.in(bintray).value
   },
+  bintrayOrganization := Some("scalameta"),
+  bintrayRepository := "maven",
   publishArtifact in Test := false,
   licenses := Seq(
     "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
@@ -105,3 +108,4 @@ lazy val noPublish = Seq(
   publish := {},
   publishLocal := {}
 )
+def customVersion = sys.props.get("metaconfig.version")
