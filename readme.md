@@ -9,16 +9,11 @@ Aim of metaconfig: make it easy to support a large and deeply-nested set of
 configuration options in a type-safe and user-friendly manner.
 
 Key goals:
-- No boilerplate (enabled with macro magic)
 - Default settings are defined in regular Scala code (not configuration format!)
 - Users override only the fields that differ from the default settings.
 - Unknown fields in config file trigger error with useful message, e.g., "Invalid field 'maxs' in class T, did you mean 'max'?".
 - Extensible, it's possible to read fields of any arbitrary type.
 - Scala.js support (no runtime reflection).
-
-Nice-to-have:
-
-- IDE support, macro-generated fields appear in IntelliJ! ![IntelliJ autocompletion](project/intellij.png)
 
 Typesafe config (aka Hocon) is only supported for now.
 Support for yaml, toml or other syntax should be straightforward to add.
@@ -29,42 +24,8 @@ To use metaconfig:
 ```scala
 // if only using core to extend support for other config syntax
 libraryDependencies += "com.geirsson" % "metaconfig-core" % "latest.integration"
-// OR if using only hocon integration
-libraryDependencies += "com.geirsson" % "metaconfig-hocon" % "latest.integration"
-
-// pass settings to projects using @ConfigReader annotation.
-lazy val metaconfigSettings: Seq[Def.Setting[_]] = Seq(
-  addCompilerPlugin(
-    ("org.scalameta" % "paradise" % "3.0.0-M7").cross(CrossVersion.full)),
-  libraryDependencies += "org.scalameta" %% "scalameta" % "1.6.0" % Provided,
-  scalacOptions += "-Xplugin-require:macroparadise",
-  scalacOptions in (Compile, console) := Seq(), // macroparadise plugin doesn't work in repl yet.
-  sources in (Compile, doc) := Nil // macroparadise doesn't work with scaladoc yet.
-)
 ```
 
-## Example
-
-Using `metaconfig-hocon`
-```scala
-@metaconfig.ConfigReader
-case class MyConfig(
-    a: Int,
-    b: String
-)
-val default = MyConfig(22, "banana")
-val config =
-  """
-    |a = 666
-  """.stripMargin
-
-test("field 'a' is overwritten") {
-  val Right(obtained) =
-    metaconfig.hocon.Hocon2Class.gimmeClass[MyConfig](config, default.reader)
-  val expected = default.copy(a = 666)
-  assert(obtained == expected)
-}
-```
 
 ## Modules
 
