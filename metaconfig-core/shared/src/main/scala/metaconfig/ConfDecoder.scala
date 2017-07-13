@@ -13,6 +13,8 @@ trait ConfDecoder[A] { self =>
   def read(conf: Conf): Configured[A]
   def map[B](f: A => B): ConfDecoder[B] =
     self.flatMap(x => Ok(f(x)))
+  def orElse(other: ConfDecoder[A]): ConfDecoder[A] =
+    ConfDecoder.orElse(this, other)
   def flatMap[TT](f: A => Configured[TT]): ConfDecoder[TT] =
     new ConfDecoder[TT] {
       override def read(any: Conf): Configured[TT] = self.read(any) match {
@@ -28,6 +30,9 @@ object ConfDecoder {
   def instance[T](f: PartialFunction[Conf, Configured[T]])(
       implicit ev: ClassTag[T]): ConfDecoder[T] =
     instanceExpect(ev.runtimeClass.getName)(f)
+  def instanceF[T](f: Conf => Configured[T])(
+      implicit ev: ClassTag[T]): ConfDecoder[T] =
+    instance[T] { case x => f(x) }
 
   def instanceExpect[T](expect: String)(
       f: PartialFunction[Conf, Configured[T]])(
@@ -93,5 +98,18 @@ object ConfDecoder {
             ConfError
               .typeMismatch(s"List[${classTag.runtimeClass.getName}]", conf))
       }
+    }
+  def orElse[A](a: ConfDecoder[A], b: ConfDecoder[A]): ConfDecoder[A] =
+    new ConfDecoder[A] {
+      override def read(conf: Conf): Configured[A] =
+        a.read(conf) match {
+          case ok @ Configured.Ok(_) => ok
+          case Configured.NotOk(notOk) =>
+            b.read(conf) match {
+              case ok2 @ Configured.Ok(_) => ok2
+              case Configured.NotOk(notOk2) =>
+                notOk.combine(notOk2).notOk
+            }
+        }
     }
 }

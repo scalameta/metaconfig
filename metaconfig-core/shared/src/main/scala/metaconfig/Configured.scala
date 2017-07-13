@@ -18,6 +18,7 @@ sealed abstract class Configured[+A] extends Product with Serializable {
     case Ok(value) => Ok(f(value))
     case x @ NotOk(_) => x
   }
+  def :+:[B](other: Configured[B]): Configured[(B, A)] = other.product(this)
   def product[B](other: Configured[B]): Configured[(A, B)] =
     (this, other) match {
       case (Ok(a), Ok(b)) => Ok(a -> b)
@@ -33,7 +34,25 @@ sealed abstract class Configured[+A] extends Product with Serializable {
   def isNotOk: Boolean = !isOk
 }
 object Configured {
+  // TODO(olafur) start using cats or scalaz...
+  def traverse[T](cs: List[Configured[T]]): Configured[List[T]] = {
+    cs.foldLeft(ok(List.empty[T])) {
+      case (res, configured) =>
+        res.product(configured).map { case (a, b) => b :: a }
+    }
+  }
   def unit: Configured[Unit] = Ok(())
+  def ok[T](e: T): Configured[T] = Ok(e)
+  def error(message: String): Configured[Nothing] =
+    ConfError.msg(message).notOk
+  def exception(
+      exception: Throwable,
+      stackSize: Int = 10): Configured[Nothing] =
+    ConfError.exception(exception, stackSize).notOk
+  def typeMismatch(expected: String, obtained: Conf): Configured[Nothing] =
+    ConfError.typeMismatch(expected, obtained).notOk
+  def missingField(obj: Conf.Obj, field: String): Configured[Nothing] =
+    ConfError.missingField(obj, field).notOk
   case class Ok[T](value: T) extends Configured[T]
   case class NotOk(error: ConfError) extends Configured[Nothing]
 }
