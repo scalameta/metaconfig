@@ -2,6 +2,7 @@ lazy val ScalaVersions = Seq("2.11.11", "2.12.2")
 
 organization in ThisBuild := "com.geirsson"
 version in ThisBuild := customVersion.getOrElse(version.in(ThisBuild).value)
+allSettings
 noPublish
 
 commands += Command.command("release") { s =>
