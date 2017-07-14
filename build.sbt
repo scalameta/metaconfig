@@ -12,7 +12,7 @@ commands += Command.command("release") { s =>
 }
 
 lazy val MetaVersion = "1.8.0"
-lazy val ParadiseVersion = "3.0.0-M9"
+
 lazy val baseSettings = Seq(
   scalaVersion := ScalaVersions.head,
   crossScalaVersions := ScalaVersions,
@@ -20,16 +20,6 @@ lazy val baseSettings = Seq(
   resolvers += Resolver.bintrayRepo("scalameta", "maven"),
   libraryDependencies += "org.scalacheck" %%% "scalacheck" % "1.13.5" % Test,
   libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.1" % Test
-)
-
-lazy val metaMacroSettings: Seq[Def.Setting[_]] = Seq(
-  addCompilerPlugin(
-    ("org.scalameta" % "paradise" % ParadiseVersion).cross(CrossVersion.full)),
-  libraryDependencies += "org.scala-lang" % "scala-compiler" % scalaVersion.value % Provided,
-  libraryDependencies += "org.scalameta" %%% "scalameta" % MetaVersion % Provided,
-  scalacOptions += "-Xplugin-require:macroparadise",
-  scalacOptions in (Compile, console) := Seq(), // macroparadise plugin doesn't work in repl yet.
-  sources in (Compile, doc) := Nil // macroparadise doesn't work with scaladoc yet.
 )
 
 lazy val publishSettings = Seq(
@@ -64,14 +54,13 @@ lazy val publishSettings = Seq(
     </developers>
 )
 
-lazy val allSettings = baseSettings ++ publishSettings ++ metaMacroSettings
+lazy val allSettings = baseSettings ++ publishSettings
 
 lazy val `metaconfig-core` = crossProject
   .settings(
     allSettings,
     // Position/Input
-    libraryDependencies += "org.scalameta" %% "inputs" % MetaVersion,
-    metaMacroSettings
+    libraryDependencies += "org.scalameta" %% "inputs" % MetaVersion
   )
 lazy val `metaconfig-coreJVM` = `metaconfig-core`.jvm
 lazy val `metaconfig-coreJS` = `metaconfig-core`.js

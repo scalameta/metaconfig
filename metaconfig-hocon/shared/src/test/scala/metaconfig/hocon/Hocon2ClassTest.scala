@@ -11,7 +11,7 @@ case class MyConfig(
 ) {
   val reader: ConfDecoder[MyConfig] = ConfDecoder.instanceF[MyConfig] { c =>
     (
-      c.getOrElse[Int]("a")(a) :+:
+      c.getOrElse[Int]("a")(a) |@|
         c.getOrElse[String]("b")(b)
     ).map(MyConfig.tupled.apply)
   }
