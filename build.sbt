@@ -12,7 +12,7 @@ commands += Command.command("release") { s =>
     s
 }
 
-lazy val MetaVersion = "1.8.0"
+lazy val MetaVersion = "1.9.0-1035-1bd51115"
 
 lazy val baseSettings = Seq(
   scalaVersion := ScalaVersions.head,
@@ -61,7 +61,7 @@ lazy val `metaconfig-core` = crossProject
   .settings(
     allSettings,
     // Position/Input
-    libraryDependencies += "org.scalameta" %% "inputs" % MetaVersion
+    libraryDependencies += "org.scalameta" %%% "inputs" % MetaVersion
   )
 lazy val `metaconfig-coreJVM` = `metaconfig-core`.jvm
 lazy val `metaconfig-coreJS` = `metaconfig-core`.js

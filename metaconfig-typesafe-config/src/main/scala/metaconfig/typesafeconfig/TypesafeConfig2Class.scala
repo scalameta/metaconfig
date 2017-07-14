@@ -71,7 +71,7 @@ object TypesafeConfig2Class {
         input,
         Metaconfig.getOffsetByLine(input.chars))
       if line < offsetByLine.length
-      point = Point.Offset(input, offsetByLine(line))
-    } yield Position.Range(input, point, point)
+      start = offsetByLine(line)
+    } yield Position.Range(input, start, start)
 
 }
