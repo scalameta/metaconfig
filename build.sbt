@@ -1,8 +1,6 @@
 lazy val ScalaVersions = Seq("2.11.11", "2.12.2")
 
 organization in ThisBuild := "com.geirsson"
-scalaVersion in ThisBuild := ScalaVersions.head
-crossScalaVersions in ThisBuild := ScalaVersions
 version in ThisBuild := customVersion.getOrElse(version.in(ThisBuild).value)
 noPublish
 
@@ -16,6 +14,8 @@ commands += Command.command("release") { s =>
 lazy val MetaVersion = "1.8.0"
 lazy val ParadiseVersion = "3.0.0-M9"
 lazy val baseSettings = Seq(
+  scalaVersion := ScalaVersions.head,
+  crossScalaVersions := ScalaVersions,
   // Only needed when using bintray snapshot versions
   resolvers += Resolver.bintrayRepo("scalameta", "maven"),
   libraryDependencies += "org.scalacheck" %%% "scalacheck" % "1.13.5" % Test,
