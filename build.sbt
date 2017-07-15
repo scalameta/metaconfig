@@ -12,27 +12,17 @@ commands += Command.command("release") { s =>
     s
 }
 
-lazy val MetaVersion = "1.9.0-1035-1bd51115"
+lazy val MetaVersion = "2.0.0-M1"
 
 lazy val baseSettings = Seq(
   scalaVersion := ScalaVersions.head,
   crossScalaVersions := ScalaVersions,
-  // Only needed when using bintray snapshot versions
-  resolvers += Resolver.bintrayRepo("scalameta", "maven"),
   libraryDependencies += "org.scalacheck" %%% "scalacheck" % "1.13.5" % Test,
   libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.1" % Test
 )
 
 lazy val publishSettings = Seq(
-  publishTo := {
-    if (customVersion.isDefined)
-      Some(
-        "releases" at "https://oss.sonatype.org/service/local/staging/deploy/maven2")
-    else
-      publishTo.in(bintray).value
-  },
-  bintrayOrganization := Some("scalameta"),
-  bintrayRepository := "maven",
+  publishTo := Some("releases" at "https://oss.sonatype.org/service/local/staging/deploy/maven2"),
   publishArtifact in Test := false,
   licenses := Seq(
     "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
@@ -99,3 +89,13 @@ lazy val noPublish = Seq(
   publishLocal := {}
 )
 def customVersion = sys.props.get("metaconfig.version")
+
+inScope(Global)(
+  Seq(
+    credentials ++= (for {
+      username <- sys.env.get("SONATYPE_USERNAME")
+      password <- sys.env.get("SONATYPE_PASSWORD")
+    } yield Credentials("Sonatype Nexus Repository Manager", "oss.sonatype.org", username, password)).toSeq,
+    PgpKeys.pgpPassphrase := sys.env.get("PGP_PASSPHRASE").map(_.toCharArray())
+  )
+)
