@@ -7,8 +7,9 @@ noPublish
 
 commands += Command.command("release") { s =>
   "clean" ::
-    "+publishSigned" ::
-    "sonatypeRelease" ::
+    "sonatypeOpen metaconfig-release" ::
+    "very publishSigned" ::
+    "sonatypeReleaseAll" ::
     s
 }
 
