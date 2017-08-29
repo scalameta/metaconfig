@@ -23,7 +23,7 @@ class Hocon2ClassTest extends FunSuite {
     test(expected.show) {
       val Configured.Ok(obtained) =
         Hocon2Class.gimmeConfig(Input.String(config))
-      assert(obtained.normalize == expected)
+      assert(obtained == expected)
     }
   }
   import Conf._
