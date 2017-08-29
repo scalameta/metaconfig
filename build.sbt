@@ -13,7 +13,7 @@ commands += Command.command("release") { s =>
     s
 }
 
-lazy val MetaVersion = "2.0.0-M2"
+lazy val MetaVersion = "2.0.0-M3"
 
 lazy val baseSettings = Seq(
   scalaVersion := ScalaVersions.head,
