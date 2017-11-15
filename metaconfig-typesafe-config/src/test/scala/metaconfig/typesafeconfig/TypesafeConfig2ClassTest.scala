@@ -37,4 +37,21 @@ class TypesafeConfig2ClassTest extends FunSuite {
     f.delete()
     assert(TypesafeConfig2Class.gimmeConfFromFile(f).isNotOk)
   }
+
+  test("null") {
+    val obtained =
+      TypesafeConfig2Class
+        .gimmeConfFromString(
+          """|keywords = [
+             |  null
+             |]""".stripMargin
+        )
+        .get
+    val expected = Conf.Obj(
+      "keywords" -> Conf.Lst(
+        Conf.Null()
+      )
+    )
+    assert(obtained == expected)
+  }
 }

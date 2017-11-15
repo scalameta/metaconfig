@@ -23,7 +23,8 @@ lazy val baseSettings = Seq(
 )
 
 lazy val publishSettings = Seq(
-  publishTo := Some("releases" at "https://oss.sonatype.org/service/local/staging/deploy/maven2"),
+  publishTo := Some(
+    "releases" at "https://oss.sonatype.org/service/local/staging/deploy/maven2"),
   publishArtifact in Test := false,
   licenses := Seq(
     "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
@@ -36,14 +37,13 @@ lazy val publishSettings = Seq(
       "scm:git:git@github.com:olafurpg/metaconfig.git"
     )
   ),
-  pomExtra :=
-    <developers>
-      <developer>
-        <id>olafurpg</id>
-        <name>Ólafur Páll Geirsson</name>
-        <url>https://geirsson.com</url>
-      </developer>
-    </developers>
+  developers +=
+    Developer(
+      "olafurpg",
+      "Ólafur Páll Geirsson",
+      "olafurpg@gmail.com",
+      url("https://geirsson.com")
+    )
 )
 
 lazy val allSettings = baseSettings ++ publishSettings
@@ -96,7 +96,12 @@ inScope(Global)(
     credentials ++= (for {
       username <- sys.env.get("SONATYPE_USERNAME")
       password <- sys.env.get("SONATYPE_PASSWORD")
-    } yield Credentials("Sonatype Nexus Repository Manager", "oss.sonatype.org", username, password)).toSeq,
+    } yield
+      Credentials(
+        "Sonatype Nexus Repository Manager",
+        "oss.sonatype.org",
+        username,
+        password)).toSeq,
     PgpKeys.pgpPassphrase := sys.env.get("PGP_PASSPHRASE").map(_.toCharArray())
   )
 )
