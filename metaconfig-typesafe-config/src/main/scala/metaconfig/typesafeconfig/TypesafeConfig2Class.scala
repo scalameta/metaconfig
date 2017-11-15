@@ -37,6 +37,7 @@ object TypesafeConfig2Class {
             case x: java.lang.Long => Conf.Num(BigDecimal(x))
             case x: java.lang.Double => Conf.Num(BigDecimal(x))
             case x: java.lang.Boolean => Conf.Bool(x)
+            case null => Conf.Null()
             case x =>
               throw new IllegalArgumentException(
                 s"Unexpected config value $value with unwrapped value $x")

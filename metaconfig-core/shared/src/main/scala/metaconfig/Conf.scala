@@ -33,6 +33,7 @@ sealed abstract class Conf extends Product with Serializable {
 }
 
 object Conf {
+  case class Null() extends Conf
   case class Str(value: String) extends Conf
   case class Num(value: BigDecimal) extends Conf
   case class Bool(value: Boolean) extends Conf
@@ -68,6 +69,8 @@ object ConfOps {
       new Conf.Bool(value) { override def pos: Position = newPos }
     case Conf.Num(value) =>
       new Conf.Num(value) { override def pos: Position = newPos }
+    case Conf.Null() =>
+      new Conf.Null() { override def pos: Position = newPos }
   }
 
   def diff(a: Conf, b: Conf): Option[(Conf, Conf)] = (a, b) match {
@@ -90,6 +93,7 @@ object ConfOps {
     case (Str(x), Str(y)) => if (x != y) Some(a -> b) else None
     case (Bool(x), Bool(y)) => if (x != y) Some(a -> b) else None
     case (Num(x), Num(y)) => if (x != y) Some(a -> b) else None
+    case (Null(), Null()) => None
     case _ => Some(a -> b)
   }
 
@@ -97,7 +101,7 @@ object ConfOps {
     ConfOps.fold(c)(obj = x => Conf.Obj(x.values.sortBy(_._1)))
 
   def foreach(conf: Conf)(f: Conf => Unit): Unit = conf match {
-    case Str(_) | Bool(_) | Num(_) => f(conf)
+    case Str(_) | Bool(_) | Num(_) | Null() => f(conf)
     case Lst(values) => f(conf); values.foreach(x => foreach(x)(f))
     case Obj(values) => f(conf); values.foreach(x => foreach(x._2)(f))
   }
@@ -110,6 +114,7 @@ object ConfOps {
     case x @ Str(_) => str(x)
     case x @ Bool(_) => bool(x)
     case x @ Num(_) => num(x)
+    case Null() => Null()
     case x @ Lst(_) =>
       Lst(lst(x).values.map(y => fold(y)(str, num, bool, lst, obj)))
     case x @ Obj(_) =>
@@ -129,6 +134,7 @@ object ConfOps {
     case Str(v) => "\"%s\"".format(escape(v))
     case Num(v) => v.toString()
     case Bool(v) => v.toString
+    case Null() => "null"
     case Lst(vs) => vs.map(show).mkString("[", ", ", "]")
     case Obj(vs) =>
       vs.map { case (a, b) => s""""$a": ${show(b)}""" }
@@ -146,6 +152,7 @@ object ConfOps {
           case Number(n) => Num(n)
           case _ => conf
         }
+      case Conf.Null() => conf
       case Conf.Lst(values) => Conf.Lst(values.map(normalize))
       case Conf.Obj(values) =>
         val expandedKeys = values.map {
@@ -185,6 +192,7 @@ object ConfOps {
     case Bool(_) => "Boolean"
     case Lst(_) => "List"
     case Obj(_) => "Map"
+    case Null() => "Null"
   }
 }
 
