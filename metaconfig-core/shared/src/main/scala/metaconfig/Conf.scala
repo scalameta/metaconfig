@@ -45,6 +45,14 @@ object Conf {
       Obj(values.map {
         case (k, v) => k -> f(v)
       })
+    def getOption[T](path: String, extraNames: String*)(
+        implicit ev: ConfDecoder[T]): Configured[Option[T]] =
+      Metaconfig
+        .getKey(this, path +: extraNames)
+        .map(
+          value => ev.read(value).map(Some(_))
+        )
+        .getOrElse(Configured.Ok(None))
   }
   object Obj {
     val empty = Obj()
