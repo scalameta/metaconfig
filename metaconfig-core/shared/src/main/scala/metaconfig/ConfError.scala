@@ -2,6 +2,8 @@ package metaconfig
 
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
+import java.io.PrintWriter
+import java.io.StringWriter
 import scala.meta.inputs.Position
 import scala.meta.internal.inputs._
 
@@ -10,13 +12,18 @@ import scala.meta.internal.inputs._
 // - positions
 sealed abstract class ConfError(val msg: String) extends Serializable { self =>
   def extra: List[String] = Nil
+  def all: List[String] = msg :: extra
   override def toString: String =
     if (isEmpty) "No error message"
     else if (extra.isEmpty) msg
     else {
-      val all = stackTrace :: extra
-      val orderedList = all.mkString("\n\n")
-      orderedList
+      val sb = new StringWriter()
+      val out = new PrintWriter(sb)
+      if (extra.nonEmpty) out.println(s"${extra.length + 1} errors")
+      all.zipWithIndex.foreach {
+        case (err, i) => out.append(s"[E$i] ").println(err)
+      }
+      sb.toString
     }
   def stackTrace: String = cause match {
     case Some(ex) =>
@@ -41,15 +48,13 @@ sealed abstract class ConfError(val msg: String) extends Serializable { self =>
     if (isEmpty) other
     else if (other.isEmpty) this
     else {
-      new ConfError(msg) {
+      new ConfError(stackTrace) {
         override def extra: List[String] =
-          other.msg :: (other.extra ++ self.extra)
+          other.stackTrace :: (other.extra ++ self.extra)
         override def cause: Option[Throwable] =
-          if (this.cause.isEmpty) other.cause
-          else if (other.cause.isEmpty) this.cause
-          else Some(CompositeException(this.cause.get, other.cause.get))
-        if (this.cause.isDefined && other.cause.isDefined)
-          this.cause.orElse(other.cause)
+          if (self.cause.isEmpty) other.cause
+          else if (other.cause.isEmpty) self.cause
+          else Some(CompositeException(self.cause.get, other.cause.get))
         override def isHint: Boolean =
           this.isHint || other.isHint
         override def isParseError: Boolean =
