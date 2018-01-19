@@ -2,8 +2,8 @@ package metaconfig
 
 import scala.collection.generic.CanBuildFrom
 import scala.reflect.ClassTag
-
 import metaconfig.Configured._
+import org.scalameta.logger
 
 trait HasFields {
   def fields: Map[String, Any]
@@ -41,7 +41,10 @@ object ConfDecoder {
       override def read(any: Conf): Configured[T] =
         f.applyOrElse(
           any,
-          (x: Conf) => NotOk(ConfError.typeMismatch(expect, x)))
+          (x: Conf) => {
+            NotOk(ConfError.typeMismatch(expect, x))
+          }
+        )
     }
 
   implicit val intConfDecoder: ConfDecoder[Int] =
@@ -94,9 +97,11 @@ object ConfDecoder {
             case None => Ok(successB.result())
           }
         case _ =>
-          NotOk(
-            ConfError
-              .typeMismatch(s"List[${classTag.runtimeClass.getName}]", conf))
+          val error = ConfError.typeMismatch(
+            s"List[${classTag.runtimeClass.getName}]",
+            conf
+          )
+          NotOk(error)
       }
     }
   def orElse[A](a: ConfDecoder[A], b: ConfDecoder[A]): ConfDecoder[A] =

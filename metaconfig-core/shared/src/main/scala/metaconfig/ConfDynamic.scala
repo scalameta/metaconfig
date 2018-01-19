@@ -4,10 +4,10 @@ import scala.language.dynamics
 
 class ConfDynamic(val asConf: Configured[Conf]) extends Dynamic {
   def as[T](implicit ev: ConfDecoder[T]): Configured[T] =
-    asConf.flatMap(_.as[T])
+    asConf.andThen(_.as[T])
   def selectDynamic(name: String): ConfDynamic = {
     val result =
-      asConf.flatMap {
+      asConf.andThen {
         case obj @ Conf.Obj(values) =>
           values
             .collectFirst {
@@ -16,7 +16,9 @@ class ConfDynamic(val asConf: Configured[Conf]) extends Dynamic {
             }
             .getOrElse(ConfError.missingField(obj, name).notOk)
         case els =>
-          ConfError.typeMismatch(s"Conf.Obj (with field $name)", els).notOk
+          ConfError
+            .typeMismatch(s"Conf.Obj (with field $name)", els, name)
+            .notOk
       }
     ConfDynamic(result)
   }

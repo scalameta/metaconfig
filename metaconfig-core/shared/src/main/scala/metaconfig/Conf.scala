@@ -25,13 +25,7 @@ sealed abstract class Conf extends Product with Serializable {
   def as[T](implicit ev: ConfDecoder[T]): Configured[T] =
     ev.read(this)
   def get[T](setting: Setting)(implicit ev: ConfDecoder[T]): Configured[T] =
-    Metaconfig
-      .get(this, setting.name.value, setting.alternativeNames: _*)
-      .recoverOnError {
-        case nok: Configured.NotOk =>
-          setting.valueDescription.fold(nok)(help =>
-            nok.combine(ConfError.hint(help.value)))
-      }
+    Metaconfig.get(this, setting.name.value, setting.alternativeNames: _*)
   def get[T](path: String, extraNames: String*)(
       implicit ev: ConfDecoder[T]): Configured[T] =
     Metaconfig.get(this, path, extraNames: _*)
@@ -206,8 +200,8 @@ object ConfOps {
     case Str(_) => "String"
     case Num(_) => "Number"
     case Bool(_) => "Boolean"
-    case Lst(_) => "List"
-    case Obj(_) => "Map"
+    case Lst(_) => "List[T]"
+    case Obj(_) => "Map[K, V]"
     case Null() => "Null"
   }
 }

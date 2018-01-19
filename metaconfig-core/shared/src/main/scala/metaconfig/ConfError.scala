@@ -6,14 +6,15 @@ import java.io.PrintWriter
 import java.io.StringWriter
 import scala.meta.inputs.Position
 import scala.meta.internal.inputs._
+import metaconfig.ConfError.TypeMismatch
 
 // TODO(olafur) use richer "Message" data type instead of String to support
 // - exceptions with full stack trace
 // - positions
 sealed abstract class ConfError(val msg: String) extends Serializable { self =>
   def extra: List[String] = Nil
-  def all: List[String] = msg :: extra
-  override def toString: String =
+  final def all: List[String] = msg :: extra
+  final override def toString: String =
     if (isEmpty) "No error message"
     else if (extra.isEmpty) msg
     else {
@@ -25,7 +26,7 @@ sealed abstract class ConfError(val msg: String) extends Serializable { self =>
       }
       sb.toString
     }
-  def stackTrace: String = cause match {
+  final def stackTrace: String = cause match {
     case Some(ex) =>
       val baos = new ByteArrayOutputStream()
       ex.printStackTrace(new PrintStream(baos))
@@ -33,17 +34,16 @@ sealed abstract class ConfError(val msg: String) extends Serializable { self =>
     case None => msg
   }
 
-  def notOk = Configured.NotOk(this)
-  override def hashCode(): Int = (msg.hashCode << 1) | (if (hasPos) 1 else 0)
-
-  override def equals(obj: scala.Any): Boolean = obj match {
+  final def notOk = Configured.NotOk(this)
+  final override def hashCode(): Int =
+    (msg.hashCode << 1) | (if (hasPos) 1 else 0)
+  final override def equals(obj: scala.Any): Boolean = obj match {
     case err: ConfError => hasPos == err.hasPos && msg == err.msg
     case _ => false
   }
 
   def isEmpty: Boolean = msg.isEmpty && extra.isEmpty
 
-  def hasPos: Boolean = false
   def combine(other: ConfError): ConfError =
     if (isEmpty) other
     else if (other.isEmpty) this
@@ -55,19 +55,19 @@ sealed abstract class ConfError(val msg: String) extends Serializable { self =>
           if (self.cause.isEmpty) other.cause
           else if (other.cause.isEmpty) self.cause
           else Some(CompositeException(self.cause.get, other.cause.get))
-        override def isHint: Boolean =
-          this.isHint || other.isHint
         override def isParseError: Boolean =
           this.isParseError || other.isParseError
         override def isMissingField: Boolean =
           this.isMissingField || other.isMissingField
-        override def isTypeMismatch: Boolean =
-          this.isTypeMismatch || other.isTypeMismatch
+        override def typeMismatch: Option[TypeMismatch] =
+          self.typeMismatch.orElse(other.typeMismatch)
       }
     }
 
-  def atPos(position: Position): ConfError =
+  def hasPos: Boolean = false
+  final def atPos(position: Position): ConfError =
     if (hasPos) this // avoid duplicate position
+    else if (position == Position.None) this
     else {
       new ConfError(position.formatMessage("error", msg)) {
         override def hasPos: Boolean = true
@@ -76,19 +76,26 @@ sealed abstract class ConfError(val msg: String) extends Serializable { self =>
 
   def cause: Option[Throwable] = None
   final def isException: Boolean = cause.nonEmpty
-  def isHint: Boolean = false
   def isMissingField: Boolean = false
   def isParseError: Boolean = false
+  def typeMismatch: Option[TypeMismatch] = None
   def isTypeMismatch: Boolean = false
+
+  def copy(newMsg: String): ConfError = new ConfError(newMsg) {
+    override def hasPos: Boolean = self.hasPos
+    override def cause: Option[Throwable] = self.cause
+    override def isTypeMismatch: Boolean = self.isTypeMismatch
+    override def isParseError: Boolean = self.isParseError
+    override def isMissingField: Boolean = self.isMissingField
+  }
 }
 
 object ConfError {
+
+  case class TypeMismatch(obtained: String, expected: String, path: String)
+
   lazy val empty: ConfError = new ConfError("") {}
 
-  def hint(message: String): ConfError =
-    new ConfError(s" (hint: $message)") {
-      override def isHint: Boolean = true
-    }
   def msg(message: String): ConfError =
     new ConfError(message) {}
   def exception(e: Throwable, stackSize: Int = 10): ConfError = {
@@ -104,13 +111,17 @@ object ConfError {
       override def isParseError: Boolean = true
     }
   def typeMismatch(expected: String, obtained: Conf): ConfError =
+    typeMismatch(expected, obtained, "")
+  def typeMismatch(expected: String, obtained: Conf, path: String): ConfError = {
+    val pathSuffix = if (path.isEmpty) "" else s" at path '$path'"
     new ConfError(
-      s"""Type mismatch;
+      s"""Type mismatch$pathSuffix;
          |  found    : ${obtained.kind} (value: $obtained)
          |  expected : $expected""".stripMargin
     ) {
       override def isTypeMismatch: Boolean = true
     }
+  }
   def missingField(obj: Conf.Obj, field: String): ConfError = {
     val hint =
       if (obj.values.lengthCompare(1) <= 0) ""
