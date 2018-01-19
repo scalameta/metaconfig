@@ -8,7 +8,7 @@ sealed abstract class Configured[+A] extends Product with Serializable {
   }
   def get: A = this match {
     case Ok(value) => value
-    case NotOk(error) => throw new IllegalStateException(error.msg)
+    case NotOk(error) => throw new NoSuchElementException(error.toString)
   }
   def toEither: Either[ConfError, A] = this match {
     case Ok(value) => Right(value)
@@ -34,6 +34,13 @@ sealed abstract class Configured[+A] extends Product with Serializable {
   }
   def isOk: Boolean = this match { case Ok(_) => true; case _ => false }
   def isNotOk: Boolean = !isOk
+
+  def recoverOnError[B >: A](
+      f: PartialFunction[Configured.NotOk, Configured[B]]): Configured[B] =
+    this match {
+      case nok: Configured.NotOk => f.applyOrElse(nok, identity[NotOk])
+      case ok => ok
+    }
 }
 object Configured {
   // TODO(olafur) start using cats or scalaz...
@@ -55,6 +62,8 @@ object Configured {
     ConfError.typeMismatch(expected, obtained).notOk
   def missingField(obj: Conf.Obj, field: String): Configured[Nothing] =
     ConfError.missingField(obj, field).notOk
-  case class Ok[T](value: T) extends Configured[T]
-  case class NotOk(error: ConfError) extends Configured[Nothing]
+  final case class Ok[T](value: T) extends Configured[T]
+  final case class NotOk(error: ConfError) extends Configured[Nothing] {
+    def combine(other: ConfError): NotOk = NotOk(error.combine(other))
+  }
 }

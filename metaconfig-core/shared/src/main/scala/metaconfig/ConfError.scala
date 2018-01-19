@@ -1,8 +1,9 @@
 package metaconfig
 
-import scala.meta.internal.inputs._
+import java.io.ByteArrayOutputStream
+import java.io.PrintStream
 import scala.meta.inputs.Position
-import scala.compat.Platform.EOL
+import scala.meta.internal.inputs._
 
 // TODO(olafur) use richer "Message" data type instead of String to support
 // - exceptions with full stack trace
@@ -13,10 +14,18 @@ sealed abstract class ConfError(val msg: String) extends Serializable { self =>
     if (isEmpty) "No error message"
     else if (extra.isEmpty) msg
     else {
-      val all = msg :: extra
+      val all = stackTrace :: extra
       val orderedList = all.mkString("\n\n")
       orderedList
     }
+  def stackTrace: String = cause match {
+    case Some(ex) =>
+      val baos = new ByteArrayOutputStream()
+      ex.printStackTrace(new PrintStream(baos))
+      baos.toString
+    case None => msg
+  }
+
   def notOk = Configured.NotOk(this)
   override def hashCode(): Int = (msg.hashCode << 1) | (if (hasPos) 1 else 0)
 
@@ -25,7 +34,7 @@ sealed abstract class ConfError(val msg: String) extends Serializable { self =>
     case _ => false
   }
 
-  def isEmpty = msg.isEmpty && extra.isEmpty
+  def isEmpty: Boolean = msg.isEmpty && extra.isEmpty
 
   def hasPos: Boolean = false
   def combine(other: ConfError): ConfError =
@@ -35,6 +44,20 @@ sealed abstract class ConfError(val msg: String) extends Serializable { self =>
       new ConfError(msg) {
         override def extra: List[String] =
           other.msg :: (other.extra ++ self.extra)
+        override def cause: Option[Throwable] =
+          if (this.cause.isEmpty) other.cause
+          else if (other.cause.isEmpty) this.cause
+          else Some(CompositeException(this.cause.get, other.cause.get))
+        if (this.cause.isDefined && other.cause.isDefined)
+          this.cause.orElse(other.cause)
+        override def isHint: Boolean =
+          this.isHint || other.isHint
+        override def isParseError: Boolean =
+          this.isParseError || other.isParseError
+        override def isMissingField: Boolean =
+          this.isMissingField || other.isMissingField
+        override def isTypeMismatch: Boolean =
+          this.isTypeMismatch || other.isTypeMismatch
       }
     }
 
@@ -45,33 +68,56 @@ sealed abstract class ConfError(val msg: String) extends Serializable { self =>
         override def hasPos: Boolean = true
       }
     }
+
+  def cause: Option[Throwable] = None
+  final def isException: Boolean = cause.nonEmpty
+  def isHint: Boolean = false
+  def isMissingField: Boolean = false
+  def isParseError: Boolean = false
+  def isTypeMismatch: Boolean = false
 }
 
 object ConfError {
-  lazy val empty = new ConfError("") {}
+  lazy val empty: ConfError = new ConfError("") {}
 
+  def hint(message: String): ConfError =
+    new ConfError(s" (hint: $message)") {
+      override def isHint: Boolean = true
+    }
   def msg(message: String): ConfError =
     new ConfError(message) {}
-  def exception(e: Throwable, stackSize: Int = 10): ConfError =
-    msg(s"""$e
-           |${e.getStackTrace.take(stackSize).mkString("\n")}""".stripMargin)
+  def exception(e: Throwable, stackSize: Int = 10): ConfError = {
+    e.setStackTrace(e.getStackTrace.take(stackSize))
+    new ConfError(e.getMessage) {
+      override def cause: Option[Throwable] = Some(e)
+    }
+  }
   def fileDoesNotExist(path: String): ConfError =
     msg(s"File $path does not exist.")
   def parseError(position: Position, message: String): ConfError =
-    msg(position.formatMessage("parseerror", message))
+    new ConfError(position.formatMessage("error", message)) {
+      override def isParseError: Boolean = true
+    }
   def typeMismatch(expected: String, obtained: Conf): ConfError =
-    msg(
+    new ConfError(
       s"""Type mismatch;
          |  found    : ${obtained.kind} (value: $obtained)
          |  expected : $expected""".stripMargin
-    )
+    ) {
+      override def isTypeMismatch: Boolean = true
+    }
   def missingField(obj: Conf.Obj, field: String): ConfError = {
-    val closestField =
-      if (obj.values.isEmpty) ""
-      else obj.keys.sorted.minBy(levenshtein(field))
-    msg(
-      s"Object $obj has no field '$field'. " +
-        s"Did you mean '$closestField' instead?")
+    val hint =
+      if (obj.values.lengthCompare(1) <= 0) ""
+      else {
+        val closestField =
+          if (obj.values.isEmpty) ""
+          else obj.keys.sorted.minBy(levenshtein(field))
+        s" Did you mean '$closestField' instead?"
+      }
+    new ConfError(s"$obj has no field '$field'." + hint) {
+      override def isMissingField: Boolean = true
+    }
   }
 
   // TOOD(olafur) levenshtein
