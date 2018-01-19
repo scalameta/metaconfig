@@ -6,7 +6,6 @@ import scala.util.Try
 import metaconfig.Extractors._
 import org.scalameta.logger
 
-// This structure is like JSON except it doesn't support null.
 sealed abstract class Conf extends Product with Serializable {
   def dynamic: ConfDynamic = ConfDynamic(Configured.Ok(this))
   def pos: Position = Position.None
@@ -24,6 +23,13 @@ sealed abstract class Conf extends Product with Serializable {
   final override def toString: String = show
   def as[T](implicit ev: ConfDecoder[T]): Configured[T] =
     ev.read(this)
+  def getSettingOrElse[T](setting: Setting, default: T)(
+      implicit ev: ConfDecoder[T]): Configured[T] =
+    Metaconfig.getOrElse(
+      this,
+      default,
+      setting.name,
+      setting.alternativeNames: _*)
   def get[T](path: String, extraNames: String*)(
       implicit ev: ConfDecoder[T]): Configured[T] =
     Metaconfig.get(this, path, extraNames: _*)
@@ -40,6 +46,8 @@ object Conf {
   case class Lst(values: List[Conf]) extends Conf
   object Lst { def apply(values: Conf*): Lst = Lst(values.toList) }
   case class Obj(values: List[(String, Conf)]) extends Conf {
+    lazy val map: Map[String, Conf] = values.toMap
+    def field(key: String): Option[Conf] = map.get(key)
     def keys: List[String] = values.map(_._1)
     def mapValues(f: Conf => Conf): Obj =
       Obj(values.map {
@@ -198,8 +206,8 @@ object ConfOps {
     case Str(_) => "String"
     case Num(_) => "Number"
     case Bool(_) => "Boolean"
-    case Lst(_) => "List"
-    case Obj(_) => "Map"
+    case Lst(_) => "List[T]"
+    case Obj(_) => "Map[K, V]"
     case Null() => "Null"
   }
 }
