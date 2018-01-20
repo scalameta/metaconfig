@@ -2,7 +2,7 @@ package metaconfig
 
 final class Settings[T](val settings: List[Setting]) {
   object Deprecated {
-    def unapply(key: String): Option[DeprecatedSettingName] =
+    def unapply(key: String): Option[DeprecatedName] =
       (for {
         setting <- settings
         deprecation <- setting.deprecation(key).toList

@@ -8,13 +8,13 @@ final class Setting(val field: Field) {
   def annotations: List[StaticAnnotation] = field.annotations
 
   def description: Option[String] = field.annotations.collectFirst {
-    case SettingDescription(value) => value
+    case Description(value) => value
   }
   def extraNames: List[String] = field.annotations.collect {
-    case ExtraSettingName(value) => value
+    case ExtraName(value) => value
   }
-  def deprecatedNames: List[DeprecatedSettingName] = field.annotations.collect {
-    case d: DeprecatedSettingName => d
+  def deprecatedNames: List[DeprecatedName] = field.annotations.collect {
+    case d: DeprecatedName => d
   }
   def exampleValues: List[String] = field.annotations.collect {
     case ExampleValue(value) => value
@@ -22,13 +22,13 @@ final class Setting(val field: Field) {
   def sinceVersion: Option[String] = field.annotations.collectFirst {
     case SinceVersion(value) => value
   }
-  def deprecated: Option[DeprecatedSetting] = field.annotations.collectFirst {
-    case value: DeprecatedSetting => value
+  def deprecated: Option[Deprecated] = field.annotations.collectFirst {
+    case value: Deprecated => value
   }
   def alternativeNames: List[String] =
     extraNames ::: deprecatedNames.map(_.name)
   def allNames: List[String] = name :: alternativeNames
-  def deprecation(name: String): Option[DeprecatedSettingName] =
+  def deprecation(name: String): Option[DeprecatedName] =
     deprecatedNames.find(_.name == name)
 }
 

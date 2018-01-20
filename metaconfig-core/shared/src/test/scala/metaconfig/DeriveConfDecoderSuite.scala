@@ -6,16 +6,16 @@ import metaconfig.internal.Macros
 import org.scalatest.FunSuite
 
 case class AllTheAnnotations(
-    @SettingDescription("descriptioon")
+    @Description("descriptioon")
     @ExampleValue("value")
     @ExampleValue("value2")
-    @ExtraSettingName("extraName")
-    @ExtraSettingName("extraName2")
-    @DeprecatedSettingName("deprecatedName", "Use x instead", "2.0")
-    @DeprecatedSettingName("deprecatedName2", "Use y instead", "3.0")
+    @ExtraName("extraName")
+    @ExtraName("extraName2")
+    @DeprecatedName("deprecatedName", "Use x instead", "2.0")
+    @DeprecatedName("deprecatedName2", "Use y instead", "3.0")
     @SinceVersion("2.1")
-    @SettingDescription("Description")
-    @DeprecatedSetting("Use newFeature instead", "2.1")
+    @Description("Description")
+    @Deprecated("Use newFeature instead", "2.1")
     number: Int = 2,
     string: String = "string",
     lst: List[String] = Nil
@@ -48,8 +48,8 @@ class DeriveSurfaceSuite extends FunSuite {
     assert(
       s1.deprecatedNames ==
         List(
-          DeprecatedSettingName("deprecatedName", "Use x instead", "2.0"),
-          DeprecatedSettingName("deprecatedName2", "Use y instead", "3.0"))
+          DeprecatedName("deprecatedName", "Use x instead", "2.0"),
+          DeprecatedName("deprecatedName2", "Use y instead", "3.0"))
     )
     assert(
       s1.exampleValues ==
@@ -58,7 +58,7 @@ class DeriveSurfaceSuite extends FunSuite {
     assert(s1.description.contains("descriptioon"))
     assert(s1.sinceVersion.contains("2.1"))
     assert(
-      s1.deprecated.contains(DeprecatedSetting("Use newFeature instead", "2.1"))
+      s1.deprecated.contains(Deprecated("Use newFeature instead", "2.1"))
     )
 
     assert(s2.name == "string")

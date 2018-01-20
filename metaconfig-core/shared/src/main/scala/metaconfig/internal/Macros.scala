@@ -84,7 +84,6 @@ class Macros(val c: blackbox.Context) {
          }
        }
      """
-    logger.elem(result)
     result
   }
 
@@ -126,41 +125,8 @@ class Macros(val c: blackbox.Context) {
       field
     }
     val args = q"_root_.scala.List.apply(..$fields)"
-    val objectFactory = deriveObjectFactory[T](T)
-    val result = q"new ${weakTypeOf[Surface[T]]}($args, $objectFactory)"
-//    logger.elem(result)
+    val result = q"new ${weakTypeOf[Surface[T]]}($args)"
     c.untypecheck(result)
-//    result
-  }
-
-  def deriveObjectFactory[T: c.WeakTypeTag](T: Type): Tree = {
-    import c.universe._
-    val ctor = T.typeSymbol.asClass.primaryConstructor
-    val Tname = T.typeSymbol.name.decodedName.toString
-
-    val casts = ctor.asMethod.paramLists.zipWithIndex.map {
-      case (params, i) =>
-        params.zipWithIndex.map {
-          case (param, j) =>
-            val tpe = param.info.resultType
-            val expectedType = tpe.toString
-            val field = Tname + "." + param.name.decodedName.toString
-            val value = q"argss($i)($j)"
-            q"_root_.metaconfig.ObjectFactory.cast[$tpe]($field, $expectedType, $value)"
-        }
-    }
-
-    val result = q"""
-    new ${weakTypeOf[ObjectFactory[T]]} {
-      override def unsafeNewInstance(
-        argss: _root_.scala.List[_root_.scala.List[_root_.scala.Any]]
-      ): $T = {
-        new ${T.typeSymbol}(...$casts)
-      }
-    }
-     """
-//    logger.elem(result)
-    result
   }
 
 }

@@ -99,7 +99,7 @@ object ConfError {
 
   lazy val empty: ConfError = new ConfError("") {}
 
-  def deprecated(deprecation: DeprecatedSettingName): ConfError =
+  def deprecated(deprecation: DeprecatedName): ConfError =
     new ConfError(deprecation.toString) {
       override def isDeprecation: Boolean = true
     }
