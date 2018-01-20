@@ -1,4 +1,4 @@
-package metaconfig.internal
+package metaconfig
 
 import scala.annotation.StaticAnnotation
 import scala.reflect.ClassTag

@@ -1,7 +1,6 @@
 package metaconfig
 
 import metaconfig.Conf._
-import metaconfig.internal.Fields
 import metaconfig.internal.Macros
 import org.scalatest.FunSuite
 
@@ -24,20 +23,18 @@ object AllTheAnnotations {
   implicit lazy val fields: Fields[AllTheAnnotations] =
     Macros.deriveFields[AllTheAnnotations]
   lazy val settings = Settings[AllTheAnnotations]
-  implicit lazy val decoder: ConfReads[AllTheAnnotations] =
-    new ConfReads[AllTheAnnotations] {
-      override def read(cursor: Cursor) = ConfError.empty.result
-    }
+  implicit lazy val decoder: ConfDecoder[AllTheAnnotations] =
+    Macros.deriveDecoder[AllTheAnnotations]
 }
 
 class MacrosTest extends FunSuite {
 
   def checkError(name: String, obj: Conf, expected: String): Unit = {
     test(name) {
-      ConfReads.read[AllTheAnnotations](obj) match {
-        case ConfReads.Error(err) =>
+      ConfDecoder.decode[AllTheAnnotations](obj) match {
+        case Configured.NotOk(err) =>
           assert(expected == err.toString)
-        case ConfReads.Success(obtained, _) =>
+        case Configured.Ok(obtained) =>
           fail(s"Expected error, obtained=$obtained")
       }
     }
@@ -55,7 +52,7 @@ class MacrosTest extends FunSuite {
   test("ConfDecoder[T] ok") {
     val obj = Obj("setting" -> Num(42), "setting2" -> Str("42"))
     val expected = AllTheAnnotations(42, "42")
-    val obtained = ConfReads.read[AllTheAnnotations](obj).get
+    val obtained = ConfDecoder.decode[AllTheAnnotations](obj).get
     pprint.log(obtained)
     assert(obtained == expected)
   }

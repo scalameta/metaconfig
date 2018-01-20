@@ -1,6 +1,4 @@
-package metaconfig.internal
-
-import metaconfig.DeprecatedSettingName
+package metaconfig
 
 final class Settings[T](val settings: List[Setting]) {
   object Deprecated {

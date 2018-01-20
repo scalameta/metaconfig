@@ -56,8 +56,8 @@ object Macros {
 //    result
   }
 
-  def deriveReads[T]: ConfReads[T] = macro deriveReadsImpl[T]
-  def deriveReadsImpl[T: c.WeakTypeTag](
+  def deriveDecoder[T]: ConfDecoder[T] = macro deriveDecoderImpl[T]
+  def deriveDecoderImpl[T: c.WeakTypeTag](
       c: blackbox.Context): c.universe.Tree = {
     import c.universe._
     val T = weakTypeOf[T]
@@ -67,13 +67,13 @@ object Macros {
     val fields = T.members.collect {
       case m: MethodSymbol if m.isCaseAccessor =>
         val tpe = m.info.resultType
-        tpe -> q"cursor.conf.getSetting[$tpe]($settings.get(${m.name.decodedName.toString}))"
+        tpe -> q"conf.getSetting[$tpe]($settings.get(${m.name.decodedName.toString}))"
     }.toList
     val joined = q"_root_.scala.List.apply(..${fields.map {
       case (_, tree) => tree
     }})"
     val results =
-      q"_root_.metaconfig.ConfReads.traverse[${typeOf[Any]}]($joined)"
+      q"_root_.metaconfig.Configured.traverse[${typeOf[Any]}]($joined)"
     val args = fields.reverse.zipWithIndex.map {
       case ((tpe, _), i) => q"result.apply($i).asInstanceOf[$tpe]"
     }
@@ -81,10 +81,10 @@ object Macros {
     val settingsT = c.inferImplicitValue(weakTypeOf[Settings[T]])
 
     val result = q"""
-       new ${weakTypeOf[ConfReads[T]]} {
-         def read(cursor: _root_.metaconfig.Cursor): ${weakTypeOf[ConfReads[T]]} = {
+       new ${weakTypeOf[ConfDecoder[T]]} {
+         def read(conf: _root_.metaconfig.Conf): ${weakTypeOf[Configured[T]]} = {
            val $settings = $settingsT
-           val results: _root_.metaconfig.ConfReads.Result[List[Any]] = $results
+           val results: _root_.metaconfig.Configured[List[Any]] = $results
            results.map { result =>
              $ctor
            }

@@ -47,16 +47,12 @@ lazy val publishSettings = Seq(
 )
 
 lazy val allSettings = baseSettings ++ publishSettings
-val circe = "0.9.1"
 
 lazy val `metaconfig-core` = crossProject
   .settings(
     allSettings,
     // Position/Input
     libraryDependencies ++= List(
-      "io.circe" %% "circe-core" % circe,
-      "io.circe" %% "circe-generic" % circe,
-      "io.circe" %% "circe-parser" % circe,
       "org.scalameta" %%% "inputs" % MetaVersion,
       "com.lihaoyi" %%% "pprint" % "0.5.3",
       scalaOrganization.value % "scala-reflect" % scalaVersion.value % Provided

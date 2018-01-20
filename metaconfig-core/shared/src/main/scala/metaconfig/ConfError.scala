@@ -36,7 +36,6 @@ sealed abstract class ConfError(val msg: String) extends Serializable { self =>
 
   final def notOk: Configured[Nothing] = Configured.NotOk(this)
   final def left[A]: Either[ConfError, A] = Left(this)
-  final def result[A]: ConfReads.Result[A] = ConfReads.error(this)
 
   final override def hashCode(): Int =
     (msg.hashCode << 1) | (if (hasPos) 1 else 0)
