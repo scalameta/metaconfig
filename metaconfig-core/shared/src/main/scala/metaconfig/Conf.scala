@@ -6,7 +6,6 @@ import scala.util.Try
 import metaconfig.Extractors._
 import org.scalameta.logger
 
-// This structure is like JSON except it doesn't support null.
 sealed abstract class Conf extends Product with Serializable {
   def dynamic: ConfDynamic = ConfDynamic(Configured.Ok(this))
   def pos: Position = Position.None

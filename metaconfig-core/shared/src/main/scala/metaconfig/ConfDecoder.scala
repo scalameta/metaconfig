@@ -1,16 +1,13 @@
 package metaconfig
 
 import scala.language.experimental.macros
+import scala.language.higherKinds
 
 import scala.collection.generic.CanBuildFrom
 import scala.reflect.ClassTag
-import scala.reflect.macros.blackbox
 import metaconfig.Configured._
-import org.scalameta.logger
-
-trait HasFields {
-  def fields: Map[String, Any]
-}
+import metaconfig.internal.CanBuildFromDecoder
+import metaconfig.internal.NoTyposDecoder
 
 trait ConfDecoder[A] { self =>
   def read(conf: Conf): Configured[A]
@@ -26,21 +23,15 @@ trait ConfDecoder[A] { self =>
       }
     }
 
-  /** Returns a clone of this decoder that additoinally fails on unknown fields */
-  def noTypos(implicit ev: Settings[A]): ConfDecoder[A] = new ConfDecoder[A] {
-    override def read(conf: Conf): Configured[A] = conf match {
-      case Conf.Obj(values) =>
-        val names = ev.allNames
-        val typos = values.collect {
-          case (key, _) if !names.contains(key) =>
-            key
-        }
-        if (typos.isEmpty) self.read(conf)
-        else ConfError.invalidFields(typos, ev.settings.map(_.name)).notOk
-      case els =>
-        ConfError.typeMismatch("Object", els).notOk
-    }
-  }
+  /**
+    * Fail this decoder on unknown fields.
+    *
+    * By default, a decoder ignores unknown fields. With .noTypos, the decoder
+    * will fail if an object contains unknown fields, which typically hint the
+    * user entered a typo in the config file.
+    */
+  def noTypos(implicit ev: Settings[A]): ConfDecoder[A] =
+    NoTyposDecoder[A](self)
 }
 
 object ConfDecoder {
@@ -84,48 +75,14 @@ object ConfDecoder {
   implicit def canBuildFromMapWithStringKey[A](
       implicit ev: ConfDecoder[A],
       classTag: ClassTag[A]): ConfDecoder[Map[String, A]] =
-    instanceExpect[Map[String, A]](
-      s"Map[String, ${classTag.runtimeClass.getName}]") {
-      case Conf.Obj(values) =>
-        val results = values.map {
-          case (key, value) => ev.read(value).map(key -> _)
-        }
-        ConfError.fromResults(results) match {
-          case Some(err) => NotOk(err)
-          case None =>
-            Ok(results.collect { case Configured.Ok(x) => x }.toMap)
-        }
-    }
+    CanBuildFromDecoder.map[A]
 
-  import scala.language.higherKinds
   implicit def canBuildFromConfDecoder[C[_], A](
       implicit ev: ConfDecoder[A],
       cbf: CanBuildFrom[Nothing, A, C[A]],
       classTag: ClassTag[A]): ConfDecoder[C[A]] =
-    new ConfDecoder[C[A]] {
-      override def read(conf: Conf): Configured[C[A]] = conf match {
-        case Conf.Lst(values) =>
-          val successB = cbf()
-          val errorB = List.newBuilder[ConfError]
-          successB.sizeHint(values.length)
-          values.foreach { value =>
-            ev.read(value) match {
-              case NotOk(e) => errorB += e
-              case Ok(e) => successB += e
-            }
-          }
-          ConfError(errorB.result()) match {
-            case Some(x) => NotOk(x)
-            case None => Ok(successB.result())
-          }
-        case _ =>
-          val error = ConfError.typeMismatch(
-            s"List[${classTag.runtimeClass.getName}]",
-            conf
-          )
-          NotOk(error)
-      }
-    }
+    CanBuildFromDecoder.list[C, A]
+
   def orElse[A](a: ConfDecoder[A], b: ConfDecoder[A]): ConfDecoder[A] =
     new ConfDecoder[A] {
       override def read(conf: Conf): Configured[A] =
