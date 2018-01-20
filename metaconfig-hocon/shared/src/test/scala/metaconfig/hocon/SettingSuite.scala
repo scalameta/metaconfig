@@ -20,16 +20,8 @@ class SettingSuite extends FunSuite {
   }
 
   case class User(name: String, age: Int, permission: Permission)
-  val name = Setting(
-    SettingName("name"),
-    settingDescription = Some(SettingDescription("Name of user")),
-    extraNames = SettingName("nam") :: Nil
-  )
-  val age = Setting(
-    SettingName("age"),
-    settingDescription = Some(SettingDescription("Age of user")),
-    exampleValues = List(ExampleValue("18"))
-  )
+  val name = Setting("name")
+  val age = Setting("age")
 
   test("simple") {
     val conf = Obj(
@@ -41,8 +33,8 @@ class SettingSuite extends FunSuite {
       )
     )
     val user = (
-      conf.get[String](name) |@|
-        conf.get[Int](age) |@|
+      conf.get[String](name) product
+        conf.get[Int](age) product
         conf.get[Permission]("permission")
     ).map {
       case ((a, b), c) =>

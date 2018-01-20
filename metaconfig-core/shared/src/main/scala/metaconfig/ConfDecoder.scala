@@ -28,7 +28,9 @@ trait ConfDecoder[A] { self =>
 }
 
 object ConfDecoder {
-
+  def decode[T](conf: Conf)(implicit ev: ConfDecoder[T]): Configured[T] =
+    ev.read(conf)
+  def apply[T](implicit ev: ConfDecoder[T]): ConfDecoder[T] = ev
 
   // TODO(olafur) remove in favor of instanceExpect.
   def instance[T](f: PartialFunction[Conf, Configured[T]])(

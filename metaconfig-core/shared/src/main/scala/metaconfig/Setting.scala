@@ -32,7 +32,7 @@ object Setting {
 }
 
 case class Settings[T](settings: List[Setting]) {
-  def get(name: String): Option[Setting] = settings.find(_.name.value == name)
+  def get(name: String): Setting = settings.find(_.name.value == name).get
 }
 
 object Settings {

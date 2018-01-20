@@ -15,25 +15,38 @@ object Macros {
     if (!T.typeSymbol.isClass || !T.typeSymbol.asClass.isCaseClass)
       c.abort(c.enclosingPosition, s"$T must be a case class")
     val conf = Ident(TermName(c.freshName("conf")))
+    internal.setType(conf, typeOf[Conf])
+    val arg = Ident(TermName(c.freshName("arg")))
     val settings = Ident(TermName(c.freshName("settings")))
-    val field :: fields = T.members.collect {
+    val fields = T.members.collect {
       case m: MethodSymbol if m.isCaseAccessor =>
-        q"$conf.get[${m.info}]($settings.get(${m.name.decodedName.toString}))"
+        val tpe = m.info.resultType
+        tpe -> q"conf.get[$tpe]($settings.get(${m.name.decodedName.toString}))"
+    }.toList
+    val joined = q"_root_.scala.List.apply(..${fields.map {
+      case (_, tree) => tree
+    }})"
+    val results =
+      q"_root_.metaconfig.Configured.traverse[${typeOf[Any]}]($joined)"
+    val args = fields.reverse.zipWithIndex.map {
+      case ((tpe, _), i) => q"result.apply($i).asInstanceOf[$tpe]"
     }
-    val product = fields.foldLeft(field) { case (a, b) => q"$b.product($a)" }
+    val ctor = q"new ${weakTypeOf[T]}(..$args)"
     val settingsT = weakTypeOf[Settings[T]]
 
     val result = q"""
        new ${weakTypeOf[ConfDecoder[T]]} {
-         def read($conf: ${typeOf[Conf]}): ${weakTypeOf[Configured[T]]} = {
+         def read(conf: _root_.metaconfig.Conf): ${weakTypeOf[Configured[T]]} = {
            val $settings = _root_.scala.Predef.implicitly[$settingsT]
-           $product
+           val results: _root_.metaconfig.Configured[List[Any]] = $results
+           results.map { result =>
+             $ctor
+           }
          }
        }
      """
     logger.elem(result)
-
-    q"???"
+    c.untypecheck(result)
   }
 
   def deriveSettings[T]: Settings[T] = macro deriveSettingsImpl[T]

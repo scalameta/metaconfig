@@ -1,5 +1,6 @@
 package metaconfig
 
+import metaconfig.Conf._
 import metaconfig.internal.Macros
 import org.scalatest.FunSuite
 
@@ -21,10 +22,19 @@ case class AllTheAnnotations(
 object AllTheAnnotations {
   implicit val settings: Settings[AllTheAnnotations] =
     Macros.deriveSettings[AllTheAnnotations]
+  implicit lazy val decoder: ConfDecoder[AllTheAnnotations] =
+    Macros.deriveDecoder[AllTheAnnotations]
 }
 
 class MacrosTest extends FunSuite {
-  test("macros rock") {
+  test("ConfDecoder[T]") {
+    val obj = Obj("setting" -> Num(42), "setting2" -> Str("42"))
+    val expected = AllTheAnnotations(42, "42")
+    val obtained = ConfDecoder.decode[AllTheAnnotations](obj).get
+    pprint.log(obtained)
+    assert(obtained == expected)
+  }
+  test("Settings[T]") {
     val List(s1, s2) = Settings[AllTheAnnotations].settings
     assert(s1.name == SettingName("setting"))
     assert(
