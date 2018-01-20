@@ -27,7 +27,6 @@ object AllTheAnnotations {
     new ConfReads[AllTheAnnotations] {
       override def read(cursor: Cursor) = ConfError.empty.result
     }
-//    Macros.deriveReads[AllTheAnnotations]
 }
 
 class MacrosTest extends FunSuite {
