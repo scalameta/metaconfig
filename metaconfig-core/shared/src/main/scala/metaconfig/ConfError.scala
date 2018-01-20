@@ -1,22 +1,21 @@
 package metaconfig
 
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.PrintStream
 import java.io.PrintWriter
 import java.io.StringWriter
+import java.nio.file.Path
 import scala.meta.inputs.Position
 import scala.meta.internal.inputs._
 import metaconfig.ConfError.TypeMismatch
 
-// TODO(olafur) use richer "Message" data type instead of String to support
-// - exceptions with full stack trace
-// - positions
 sealed abstract class ConfError(val msg: String) extends Serializable { self =>
   def extra: List[String] = Nil
   final def all: List[String] = msg :: extra
   final override def toString: String =
     if (isEmpty) "No error message provided"
-    else if (extra.isEmpty) msg
+    else if (extra.isEmpty) stackTrace
     else {
       val sb = new StringWriter()
       val out = new PrintWriter(sb)
@@ -76,6 +75,8 @@ sealed abstract class ConfError(val msg: String) extends Serializable { self =>
       }
     }
 
+  // TODO(olafur) this is nothing but pure abusal of overriding and custom classes
+  // Maybe it's better to model everything as a `List[ErrorADT]`
   def cause: Option[Throwable] = None
   final def isException: Boolean = cause.nonEmpty
   def isMissingField: Boolean = false
@@ -94,11 +95,15 @@ sealed abstract class ConfError(val msg: String) extends Serializable { self =>
 }
 
 object ConfError {
-
   case class TypeMismatch(obtained: String, expected: String, path: String)
 
   lazy val empty: ConfError = new ConfError("") {}
 
+  def deprecated(
+      name: String,
+      message: String,
+      sinceVersion: String): ConfError =
+    deprecated(DeprecatedName(name, message, sinceVersion))
   def deprecated(deprecation: DeprecatedName): ConfError =
     new ConfError(deprecation.toString) {
       override def isDeprecation: Boolean = true
@@ -112,6 +117,10 @@ object ConfError {
       override def cause: Option[Throwable] = Some(e)
     }
   }
+  def fileDoesNotExist(path: Path): ConfError =
+    fileDoesNotExist(path.toAbsolutePath.toString)
+  def fileDoesNotExist(file: File): ConfError =
+    fileDoesNotExist(file.getAbsolutePath)
   def fileDoesNotExist(path: String): ConfError =
     msg(s"File $path does not exist.")
   def parseError(position: Position, message: String): ConfError =
@@ -139,6 +148,7 @@ object ConfError {
       override def isTypeMismatch: Boolean = true
     }
   }
+
   def missingField(obj: Conf.Obj, field: String): ConfError = {
     val hint =
       if (obj.values.lengthCompare(1) <= 0) ""

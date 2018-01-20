@@ -3,30 +3,28 @@ package metaconfig
 import scala.annotation.StaticAnnotation
 import scala.reflect.ClassTag
 
-case class DefaultValue[+T](value: T, show: () => String)
-
-object DefaultValue {
-  def apply[T](e: T)(implicit ev: DefaultValueShow[T]): DefaultValue[T] = {
-    DefaultValue(e, () => ev.show(e))
-  }
-}
-
-trait DefaultValueShow[T] {
-  def show(e: T): String
-}
-
-trait LowPriorityDefaultValueShow {
-  implicit def DefaultValueShowToString[T]: DefaultValueShow[T] =
-    new DefaultValueShow[T] {
-      override def show(e: T): String = e.toString
-    }
-}
-
-object DefaultValueShow extends LowPriorityDefaultValueShow
-
+/**
+  * Metadata about one field of a class.
+  *
+  * @param name the parameter name of this field.
+  * @param defaultValue the default value of this parameter, if any
+  * @param classTag the classtag of the the type of this field
+  * @param annotations static annotations attached to this field.
+  */
 final case class Field(
     name: String,
     defaultValue: Option[DefaultValue[_]],
     classTag: ClassTag[_],
     annotations: List[StaticAnnotation]
 )
+
+/**
+  * Aggregated metadata about a given type.
+  *
+  * @param fields the fields of this type
+  * @tparam T not used for anything but to drive implicit resolution.
+  */
+case class Surface[T](fields: List[Field])
+object Surface {
+  def apply[T](implicit ev: Surface[T]): Surface[T] = ev
+}

@@ -26,8 +26,6 @@ sealed abstract class Configured[+A] extends Product with Serializable {
       case (NotOk(_), _) => this.asInstanceOf[Configured[(A, B)]]
       case (_, NotOk(_)) => other.asInstanceOf[Configured[(A, B)]]
     }
-  @deprecated("Use andThen instead")
-  def flatMap[B](f: A => Configured[B]): Configured[B] = andThen(f)
   def andThen[B](f: A => Configured[B]): Configured[B] = this match {
     case Ok(value) => f(value)
     case x @ NotOk(_) => x
