@@ -124,10 +124,16 @@ object ConfError {
       expected: String,
       obtained: Conf,
       path: String): ConfError = {
-    val pathSuffix = if (path.isEmpty) "" else s" at path '$path'"
+    typeMismatch(expected, s"${obtained.kind} (value: $obtained)", path)
+  }
+  def typeMismatch(
+      expected: String,
+      obtained: String,
+      path: String): ConfError = {
+    val pathSuffix = if (path.isEmpty) "" else s" at '$path'"
     new ConfError(
       s"""Type mismatch$pathSuffix;
-         |  found    : ${obtained.kind} (value: $obtained)
+         |  found    : $obtained
          |  expected : $expected""".stripMargin
     ) {
       override def isTypeMismatch: Boolean = true

@@ -30,8 +30,3 @@ final case class Field(
     classTag: ClassTag[_],
     annotations: List[StaticAnnotation]
 )
-
-case class Fields[T](fields: List[Field])
-object Fields {
-  def apply[T](implicit ev: Fields[T]): Fields[T] = ev
-}

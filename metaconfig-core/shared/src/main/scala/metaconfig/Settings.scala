@@ -19,8 +19,8 @@ final class Settings[T](val settings: List[Setting]) {
 }
 
 object Settings {
-  implicit def FieldsToSettings[T](implicit ev: Fields[T]): Settings[T] =
+  implicit def FieldsToSettings[T](implicit ev: Surface[T]): Settings[T] =
     apply(ev)
-  def apply[T](implicit ev: Fields[T]): Settings[T] =
+  def apply[T](implicit ev: Surface[T]): Settings[T] =
     new Settings[T](ev.fields.map(new Setting(_)))
 }

@@ -9,8 +9,8 @@ import metaconfig._
 import org.scalameta.logger
 
 object Macros {
-  def deriveFields[T]: Fields[T] = macro deriveFieldsImpl[T]
-  def deriveFieldsImpl[T: c.WeakTypeTag](
+  def deriveSurface[T]: Surface[T] = macro deriveSurfaceImpl[T]
+  def deriveSurfaceImpl[T: c.WeakTypeTag](
       c: blackbox.Context): c.universe.Tree = {
     import c.universe._
     val T = weakTypeOf[T]
@@ -50,50 +50,42 @@ object Macros {
       field
     }
     val args = q"_root_.scala.List.apply(..$fields)"
-    val result = q"new ${weakTypeOf[Fields[T]]}($args)"
-    logger.elem(result)
+    val objectFactory = deriveObjectFactory[T](c)(T)
+    val result = q"new ${weakTypeOf[Surface[T]]}($args, $objectFactory)"
+//    logger.elem(result)
     c.untypecheck(result)
 //    result
   }
 
-  def deriveDecoder[T]: ConfDecoder[T] = macro deriveDecoderImpl[T]
-  def deriveDecoderImpl[T: c.WeakTypeTag](
-      c: blackbox.Context): c.universe.Tree = {
+  def deriveObjectFactory[T: c.WeakTypeTag](c: blackbox.Context)(
+      T: c.Type): c.universe.Tree = {
     import c.universe._
-    val T = weakTypeOf[T]
-    if (!T.typeSymbol.isClass || !T.typeSymbol.asClass.isCaseClass)
-      c.abort(c.enclosingPosition, s"$T must be a case class")
-    val settings = Ident(TermName(c.freshName("settings")))
-    val fields = T.members.collect {
-      case m: MethodSymbol if m.isCaseAccessor =>
-        val tpe = m.info.resultType
-        tpe -> q"conf.getSetting[$tpe]($settings.get(${m.name.decodedName.toString}))"
-    }.toList
-    val joined = q"_root_.scala.List.apply(..${fields.map {
-      case (_, tree) => tree
-    }})"
-    val results =
-      q"_root_.metaconfig.Configured.traverse[${typeOf[Any]}]($joined)"
-    val args = fields.reverse.zipWithIndex.map {
-      case ((tpe, _), i) => q"result.apply($i).asInstanceOf[$tpe]"
+    val ctor = T.typeSymbol.asClass.primaryConstructor
+    val Tname = T.typeSymbol.name.decodedName.toString
+
+    val casts = ctor.asMethod.paramLists.zipWithIndex.map {
+      case (params, i) =>
+        params.zipWithIndex.map {
+          case (param, j) =>
+            val tpe = param.info.resultType
+            val expectedType = tpe.toString
+            val field = Tname + "." + param.name.decodedName.toString
+            val value = q"argss($i)($j)"
+            q"_root_.metaconfig.ObjectFactory.cast[$tpe]($field, $expectedType, $value)"
+        }
     }
-    val ctor = q"new ${weakTypeOf[T]}(..$args)"
-    val settingsT = c.inferImplicitValue(weakTypeOf[Settings[T]])
 
     val result = q"""
-       new ${weakTypeOf[ConfDecoder[T]]} {
-         def read(conf: _root_.metaconfig.Conf): ${weakTypeOf[Configured[T]]} = {
-           val $settings = $settingsT
-           val results: _root_.metaconfig.Configured[List[Any]] = $results
-           results.map { result =>
-             $ctor
-           }
-         }
-       }
+    new ${weakTypeOf[ObjectFactory[T]]} {
+      override def unsafeNewInstance(
+        argss: _root_.scala.List[_root_.scala.List[_root_.scala.Any]]
+      ): $T = {
+        new ${T.typeSymbol}(...$casts)
+      }
+    }
      """
     logger.elem(result)
-    c.untypecheck(result)
-
+    result
   }
 
 }

@@ -15,16 +15,16 @@ case class AllTheAnnotations(
     @SinceVersion("2.1")
     @SettingDescription("Description")
     @DeprecatedSetting("Use newFeature instead", "2.1")
-    setting: Int = 2,
-    setting2: String
+    number: Int = 2,
+    string: String
 )
 
 object AllTheAnnotations {
-  implicit lazy val fields: Fields[AllTheAnnotations] =
-    Macros.deriveFields[AllTheAnnotations]
+  implicit lazy val fields: Surface[AllTheAnnotations] =
+    Macros.deriveSurface[AllTheAnnotations]
   lazy val settings = Settings[AllTheAnnotations]
   implicit lazy val decoder: ConfDecoder[AllTheAnnotations] =
-    Macros.deriveDecoder[AllTheAnnotations]
+    ???
 }
 
 class MacrosTest extends FunSuite {
@@ -40,17 +40,17 @@ class MacrosTest extends FunSuite {
     }
   }
 
-  private val setting = "setting" -> Num(42)
-  private val setting2 = "setting2" -> Str("42")
+  private val number = "number" -> Num(42)
+  private val string = "string" -> Str("42")
 
   checkError(
     "typo",
-    Obj(setting, "setting3" -> Str("42")),
+    Obj(number, "sttring" -> Str("42")),
     ""
   )
 
   test("ConfDecoder[T] ok") {
-    val obj = Obj("setting" -> Num(42), "setting2" -> Str("42"))
+    val obj = Obj("number" -> Num(42), "string" -> Str("42"))
     val expected = AllTheAnnotations(42, "42")
     val obtained = ConfDecoder.decode[AllTheAnnotations](obj).get
     pprint.log(obtained)
@@ -59,7 +59,7 @@ class MacrosTest extends FunSuite {
 
   test("Settings[T]") {
     val List(s1, s2) = Settings[AllTheAnnotations].settings
-    assert(s1.name == "setting")
+    assert(s1.name == "number")
     assert(
       s1.extraNames == List(
         "extraName",
@@ -82,7 +82,7 @@ class MacrosTest extends FunSuite {
       s1.deprecated.contains(DeprecatedSetting("Use newFeature instead", "2.1"))
     )
 
-    assert(s2.name == "setting2")
+    assert(s2.name == "string")
     assert(s2.annotations.isEmpty)
   }
 }
