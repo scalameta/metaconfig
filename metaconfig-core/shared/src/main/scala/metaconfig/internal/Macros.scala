@@ -25,13 +25,24 @@ class Macros(val c: blackbox.Context) {
   def deriveConfDecoderImpl[T: c.WeakTypeTag](default: Tree): Tree = {
     val T = assumeClass[T]
     val Tclass = T.typeSymbol.asClass
-    pprint.log(T)
     val settings = c.inferImplicitValue(weakTypeOf[Settings[T]])
-    List(1).foldLeft("") {
-      case (str, int) => str
+    if (settings == null || settings.isEmpty) {
+      c.abort(
+        c.enclosingPosition,
+        s"Missing implicit for ${weakTypeOf[Settings[T]]}]. " +
+          s"Hint, add `implicit val surface: ${weakTypeOf[Surface[T]]}` " +
+          s"to the companion ${T.companion.typeSymbol}"
+      )
+    }
+    val paramss = Tclass.primaryConstructor.asMethod.paramLists
+    if (paramss.size > 1) {
+      c.abort(
+        c.enclosingPosition,
+        s"Curried parameter lists are not supported yet."
+      )
     }
 
-    val (head :: params) :: Nil = Tclass.primaryConstructor.asMethod.paramLists
+    val (head :: params) :: Nil = paramss
     def next(param: Symbol): Tree = {
       val P = param.info.resultType
       val name = param.name.decodedName.toString
@@ -41,15 +52,12 @@ class Macros(val c: blackbox.Context) {
       next
     }
     val product = params.foldLeft(next(head)) {
-      case (accum, param) =>
-        q"$accum.product(${next(param)})"
+      case (accum, param) => q"$accum.product(${next(param)})"
     }
-    val get = 1.to(params.length).foldLeft(q"t": Tree) {
-      case (accum, _) =>
-        q"$accum._1"
+    val tupleExtract = 1.to(params.length).foldLeft(q"t": Tree) {
+      case (accum, _) => q"$accum._1"
     }
-    pprint.log(get.toString())
-    var curr = get
+    var curr = tupleExtract
     val args = 0.to(params.length).map { _ =>
       val old = curr
       curr = curr match {
@@ -59,6 +67,7 @@ class Macros(val c: blackbox.Context) {
           q"$qual._2"
         case q"$qual._2" =>
           q"$qual"
+        case q"t" => q"t"
       }
       old
     }
@@ -76,9 +85,7 @@ class Macros(val c: blackbox.Context) {
        }
      """
     logger.elem(result)
-    c.untypecheck(result)
-//    result
-//    q"???"
+    result
   }
 
   def deriveSurfaceImpl[T: c.WeakTypeTag]: Tree = {

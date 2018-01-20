@@ -25,14 +25,28 @@ trait ConfDecoder[A] { self =>
         case NotOk(x) => Configured.NotOk(x)
       }
     }
+
+  /** Returns a clone of this decoder that additoinally fails on unknown fields */
+  def noTypos(implicit ev: Settings[A]): ConfDecoder[A] = new ConfDecoder[A] {
+    override def read(conf: Conf): Configured[A] = conf match {
+      case Conf.Obj(values) =>
+        val names = ev.allNames
+        val typos = values.collect {
+          case (key, _) if !names.contains(key) =>
+            key
+        }
+        if (typos.isEmpty) self.read(conf)
+        else ConfError.invalidFields(typos, ev.settings.map(_.name)).notOk
+      case els =>
+        ConfError.typeMismatch("Object", els).notOk
+    }
+  }
 }
 
 object ConfDecoder {
   def decode[T](conf: Conf)(implicit ev: ConfDecoder[T]): Configured[T] =
     ev.read(conf)
   def apply[T](implicit ev: ConfDecoder[T]): ConfDecoder[T] = ev
-
-
 
   // TODO(olafur) remove in favor of instanceExpect.
   def instance[T](f: PartialFunction[Conf, Configured[T]])(

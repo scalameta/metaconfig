@@ -156,8 +156,12 @@ object ConfError {
   // TOOD(olafur) levenshtein
   def invalidFields(
       invalid: Iterable[String],
-      valid: Iterable[String]): ConfError =
-    new ConfError(s"Invalid fields: ${invalid.mkString(", ")}") {}
+      valid: Iterable[String]): ConfError = {
+    val plural = if (invalid.size > 1) "s" else ""
+    new ConfError(
+      s"Invalid field$plural: ${invalid.mkString(", ")}. " +
+        s"Expected one of ${valid.mkString(", ")}") {}
+  }
 
   def fromResults(results: Seq[Configured[_]]): Option[ConfError] =
     apply(results.collect { case Configured.NotOk(x) => x })
