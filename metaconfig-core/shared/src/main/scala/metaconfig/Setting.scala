@@ -2,6 +2,8 @@ package metaconfig
 
 import scala.annotation.StaticAnnotation
 import scala.reflect.ClassTag
+import io.circe.Decoder
+import io.circe.HCursor
 
 final case class SettingName(value: String) extends StaticAnnotation
 final case class ExtraSettingName(value: String) extends StaticAnnotation
@@ -61,7 +63,21 @@ object Setting {
 }
 
 final class Settings[T](val settings: List[Setting]) {
-  def get(name: String): Setting = settings.find(_.name == name).get
+  object Deprecated {
+    def unapply(key: String): Option[DeprecatedSettingName] =
+      (for {
+        setting <- settings
+        deprecation <- setting.deprecation(key).toList
+      } yield deprecation).headOption
+  }
+  def allNames: List[String] =
+    for {
+      setting <- settings
+      name <- setting.allNames
+    } yield name
+  def getOption(name: String): Option[Setting] =
+    settings.find(_.allNames.contains(name))
+  def get(name: String): Setting = getOption(name).get
 }
 
 object Settings {
