@@ -22,53 +22,71 @@ case class AllTheAnnotations(
 object AllTheAnnotations {
   implicit lazy val fields: Fields[AllTheAnnotations] =
     Macros.deriveFields[AllTheAnnotations]
-  implicit val settings: Settings[AllTheAnnotations] =
-    Macros.deriveSettings[AllTheAnnotations]
   implicit lazy val decoder: ConfDecoder[AllTheAnnotations] =
-    Macros.deriveDecoder[AllTheAnnotations]
+    new ConfDecoder[AllTheAnnotations] {
+      override def read(conf: Conf): Configured[AllTheAnnotations] = {
+        fields.fields.map { field =>
+          pprint.log(field)
+        }
+        ConfError.empty.notOk
+      }
+    }
 }
 
 class MacrosTest extends FunSuite {
-  test("Fields[T]") {
-    pprint.log(Fields[AllTheAnnotations])
+
+  def checkError(name: String, obj: Conf, expected: String): Unit = {
+    test(name) {
+      ConfDecoder.decode[AllTheAnnotations](obj) match {
+        case Configured.NotOk(err) =>
+          assert(expected == err.toString)
+        case Configured.Ok(obtained) =>
+          fail(s"Expected error, obtained=$obtained")
+      }
+    }
   }
-  test("ConfDecoder[T]") {
+
+  private val setting = "setting" -> Num(42)
+  private val setting2 = "setting2" -> Str("42")
+
+  checkError(
+    "typo",
+    Obj(setting, "setting3" -> Str("42")),
+    ""
+  )
+
+  test("ConfDecoder[T] ok") {
     val obj = Obj("setting" -> Num(42), "setting2" -> Str("42"))
     val expected = AllTheAnnotations(42, "42")
     val obtained = ConfDecoder.decode[AllTheAnnotations](obj).get
     pprint.log(obtained)
     assert(obtained == expected)
   }
+
   test("Settings[T]") {
     val List(s1, s2) = Settings[AllTheAnnotations].settings
-    assert(s1.name == SettingName("setting"))
+    assert(s1.name == "setting")
     assert(
       s1.extraNames == List(
-        ExtraSettingName("extraName2"),
-        ExtraSettingName("extraName"))
+        "extraName",
+        "extraName2"
+      )
     )
     assert(
       s1.deprecatedNames ==
-        List(
-          DeprecatedSettingName("deprecatedName2"),
-          DeprecatedSettingName("deprecatedName"))
+        List("deprecatedName", "deprecatedName2")
     )
     assert(
       s1.exampleValues ==
-        List(ExampleValue("value2"), ExampleValue("value"))
+        List("value", "value2")
     )
-    assert(s1.description.contains(SettingDescription("descriptioon")))
-    assert(s1.sinceVersion.contains(SinceVersion("2.1")))
+    assert(s1.description.contains("descriptioon"))
+    assert(s1.sinceVersion.contains("2.1"))
     assert(
       s1.deprecated.contains(DeprecatedSetting("Use newFeature instead", "2.1"))
     )
 
-    assert(s2.name == SettingName("setting2"))
-    assert(s2.extraNames.isEmpty)
-    assert(s2.deprecatedNames.isEmpty)
-    assert(s2.exampleValues.isEmpty)
-    assert(s2.description.isEmpty)
-    assert(s2.sinceVersion.isEmpty)
-    assert(s2.deprecated.isEmpty)
+    assert(s2.name == "setting2")
+    assert(s2.annotations.isEmpty)
   }
 }

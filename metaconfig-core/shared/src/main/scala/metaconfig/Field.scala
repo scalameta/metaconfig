@@ -3,10 +3,10 @@ package metaconfig
 import scala.annotation.StaticAnnotation
 import scala.reflect.ClassTag
 
-case class DefaultValue(value: Any, show: () => String)
+case class DefaultValue[+T](value: T, show: () => String)
 
 object DefaultValue {
-  def apply[T](e: T)(implicit ev: DefaultValueShow[T]): DefaultValue = {
+  def apply[T](e: T)(implicit ev: DefaultValueShow[T]): DefaultValue[T] = {
     DefaultValue(e, () => ev.show(e))
   }
 }
@@ -26,7 +26,7 @@ object DefaultValueShow extends LowPriorityDefaultValueShow
 
 final case class Field(
     name: String,
-    defaultValue: Option[DefaultValue],
+    defaultValue: Option[DefaultValue[_]],
     classTag: ClassTag[_],
     annotations: List[StaticAnnotation]
 )

@@ -15,7 +15,7 @@ sealed abstract class ConfError(val msg: String) extends Serializable { self =>
   def extra: List[String] = Nil
   final def all: List[String] = msg :: extra
   final override def toString: String =
-    if (isEmpty) "No error message"
+    if (isEmpty) "No error message provided"
     else if (extra.isEmpty) msg
     else {
       val sb = new StringWriter()

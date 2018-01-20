@@ -12,8 +12,9 @@ final case class SinceVersion(value: String) extends StaticAnnotation
 final case class DeprecatedSetting(message: String, since: String)
     extends StaticAnnotation
 
-final class Setting(field: Field) {
+final class Setting(val field: Field) {
   def name: String = field.name
+  def annotations: List[StaticAnnotation] = field.annotations
 
   def description: Option[String] = field.annotations.collectFirst {
     case SettingDescription(value) => value
@@ -47,10 +48,13 @@ object Setting {
   )
 }
 
-case class Settings[T](settings: List[Setting]) {
+final class Settings[T](val settings: List[Setting]) {
   def get(name: String): Setting = settings.find(_.name == name).get
 }
 
 object Settings {
-  def apply[T](implicit ev: Settings[T]): Settings[T] = ev
+  implicit def FieldsToSettings[T](implicit ev: Fields[T]): Settings[T] =
+    apply(ev)
+  def apply[T](implicit ev: Fields[T]): Settings[T] =
+    new Settings[T](ev.fields.map(new Setting(_)))
 }
