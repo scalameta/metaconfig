@@ -32,6 +32,8 @@ object ConfDecoder {
     ev.read(conf)
   def apply[T](implicit ev: ConfDecoder[T]): ConfDecoder[T] = ev
 
+
+
   // TODO(olafur) remove in favor of instanceExpect.
   def instance[T](f: PartialFunction[Conf, Configured[T]])(
       implicit ev: ClassTag[T]): ConfDecoder[T] =

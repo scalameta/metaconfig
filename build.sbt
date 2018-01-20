@@ -53,6 +53,7 @@ lazy val `metaconfig-core` = crossProject
     allSettings,
     // Position/Input
     libraryDependencies ++= List(
+      "com.propensive" %%% "magnolia" % "0.6.1",
       "org.scalameta" %%% "inputs" % MetaVersion,
       "com.lihaoyi" %%% "pprint" % "0.5.3",
       scalaOrganization.value % "scala-reflect" % scalaVersion.value % Provided
