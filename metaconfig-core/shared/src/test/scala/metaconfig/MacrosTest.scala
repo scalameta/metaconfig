@@ -1,5 +1,6 @@
 package metaconfig
 
+import java.io.File
 import metaconfig.Conf._
 import metaconfig.internal.Macros
 import org.scalatest.FunSuite
