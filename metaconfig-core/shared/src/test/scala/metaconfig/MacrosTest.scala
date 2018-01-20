@@ -16,7 +16,8 @@ case class AllTheAnnotations(
     @SettingDescription("Description")
     @DeprecatedSetting("Use newFeature instead", "2.1")
     number: Int = 2,
-    string: String
+    string: String = "string",
+    lst: List[String] = Nil
 )
 
 object AllTheAnnotations {
@@ -24,7 +25,7 @@ object AllTheAnnotations {
     Macros.deriveSurface[AllTheAnnotations]
   lazy val settings = Settings[AllTheAnnotations]
   implicit lazy val decoder: ConfDecoder[AllTheAnnotations] =
-    ???
+    Macros.deriveConfDecoder[AllTheAnnotations](AllTheAnnotations())
 }
 
 class MacrosTest extends FunSuite {
@@ -43,22 +44,26 @@ class MacrosTest extends FunSuite {
   private val number = "number" -> Num(42)
   private val string = "string" -> Str("42")
 
-  checkError(
-    "typo",
-    Obj(number, "sttring" -> Str("42")),
-    ""
-  )
+//  checkError(
+//    "typo",
+//    Obj(number, "sttring" -> Str("42")),
+//    ""
+//  )
 
   test("ConfDecoder[T] ok") {
-    val obj = Obj("number" -> Num(42), "string" -> Str("42"))
-    val expected = AllTheAnnotations(42, "42")
+    val obj = Obj(
+      "number" -> Num(42),
+      "string" -> Str("42"),
+      "lst" -> Lst(Str("43") :: Nil)
+    )
+    val expected = AllTheAnnotations(42, "42", List("43"))
     val obtained = ConfDecoder.decode[AllTheAnnotations](obj).get
     pprint.log(obtained)
     assert(obtained == expected)
   }
 
   test("Settings[T]") {
-    val List(s1, s2) = Settings[AllTheAnnotations].settings
+    val List(s1, s2, _) = Settings[AllTheAnnotations].settings
     assert(s1.name == "number")
     assert(
       s1.extraNames == List(

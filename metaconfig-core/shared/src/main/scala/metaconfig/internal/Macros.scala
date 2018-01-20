@@ -9,10 +9,79 @@ import metaconfig._
 import org.scalameta.logger
 
 object Macros {
-  def deriveSurface[T]: Surface[T] = macro deriveSurfaceImpl[T]
-  def deriveSurfaceImpl[T: c.WeakTypeTag](
-      c: blackbox.Context): c.universe.Tree = {
-    import c.universe._
+  def deriveSurface[T]: Surface[T] = macro Macros.deriveSurfaceImpl[T]
+  def deriveConfDecoder[T](default: T): ConfDecoder[T] =
+    macro Macros.deriveConfDecoderImpl[T]
+}
+
+class Macros(val c: blackbox.Context) {
+  import c.universe._
+  def assumeClass[T: c.WeakTypeTag]: Type = {
+    val T = weakTypeOf[T]
+    if (!T.typeSymbol.isClass || !T.typeSymbol.asClass.isCaseClass)
+      c.abort(c.enclosingPosition, s"$T must be a case class")
+    T
+  }
+  def deriveConfDecoderImpl[T: c.WeakTypeTag](default: Tree): Tree = {
+    val T = assumeClass[T]
+    val Tclass = T.typeSymbol.asClass
+    pprint.log(T)
+    val settings = c.inferImplicitValue(weakTypeOf[Settings[T]])
+    List(1).foldLeft("") {
+      case (str, int) => str
+    }
+
+    val (head :: params) :: Nil = Tclass.primaryConstructor.asMethod.paramLists
+    def next(param: Symbol): Tree = {
+      val P = param.info.resultType
+      val name = param.name.decodedName.toString
+      val getter = T.member(param.name)
+      val fallback = q"tmp.$getter"
+      val next = q"conf.getSettingOrElse[$P](settings.get($name), $fallback)"
+      next
+    }
+    val product = params.foldLeft(next(head)) {
+      case (accum, param) =>
+        q"$accum.product(${next(param)})"
+    }
+    val get = 1.to(params.length).foldLeft(q"t": Tree) {
+      case (accum, _) =>
+        q"$accum._1"
+    }
+    pprint.log(get.toString())
+    var curr = get
+    val args = 0.to(params.length).map { _ =>
+      val old = curr
+      curr = curr match {
+        case q"$qual._1" =>
+          q"$qual._2"
+        case q"$qual._1._2" =>
+          q"$qual._2"
+        case q"$qual._2" =>
+          q"$qual"
+      }
+      old
+    }
+    val ctor = q"new $T(..$args)"
+
+    val result = q"""
+       new ${weakTypeOf[ConfDecoder[T]]} {
+         def read(conf: _root_.metaconfig.Conf): ${weakTypeOf[Configured[T]]} = {
+             val settings = $settings
+             val tmp = $default
+             $product.map { t =>
+               $ctor
+             }
+         }
+       }
+     """
+    logger.elem(result)
+    c.untypecheck(result)
+//    result
+//    q"???"
+  }
+
+  def deriveSurfaceImpl[T: c.WeakTypeTag]: Tree = {
     val T = weakTypeOf[T]
     if (!T.typeSymbol.isClass || !T.typeSymbol.asClass.isCaseClass)
       c.abort(c.enclosingPosition, s"$T must be a case class")
@@ -50,15 +119,14 @@ object Macros {
       field
     }
     val args = q"_root_.scala.List.apply(..$fields)"
-    val objectFactory = deriveObjectFactory[T](c)(T)
+    val objectFactory = deriveObjectFactory[T](T)
     val result = q"new ${weakTypeOf[Surface[T]]}($args, $objectFactory)"
 //    logger.elem(result)
     c.untypecheck(result)
 //    result
   }
 
-  def deriveObjectFactory[T: c.WeakTypeTag](c: blackbox.Context)(
-      T: c.Type): c.universe.Tree = {
+  def deriveObjectFactory[T: c.WeakTypeTag](T: Type): Tree = {
     import c.universe._
     val ctor = T.typeSymbol.asClass.primaryConstructor
     val Tname = T.typeSymbol.name.decodedName.toString
@@ -84,7 +152,7 @@ object Macros {
       }
     }
      """
-    logger.elem(result)
+//    logger.elem(result)
     result
   }
 
