@@ -52,7 +52,11 @@ lazy val `metaconfig-core` = crossProject
   .settings(
     allSettings,
     // Position/Input
-    libraryDependencies += "org.scalameta" %%% "inputs" % MetaVersion
+    libraryDependencies ++= List(
+      "org.scalameta" %%% "inputs" % MetaVersion,
+      "com.lihaoyi" %%% "pprint" % "0.5.3",
+      scalaOrganization.value % "scala-reflect" % scalaVersion.value % Provided
+    )
   )
 lazy val `metaconfig-coreJVM` = `metaconfig-core`.jvm
 lazy val `metaconfig-coreJS` = `metaconfig-core`.js

@@ -39,7 +39,9 @@ object Metaconfig {
         conf match {
           case obj @ Conf.Obj(_) => ConfError.missingField(obj, path).notOk
           case _ =>
-            ConfError.typeMismatch(s"Conf.Obj with field $path", conf).notOk
+            ConfError
+              .typeMismatch(s"Conf.Obj with field $path", conf, path)
+              .notOk
         }
     }
   }
