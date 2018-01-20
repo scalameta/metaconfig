@@ -1,6 +1,7 @@
 package metaconfig
 
 import metaconfig.Conf._
+import metaconfig.internal.Fields
 import metaconfig.internal.Macros
 import org.scalatest.FunSuite
 

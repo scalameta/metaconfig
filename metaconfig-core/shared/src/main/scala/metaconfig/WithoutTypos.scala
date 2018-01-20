@@ -5,6 +5,7 @@ import cats.data.Validated
 import io.circe.AccumulatingDecoder
 import io.circe.Decoder
 import io.circe.DecodingFailure
+import metaconfig.internal.Settings
 
 case class WithoutTypos[T](value: T)
 object WithoutTypos {

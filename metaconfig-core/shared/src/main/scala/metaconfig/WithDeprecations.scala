@@ -2,6 +2,7 @@ package metaconfig
 
 import io.circe.Decoder
 import io.circe.HCursor
+import metaconfig.internal.Settings
 
 
 case class WithDeprecations[T](
