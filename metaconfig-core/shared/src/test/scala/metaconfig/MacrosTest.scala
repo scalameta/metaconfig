@@ -15,11 +15,13 @@ case class AllTheAnnotations(
     @SinceVersion("2.1")
     @SettingDescription("Description")
     @DeprecatedSetting("Use newFeature instead", "2.1")
-    setting: Int,
+    setting: Int = 2,
     setting2: String
 )
 
 object AllTheAnnotations {
+  implicit lazy val fields: Fields[AllTheAnnotations] =
+    Macros.deriveFields[AllTheAnnotations]
   implicit val settings: Settings[AllTheAnnotations] =
     Macros.deriveSettings[AllTheAnnotations]
   implicit lazy val decoder: ConfDecoder[AllTheAnnotations] =
@@ -27,6 +29,9 @@ object AllTheAnnotations {
 }
 
 class MacrosTest extends FunSuite {
+  test("Fields[T]") {
+    pprint.log(Fields[AllTheAnnotations])
+  }
   test("ConfDecoder[T]") {
     val obj = Obj("setting" -> Num(42), "setting2" -> Str("42"))
     val expected = AllTheAnnotations(42, "42")

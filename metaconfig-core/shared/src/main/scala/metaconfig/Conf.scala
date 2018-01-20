@@ -25,7 +25,7 @@ sealed abstract class Conf extends Product with Serializable {
   def as[T](implicit ev: ConfDecoder[T]): Configured[T] =
     ev.read(this)
   def get[T](setting: Setting)(implicit ev: ConfDecoder[T]): Configured[T] =
-    Metaconfig.get(this, setting.name.value, setting.alternativeNames: _*)
+    Metaconfig.get(this, setting.name, setting.alternativeNames: _*)
   def get[T](path: String, extraNames: String*)(
       implicit ev: ConfDecoder[T]): Configured[T] =
     Metaconfig.get(this, path, extraNames: _*)

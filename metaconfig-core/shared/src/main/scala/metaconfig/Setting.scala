@@ -1,6 +1,7 @@
 package metaconfig
 
 import scala.annotation.StaticAnnotation
+import scala.reflect.ClassTag
 
 final case class SettingName(value: String) extends StaticAnnotation
 final case class ExtraSettingName(value: String) extends StaticAnnotation
@@ -8,31 +9,46 @@ final case class DeprecatedSettingName(value: String) extends StaticAnnotation
 final case class ExampleValue(value: String) extends StaticAnnotation
 final case class SettingDescription(value: String) extends StaticAnnotation
 final case class SinceVersion(value: String) extends StaticAnnotation
-final case class DeprecatedSetting(warning: String, since: String)
+final case class DeprecatedSetting(message: String, since: String)
     extends StaticAnnotation
-final class Setting(
-    val name: SettingName,
-    val description: Option[SettingDescription],
-    val extraNames: List[ExtraSettingName],
-    val deprecatedNames: List[DeprecatedSettingName],
-    val exampleValues: List[ExampleValue],
-    val sinceVersion: Option[SinceVersion],
-    val deprecated: Option[DeprecatedSetting]
-) {
-  def alternativeNames: List[String] =
-    extraNames.map(_.value) ::: deprecatedNames.map(_.value)
-  def allNames: List[String] =
-    name.value :: alternativeNames
+
+final class Setting(field: Field) {
+  def name: String = field.name
+
+  def description: Option[String] = field.annotations.collectFirst {
+    case SettingDescription(value) => value
+  }
+  def extraNames: List[String] = field.annotations.collect {
+    case ExtraSettingName(value) => value
+  }
+  def deprecatedNames: List[String] = field.annotations.collect {
+    case DeprecatedSettingName(value) => value
+  }
+  def exampleValues: List[String] = field.annotations.collect {
+    case ExampleValue(value) => value
+  }
+  def sinceVersion: Option[String] = field.annotations.collectFirst {
+    case SinceVersion(value) => value
+  }
+  def deprecated: Option[DeprecatedSetting] = field.annotations.collectFirst {
+    case value: DeprecatedSetting => value
+  }
+  def alternativeNames: List[String] = extraNames ::: deprecatedNames
+  def allNames: List[String] = name :: alternativeNames
 }
 
 object Setting {
-  def apply(name: String): Setting = Setting(SettingName(name))
-  def apply(name: SettingName): Setting =
-    new Setting(name, None, Nil, Nil, Nil,  None, None)
+  def apply[T: ClassTag](name: String): Setting =
+    new Setting(Field(name, None, implicitly[ClassTag[T]], Nil))
+  def apply[T: ClassTag: DefaultValueShow](
+      name: String,
+      defaultValue: T): Setting = new Setting(
+    Field(name, Some(DefaultValue(defaultValue)), implicitly[ClassTag[T]], Nil)
+  )
 }
 
 case class Settings[T](settings: List[Setting]) {
-  def get(name: String): Setting = settings.find(_.name.value == name).get
+  def get(name: String): Setting = settings.find(_.name == name).get
 }
 
 object Settings {
