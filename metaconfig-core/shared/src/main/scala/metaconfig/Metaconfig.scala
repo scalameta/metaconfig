@@ -31,6 +31,19 @@ object Metaconfig {
     }
   }
 
+  def getSetting(conf: Conf, setting: Setting): ConfReads.Result[Conf] =
+    conf match {
+      case obj: Conf.Obj =>
+        setting.allNames.find(obj.map.contains) match {
+          case Some(name) =>
+            val warnings =
+              setting.deprecation(name).map(ConfError.deprecated).toList
+            ConfReads.Success(obj.map(name), warnings)
+          case None =>
+            ConfError.missingField(obj, setting.name).result
+        }
+    }
+
   def get[T](conf: Conf, path: String, extraNames: String*)(
       implicit ev: ConfDecoder[T]): Configured[T] = {
     getKey(conf, path +: extraNames) match {

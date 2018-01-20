@@ -10,8 +10,8 @@ case class AllTheAnnotations(
     @ExampleValue("value2")
     @ExtraSettingName("extraName")
     @ExtraSettingName("extraName2")
-    @DeprecatedSettingName("deprecatedName")
-    @DeprecatedSettingName("deprecatedName2")
+    @DeprecatedSettingName("deprecatedName", "Use x instead", "2.0")
+    @DeprecatedSettingName("deprecatedName2", "Use y instead", "3.0")
     @SinceVersion("2.1")
     @SettingDescription("Description")
     @DeprecatedSetting("Use newFeature instead", "2.1")
@@ -22,21 +22,12 @@ case class AllTheAnnotations(
 object AllTheAnnotations {
   implicit lazy val fields: Fields[AllTheAnnotations] =
     Macros.deriveFields[AllTheAnnotations]
+  lazy val settings = Settings[AllTheAnnotations]
   implicit lazy val decoder: ConfReads[AllTheAnnotations] =
     new ConfReads[AllTheAnnotations] {
-      override def read(cursor: Cursor): ConfReads.Result[AllTheAnnotations] =
-        cursor.conf match {
-          case obj: Conf.Obj =>
-            fields.fields.map { field =>
-              pprint.log(obj.field(field.name))
-              pprint.log(field)
-              1
-            }
-            ConfError.empty.result
-          case els =>
-            ConfError.typeMismatch("AllTheAnnotations", els).result
-        }
+      override def read(cursor: Cursor) = ConfError.empty.result
     }
+//    Macros.deriveReads[AllTheAnnotations]
 }
 
 class MacrosTest extends FunSuite {
@@ -80,7 +71,9 @@ class MacrosTest extends FunSuite {
     )
     assert(
       s1.deprecatedNames ==
-        List("deprecatedName", "deprecatedName2")
+        List(
+          DeprecatedSettingName("deprecatedName", "Use x instead", "2.0"),
+          DeprecatedSettingName("deprecatedName2", "Use y instead", "3.0"))
     )
     assert(
       s1.exampleValues ==

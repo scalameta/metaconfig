@@ -83,6 +83,7 @@ sealed abstract class ConfError(val msg: String) extends Serializable { self =>
   def isParseError: Boolean = false
   def typeMismatch: Option[TypeMismatch] = None
   def isTypeMismatch: Boolean = false
+  def isDeprecation: Boolean = false
 
   def copy(newMsg: String): ConfError = new ConfError(newMsg) {
     override def hasPos: Boolean = self.hasPos
@@ -98,6 +99,11 @@ object ConfError {
   case class TypeMismatch(obtained: String, expected: String, path: String)
 
   lazy val empty: ConfError = new ConfError("") {}
+
+  def deprecated(deprecation: DeprecatedSettingName): ConfError =
+    new ConfError(deprecation.toString) {
+      override def isDeprecation: Boolean = true
+    }
 
   def msg(message: String): ConfError =
     new ConfError(message) {}

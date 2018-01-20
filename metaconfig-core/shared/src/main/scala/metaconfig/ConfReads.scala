@@ -14,10 +14,22 @@ object Cursor {
   def apply(conf: Conf): Cursor = Cursor(conf, Nil)
 }
 
-trait ConfReads[T] {
-  def read(cursor: Cursor): ConfReads.Result[T]
+trait ConfReads[A] { self =>
+  def read(cursor: Cursor): ConfReads.Result[A]
+  final def map[B](f: A => B): ConfReads[B] = new ConfReads[B] {
+    override def read(cursor: Cursor): ConfReads.Result[B] =
+      self.read(cursor).map(f)
+  }
 }
 object ConfReads {
+  def traverse[A](cs: List[Result[A]]): Result[List[A]] = {
+    cs.foldLeft(success(List.empty[A])) {
+      case (res, configured) =>
+        res.product(configured).map {
+          case (a, b) => b :: a
+        }
+    }
+  }
   def read[T](conf: Conf)(implicit ev: ConfReads[T]): ConfReads.Result[T] =
     ev.read(Cursor(conf))
   def apply[T](implicit ev: ConfReads[T]): ConfReads[T] = ev
@@ -37,6 +49,20 @@ object ConfReads {
       fold((a, _) => Right(a), Left.apply)
     final def toConfigured: Configured[A] =
       fold((a, _) => Configured.ok(a), Configured.notOk)
+    final def andThen[B](f: (A, List[ConfError]) => Result[B]): Result[B] =
+      fold(f, _ => this.asInstanceOf[Result[B]])
+    final def map[B](f: A => B): Result[B] =
+      fold(
+        (a, warnings) => Success(f(a), warnings),
+        _ => this.asInstanceOf[Result[B]]
+      )
+    def product[B](other: Result[B]): Result[(A, B)] =
+      (this, other) match {
+        case (Success(a, aw), Success(b, bw)) => Success(a -> b, aw ++ bw)
+        case (Error(a), Error(b)) => Error(a.combine(b))
+        case (Error(_), _) => this.asInstanceOf[Result[(A, B)]]
+        case (_, Error(_)) => other.asInstanceOf[Result[(A, B)]]
+      }
   }
   final case class Error(error: ConfError) extends Result[Nothing]
   final case class Success[+T](value: T, warnings: List[ConfError])

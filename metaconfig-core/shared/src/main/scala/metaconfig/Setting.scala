@@ -5,7 +5,14 @@ import scala.reflect.ClassTag
 
 final case class SettingName(value: String) extends StaticAnnotation
 final case class ExtraSettingName(value: String) extends StaticAnnotation
-final case class DeprecatedSettingName(value: String) extends StaticAnnotation
+final case class DeprecatedSettingName(
+    name: String,
+    message: String,
+    sinceVersion: String)
+    extends StaticAnnotation {
+  override def toString: String =
+    s"Setting '$name' is deprecated since version $sinceVersion. $message"
+}
 final case class ExampleValue(value: String) extends StaticAnnotation
 final case class SettingDescription(value: String) extends StaticAnnotation
 final case class SinceVersion(value: String) extends StaticAnnotation
@@ -22,8 +29,8 @@ final class Setting(val field: Field) {
   def extraNames: List[String] = field.annotations.collect {
     case ExtraSettingName(value) => value
   }
-  def deprecatedNames: List[String] = field.annotations.collect {
-    case DeprecatedSettingName(value) => value
+  def deprecatedNames: List[DeprecatedSettingName] = field.annotations.collect {
+    case d: DeprecatedSettingName => d
   }
   def exampleValues: List[String] = field.annotations.collect {
     case ExampleValue(value) => value
@@ -34,8 +41,13 @@ final class Setting(val field: Field) {
   def deprecated: Option[DeprecatedSetting] = field.annotations.collectFirst {
     case value: DeprecatedSetting => value
   }
-  def alternativeNames: List[String] = extraNames ::: deprecatedNames
+  def alternativeNames: List[String] =
+    extraNames ::: deprecatedNames.map(_.name)
   def allNames: List[String] = name :: alternativeNames
+  def deprecation(name: String): Option[DeprecatedSettingName] =
+    deprecatedNames.find(_.name == name)
+  def read(conf: Conf): ConfReads.Result[Any] =
+    ConfError.msg("Not implemented").result
 }
 
 object Setting {
