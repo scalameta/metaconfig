@@ -22,14 +22,20 @@ case class AllTheAnnotations(
 object AllTheAnnotations {
   implicit lazy val fields: Fields[AllTheAnnotations] =
     Macros.deriveFields[AllTheAnnotations]
-  implicit lazy val decoder: ConfDecoder[AllTheAnnotations] =
-    new ConfDecoder[AllTheAnnotations] {
-      override def read(conf: Conf): Configured[AllTheAnnotations] = {
-        fields.fields.map { field =>
-          pprint.log(field)
+  implicit lazy val decoder: ConfReads[AllTheAnnotations] =
+    new ConfReads[AllTheAnnotations] {
+      override def read(cursor: Cursor): ConfReads.Result[AllTheAnnotations] =
+        cursor.conf match {
+          case obj: Conf.Obj =>
+            fields.fields.map { field =>
+              pprint.log(obj.field(field.name))
+              pprint.log(field)
+              1
+            }
+            ConfError.empty.result
+          case els =>
+            ConfError.typeMismatch("AllTheAnnotations", els).result
         }
-        ConfError.empty.notOk
-      }
     }
 }
 
@@ -37,10 +43,10 @@ class MacrosTest extends FunSuite {
 
   def checkError(name: String, obj: Conf, expected: String): Unit = {
     test(name) {
-      ConfDecoder.decode[AllTheAnnotations](obj) match {
-        case Configured.NotOk(err) =>
+      ConfReads.read[AllTheAnnotations](obj) match {
+        case ConfReads.Error(err) =>
           assert(expected == err.toString)
-        case Configured.Ok(obtained) =>
+        case ConfReads.Success(obtained, _) =>
           fail(s"Expected error, obtained=$obtained")
       }
     }
@@ -58,7 +64,7 @@ class MacrosTest extends FunSuite {
   test("ConfDecoder[T] ok") {
     val obj = Obj("setting" -> Num(42), "setting2" -> Str("42"))
     val expected = AllTheAnnotations(42, "42")
-    val obtained = ConfDecoder.decode[AllTheAnnotations](obj).get
+    val obtained = ConfReads.read[AllTheAnnotations](obj).get
     pprint.log(obtained)
     assert(obtained == expected)
   }

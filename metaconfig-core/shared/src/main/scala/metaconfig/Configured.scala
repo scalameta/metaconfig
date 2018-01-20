@@ -52,6 +52,7 @@ object Configured {
   }
   def unit: Configured[Unit] = Ok(())
   def ok[T](e: T): Configured[T] = Ok(e)
+  def notOk[T](error: ConfError): Configured[T] = NotOk(error)
   def error(message: String): Configured[Nothing] =
     ConfError.msg(message).notOk
   def exception(

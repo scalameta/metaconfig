@@ -42,6 +42,8 @@ object Conf {
   case class Lst(values: List[Conf]) extends Conf
   object Lst { def apply(values: Conf*): Lst = Lst(values.toList) }
   case class Obj(values: List[(String, Conf)]) extends Conf {
+    lazy val map: Map[String, Conf] = values.toMap
+    def field(key: String): Option[Conf] = map.get(key)
     def keys: List[String] = values.map(_._1)
     def mapValues(f: Conf => Conf): Obj =
       Obj(values.map {

@@ -34,7 +34,10 @@ sealed abstract class ConfError(val msg: String) extends Serializable { self =>
     case None => msg
   }
 
-  final def notOk = Configured.NotOk(this)
+  final def notOk: Configured[Nothing] = Configured.NotOk(this)
+  final def left[A]: Either[ConfError, A] = Left(this)
+  final def result[A]: ConfReads.Result[A] = ConfReads.error(this)
+
   final override def hashCode(): Int =
     (msg.hashCode << 1) | (if (hasPos) 1 else 0)
   final override def equals(obj: scala.Any): Boolean = obj match {
@@ -112,7 +115,10 @@ object ConfError {
     }
   def typeMismatch(expected: String, obtained: Conf): ConfError =
     typeMismatch(expected, obtained, "")
-  def typeMismatch(expected: String, obtained: Conf, path: String): ConfError = {
+  def typeMismatch(
+      expected: String,
+      obtained: Conf,
+      path: String): ConfError = {
     val pathSuffix = if (path.isEmpty) "" else s" at path '$path'"
     new ConfError(
       s"""Type mismatch$pathSuffix;
