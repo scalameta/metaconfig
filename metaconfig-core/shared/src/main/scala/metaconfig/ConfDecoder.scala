@@ -1,7 +1,10 @@
 package metaconfig
 
+import scala.language.experimental.macros
+
 import scala.collection.generic.CanBuildFrom
 import scala.reflect.ClassTag
+import scala.reflect.macros.blackbox
 import metaconfig.Configured._
 import org.scalameta.logger
 
@@ -25,6 +28,7 @@ trait ConfDecoder[A] { self =>
 }
 
 object ConfDecoder {
+
 
   // TODO(olafur) remove in favor of instanceExpect.
   def instance[T](f: PartialFunction[Conf, Configured[T]])(
