@@ -108,8 +108,10 @@ object ConfError {
     new ConfError(deprecation.toString) {
       override def isDeprecation: Boolean = true
     }
-
+  @deprecated("Use message instead", "0.6.0")
   def msg(message: String): ConfError =
+    this.message(message)
+  def message(message: String): ConfError =
     new ConfError(message) {}
   def exception(e: Throwable, stackSize: Int = 10): ConfError = {
     e.setStackTrace(e.getStackTrace.take(stackSize))
@@ -122,7 +124,7 @@ object ConfError {
   def fileDoesNotExist(file: File): ConfError =
     fileDoesNotExist(file.getAbsolutePath)
   def fileDoesNotExist(path: String): ConfError =
-    msg(s"File $path does not exist.")
+    message(s"File $path does not exist.")
   def parseError(position: Position, message: String): ConfError =
     new ConfError(position.formatMessage("error", message)) {
       override def isParseError: Boolean = true

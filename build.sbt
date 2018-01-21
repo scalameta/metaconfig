@@ -1,3 +1,5 @@
+import java.util.Date
+
 lazy val ScalaVersions = Seq("2.11.11", "2.12.2")
 
 organization in ThisBuild := "com.geirsson"
@@ -12,6 +14,32 @@ commands += Command.command("release") { s =>
     "sonatypeReleaseAll" ::
     s
 }
+
+lazy val website = project
+  .settings(
+    allSettings,
+    tutNameFilter := "README.md".r,
+    tutSourceDirectory := baseDirectory.in(ThisBuild).value / "docs",
+    sourceDirectory.in(Preprocess) := tutTargetDirectory.value,
+    sourceDirectory.in(GitBook) := target.in(Preprocess).value,
+    siteSubdirName in GitBook := "preprocess",
+    preprocessVars in Preprocess := Map(
+      "VERSION" -> version.value,
+      "DATE" -> new Date().toString
+    ),
+    siteSourceDirectory := target.in(GitBook).value,
+    makeSite := makeSite.dependsOn(tut, compile.in(Compile)).value,
+    ghpagesPushSite := ghpagesPushSite.dependsOn(makeSite).value,
+    publish := ghpagesPushSite.value,
+    git.remoteRepo := "git@github.com:olafurpg/metaconfig.git"
+  )
+  .enablePlugins(
+    GhpagesPlugin,
+    PreprocessPlugin,
+    GitBookPlugin,
+    TutPlugin
+  )
+  .dependsOn(`metaconfig-coreJVM`, `metaconfig-typesafe-config`)
 
 lazy val MetaVersion = "2.0.0-M3"
 

@@ -1,0 +1,15 @@
+{
+  "gitbook": "3.2.x",
+  "plugins": ["editlink", "github", "anchors"],
+  "pluginsConfig": {
+    "editlink": {
+      "base": "https://github.com/olafurpg/metaconfig/tree/master/docs",
+      "label": "Edit This Page"
+    },
+    "github": {
+      "url": "https://github.com/olafurpg/metaconfig/"
+    }
+  },
+  "title": "Metaconfig",
+  "description": "Parse hocon configuration into Scala case class"
+}

@@ -1,9 +1,10 @@
 package metaconfig
 
+import java.io.File
 import scala.meta.inputs.Position
 import scala.util.Try
-
 import metaconfig.Extractors._
+import org.langmeta.inputs.Input
 import org.scalameta.logger
 
 sealed abstract class Conf extends Product with Serializable {
@@ -39,6 +40,25 @@ sealed abstract class Conf extends Product with Serializable {
 }
 
 object Conf {
+  def fromMap(map: Map[String, Conf]): Conf = Conf.Obj(map.toList)
+  def fromList(lst: List[Conf]): Conf = Conf.Lst(lst)
+  def fromBoolean(bool: Boolean): Conf = Conf.Bool(bool)
+  def fromInt(n: Int): Conf = Conf.Num(n)
+  def fromBigDecimal(n: BigDecimal): Conf = Conf.Num(n)
+  def fromString(str: String): Conf = Conf.Str(str)
+  def parseFile(file: File)(
+      implicit parser: MetaconfigParser): Configured[Conf] =
+    parseInput(Input.File(file))
+  def parseString(string: String)(
+      implicit parser: MetaconfigParser): Configured[Conf] =
+    parseInput(Input.String(string))
+  def parseString(filename: String, string: String)(
+      implicit parser: MetaconfigParser): Configured[Conf] =
+    parseInput(Input.VirtualFile(filename, string))
+  def parseInput(input: Input)(
+      implicit parser: MetaconfigParser): Configured[Conf] =
+    parser.fromInput(input)
+
   case class Null() extends Conf
   case class Str(value: String) extends Conf
   case class Num(value: BigDecimal) extends Conf
