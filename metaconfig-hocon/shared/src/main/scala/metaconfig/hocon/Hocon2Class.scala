@@ -22,10 +22,9 @@ object Hocon2Class {
       configStr: Input,
       reader: metaconfig.ConfDecoder[T],
       path: Option[String] = None): metaconfig.Configured[T] = {
-    for {
-      config <- gimmeConfig(configStr)
-      clz <- reader.read(config.normalize)
-    } yield clz
+    gimmeConfig(configStr).andThen { config =>
+      reader.read(config.normalize)
+    }
   }
 
 }

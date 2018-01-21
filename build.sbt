@@ -19,7 +19,7 @@ lazy val baseSettings = Seq(
   scalaVersion := ScalaVersions.head,
   crossScalaVersions := ScalaVersions,
   libraryDependencies += "org.scalacheck" %%% "scalacheck" % "1.13.5" % Test,
-  libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.1" % Test
+  libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.2" % Test
 )
 
 lazy val publishSettings = Seq(
@@ -52,7 +52,11 @@ lazy val `metaconfig-core` = crossProject
   .settings(
     allSettings,
     // Position/Input
-    libraryDependencies += "org.scalameta" %%% "inputs" % MetaVersion
+    libraryDependencies ++= List(
+      "org.scalameta" %%% "inputs" % MetaVersion,
+      "com.lihaoyi" %%% "pprint" % "0.5.3",
+      scalaOrganization.value % "scala-reflect" % scalaVersion.value % Provided
+    )
   )
 lazy val `metaconfig-coreJVM` = `metaconfig-core`.jvm
 lazy val `metaconfig-coreJS` = `metaconfig-core`.js

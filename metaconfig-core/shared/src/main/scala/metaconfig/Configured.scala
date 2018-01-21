@@ -8,7 +8,7 @@ sealed abstract class Configured[+A] extends Product with Serializable {
   }
   def get: A = this match {
     case Ok(value) => value
-    case NotOk(error) => throw new IllegalStateException(error.msg)
+    case NotOk(error) => throw new NoSuchElementException(error.toString)
   }
   def toEither: Either[ConfError, A] = this match {
     case Ok(value) => Right(value)
@@ -26,14 +26,19 @@ sealed abstract class Configured[+A] extends Product with Serializable {
       case (NotOk(_), _) => this.asInstanceOf[Configured[(A, B)]]
       case (_, NotOk(_)) => other.asInstanceOf[Configured[(A, B)]]
     }
-  @deprecated("Use andThen instead")
-  def flatMap[B](f: A => Configured[B]): Configured[B] = andThen(f)
   def andThen[B](f: A => Configured[B]): Configured[B] = this match {
     case Ok(value) => f(value)
     case x @ NotOk(_) => x
   }
   def isOk: Boolean = this match { case Ok(_) => true; case _ => false }
   def isNotOk: Boolean = !isOk
+
+  def recoverOnError[B >: A](
+      f: PartialFunction[Configured.NotOk, Configured[B]]): Configured[B] =
+    this match {
+      case nok: Configured.NotOk => f.applyOrElse(nok, identity[NotOk])
+      case ok => ok
+    }
 }
 object Configured {
   // TODO(olafur) start using cats or scalaz...
@@ -45,6 +50,7 @@ object Configured {
   }
   def unit: Configured[Unit] = Ok(())
   def ok[T](e: T): Configured[T] = Ok(e)
+  def notOk[T](error: ConfError): Configured[T] = NotOk(error)
   def error(message: String): Configured[Nothing] =
     ConfError.msg(message).notOk
   def exception(
@@ -55,6 +61,8 @@ object Configured {
     ConfError.typeMismatch(expected, obtained).notOk
   def missingField(obj: Conf.Obj, field: String): Configured[Nothing] =
     ConfError.missingField(obj, field).notOk
-  case class Ok[T](value: T) extends Configured[T]
-  case class NotOk(error: ConfError) extends Configured[Nothing]
+  final case class Ok[T](value: T) extends Configured[T]
+  final case class NotOk(error: ConfError) extends Configured[Nothing] {
+    def combine(other: ConfError): NotOk = NotOk(error.combine(other))
+  }
 }
