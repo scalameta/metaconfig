@@ -32,13 +32,6 @@ sealed abstract class Configured[+A] extends Product with Serializable {
   }
   def isOk: Boolean = this match { case Ok(_) => true; case _ => false }
   def isNotOk: Boolean = !isOk
-
-  def recoverOnError[B >: A](
-      f: PartialFunction[Configured.NotOk, Configured[B]]): Configured[B] =
-    this match {
-      case nok: Configured.NotOk => f.applyOrElse(nok, identity[NotOk])
-      case ok => ok
-    }
 }
 object Configured {
   // TODO(olafur) start using cats or scalaz...
@@ -52,7 +45,7 @@ object Configured {
   def ok[T](e: T): Configured[T] = Ok(e)
   def notOk[T](error: ConfError): Configured[T] = NotOk(error)
   def error(message: String): Configured[Nothing] =
-    ConfError.msg(message).notOk
+    ConfError.message(message).notOk
   def exception(
       exception: Throwable,
       stackSize: Int = 10): Configured[Nothing] =

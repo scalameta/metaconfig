@@ -15,7 +15,7 @@ object TypesafeConfig2Class {
       Configured.NotOk(ConfError.fileDoesNotExist(file.getAbsolutePath))
     else if (file.isDirectory)
       Configured.NotOk(
-        ConfError.msg(s"File ${file.getAbsolutePath} is a directory"))
+        ConfError.message(s"File ${file.getAbsolutePath} is a directory"))
     else gimmeSafeConf(() => ConfigFactory.parseFile(file))
   }
   def gimmeConf(config: Config): Configured[Conf] =

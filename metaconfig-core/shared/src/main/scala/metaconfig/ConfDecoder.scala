@@ -11,6 +11,8 @@ import metaconfig.internal.NoTyposDecoder
 
 trait ConfDecoder[A] { self =>
   def read(conf: Conf): Configured[A]
+  final def read(conf: Configured[Conf]): Configured[A] =
+    conf.andThen(self.read)
   def map[B](f: A => B): ConfDecoder[B] =
     self.flatMap(x => Ok(f(x)))
   def orElse(other: ConfDecoder[A]): ConfDecoder[A] =

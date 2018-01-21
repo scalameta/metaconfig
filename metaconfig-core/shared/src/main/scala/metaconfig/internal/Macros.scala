@@ -8,12 +8,7 @@ import scala.reflect.macros.blackbox
 import metaconfig._
 import org.scalameta.logger
 
-object Macros {
-  def deriveSurface[T]: Surface[T] = macro Macros.deriveSurfaceImpl[T]
-  def deriveConfDecoder[T](default: T): ConfDecoder[T] =
-    macro Macros.deriveConfDecoderImpl[T]
-}
-
+object Macros
 class Macros(val c: blackbox.Context) {
   import c.universe._
   def assumeClass[T: c.WeakTypeTag]: Type = {

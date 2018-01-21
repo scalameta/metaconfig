@@ -2,7 +2,6 @@ package metaconfig
 
 import java.io.File
 import metaconfig.Conf._
-import metaconfig.internal.Macros
 import org.scalatest.FunSuite
 
 case class AllTheAnnotations(
@@ -23,17 +22,17 @@ case class AllTheAnnotations(
 
 object AllTheAnnotations {
   implicit lazy val fields: Surface[AllTheAnnotations] =
-    Macros.deriveSurface[AllTheAnnotations]
+    generic.deriveSurface[AllTheAnnotations]
   lazy val settings = Settings[AllTheAnnotations]
   implicit lazy val decoder: ConfDecoder[AllTheAnnotations] =
-    Macros.deriveConfDecoder[AllTheAnnotations](AllTheAnnotations()).noTypos
+    generic.deriveDecoder[AllTheAnnotations](AllTheAnnotations()).noTypos
 }
 
 class DeriveSurfaceSuite extends FunSuite {
 
   case class WithFile(file: File)
   test("Surface[T]") {
-    assertCompiles("Macros.deriveSurface[WithFile]")
+    assertCompiles("generic.deriveSurface[WithFile]")
   }
 
   test("Settings[T]") {
@@ -140,10 +139,10 @@ class DeriveConfDecoderSuite extends FunSuite {
 
   case class OneParam(param: Int)
   object OneParam {
-    implicit val surface: Surface[OneParam] = Macros.deriveSurface[OneParam]
+    implicit val surface: Surface[OneParam] = generic.deriveSurface[OneParam]
   }
   test("one param") {
-    val decoder = Macros.deriveConfDecoder[OneParam](OneParam(42))
+    val decoder = generic.deriveDecoder[OneParam](OneParam(42))
     val obtained = decoder.read(Obj("param" -> Num(2))).get
     val expected = OneParam(2)
     assert(obtained == expected)
@@ -151,27 +150,27 @@ class DeriveConfDecoderSuite extends FunSuite {
 
   case class Curry(a: Int)(b: String)
   object Curry {
-    implicit val surface: Surface[Curry] = Macros.deriveSurface[Curry]
+    implicit val surface: Surface[Curry] = generic.deriveSurface[Curry]
   }
   case class NoCurry(a: Int)
   object NoCurry {
-    implicit val surface: Surface[NoCurry] = Macros.deriveSurface[NoCurry]
+    implicit val surface: Surface[NoCurry] = generic.deriveSurface[NoCurry]
   }
 
   test("compile error") {
-    assertCompiles("""Macros.deriveConfDecoder[NoCurry](NoCurry(1))""")
-    assertDoesNotCompile("""Macros.deriveConfDecoder[Curry](Curry(1)("")""")
+    assertCompiles("""generic.deriveDecoder[NoCurry](NoCurry(1))""")
+    assertDoesNotCompile("""generic.deriveDecoder[Curry](Curry(1)("")""")
   }
 
   case class MissingSurface(b: Int)
   test("missing surface ") {
     assertDoesNotCompile(
-      """Macros.deriveConfDecoder[MissingSurface](MissingSurface(1))"""
+      """generic.deriveDecoder[MissingSurface](MissingSurface(1))"""
     )
     assertCompiles(
       """{
-        |  implicit val surface = Macros.deriveSurface[MissingSurface]
-        |  Macros.deriveConfDecoder[MissingSurface](MissingSurface(1))
+        |  implicit val surface = generic.deriveSurface[MissingSurface]
+        |  generic.deriveDecoder[MissingSurface](MissingSurface(1))
         |}""".stripMargin
     )
   }

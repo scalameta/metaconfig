@@ -45,7 +45,7 @@ class ConfErrorSuite extends FunSuite {
 
   check(
     "combine",
-    msg("message 1").combine(msg("message 2")),
+    message("message 1").combine(message("message 2")),
     """|2 errors
        |[E0] message 1
        |[E1] message 2""".stripMargin
