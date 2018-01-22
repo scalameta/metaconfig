@@ -47,6 +47,7 @@ All of the following code examples assume that you have `import metaconfig._` in
   * [generic.deriveDecoder](#genericderivedecoder)
   * [DeprecatedName](#deprecatedname)
   * [Docs](#docs)
+  * [Field.underlying](#fieldunderlying)
 
 <!-- /TOC -->
 
@@ -268,6 +269,22 @@ case class User(
     age: Int = 42
 )
 implicit val surface = generic.deriveSurface[User]
+  case class Home(
+      @Description("Address description")
+      address: String = "Lakelands 2",
+      @Description("Country description")
+      country: String = "Iceland"
+  )
+  implicit val homeSurface = generic.deriveSurface[Home]
+
+  case class User(
+      @Description("Name description")
+      name: String = "John",
+      @Description("Age description")
+      age: Int = 42,
+      home: Home = Home()
+  )
+  implicit val userSurface = generic.deriveSurface[User]
 ```
 
 To generate html documentation, pass in a default value
@@ -276,6 +293,12 @@ To generate html documentation, pass in a default value
 docs.Docs.html(User())
 ```
 
+The output will look like this when rendered in a markdown or html document
+
 ```tut:passthrough
 println(docs.Docs.html(User()))
 ```
+
+## Field.underlying
+
+A good practice is to group togher similar configuration settings, resuling in a hierarchy of options.

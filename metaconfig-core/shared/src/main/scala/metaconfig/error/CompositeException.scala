@@ -1,4 +1,4 @@
-package metaconfig.errors
+package metaconfig.error
 
 final case class CompositeException(head: Throwable, tail: List[Throwable])
     extends Exception(head.getMessage) {
