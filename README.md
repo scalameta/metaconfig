@@ -20,10 +20,10 @@ There are alternatives to metaconfig that you might want to give a try first
 ## Getting started
 
 ```scala
-libraryDependencies += "com.geirsson" %% "metaconfig-core" % "0.5.4"
+libraryDependencies += "com.geirsson" %% "metaconfig-core" % "0.6.0"
 
 // Use https://github.com/lightbend/config to parse HOCON
-libraryDependencies += "com.geirsson" %% "metaconfig-typesafe-config" % "0.5.4"
+libraryDependencies += "com.geirsson" %% "metaconfig-typesafe-config" % "0.6.0"
 ```
 
 Use this import to access the metaconfig API
@@ -48,6 +48,8 @@ All of the following code examples assume that you have `import metaconfig._` in
     * [Limitations](#limitations)
   * [@DeprecatedName](#deprecatedname)
   * [Docs](#docs)
+  * [Conf.parseCliArgs](#confparsecliargs)
+  * [Settings.toCliHelp](#settingstoclihelp)
 
 <!-- /TOC -->
 
@@ -159,7 +161,7 @@ scala> val fileDecoder = ConfDecoder.stringConfDecoder.flatMap { string =>
      |   if (file.exists()) Configured.ok(file)
      |   else ConfError.fileDoesNotExist(file).notOk
      | }
-fileDecoder: metaconfig.ConfDecoder[java.io.File] = metaconfig.ConfDecoder$$anon$1@73d20c4a
+fileDecoder: metaconfig.ConfDecoder[java.io.File] = metaconfig.ConfDecoder$$anon$1@39004c4d
 
 scala> fileDecoder.read(Conf.fromString(".scalafmt.conf"))
 res8: metaconfig.Configured[java.io.File] = Ok(.scalafmt.conf)
@@ -366,7 +368,7 @@ res25: metaconfig.Configured[EvolvingConfig] = NotOk(Invalid field: gooodName. E
 To generate documentation for you configuration, add a dependency to the following module
 
 ```scala
-libraryDependencies += "com.geirsson" %% "metaconfig-docs" % "0.5.4"
+libraryDependencies += "com.geirsson" %% "metaconfig-docs" % "0.6.0"
 ```
 
 First define your configuration
@@ -423,4 +425,49 @@ Setting age of type Int has default value 42
 Setting home.address of type String has default value Lakelands 2
 ==============
 Setting home.country of type String has default value Iceland
+```
+
+## Conf.parseCliArgs
+
+Metaconfig can parse command line arguments into a `Conf`.
+
+```scala
+case class App(
+  @Description("The directory to output files")
+  target: String = "out",
+  @Description("Print out debugging diagnostics")
+  @ExtraName("v")
+  verbose: Boolean = false,
+  remainingArgs: List[String] = Nil
+)
+implicit val surface = generic.deriveSurface[App]
+implicit val decoder = generic.deriveDecoder[App](App())
+```
+
+```scala
+scala> val conf = Conf.parseCliArgs[App](List(
+     |   "--verbose",
+     |   "--target", "/tmp",
+     |   "input.txt"
+     | ))
+conf: metaconfig.Configured[metaconfig.Conf] = Ok({"remainingArgs": ["input.txt"], "target": "/tmp", "verbose": true})
+```
+
+Decode the cli args into `App` like normal
+
+```scala
+scala> val app = decoder.read(conf.get)
+app: metaconfig.Configured[App] = Ok(App(/tmp,true,List(input.txt)))
+```
+
+## Settings.toCliHelp
+
+Generate a --help message with a `Settings[T]`.
+
+```scala
+scala> Settings[App].toCliHelp(default = App())
+res31: String =
+--target: String = out                 The directory to output files
+--verbose: Boolean = false             Print out debugging diagnostics
+--remaining-args: List[String] = List()
 ```
