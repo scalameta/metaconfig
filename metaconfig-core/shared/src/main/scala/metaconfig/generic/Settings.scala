@@ -3,7 +3,18 @@ package metaconfig.generic
 import metaconfig.annotation.DeprecatedName
 
 final class Settings[T](val settings: List[Setting]) {
-  def fields = settings.map(_.field)
+  def fields: List[Field] = settings.map(_.field)
+  def flat(default: T)(implicit ev: T <:< Product): List[(Setting, Any)] = {
+    settings
+      .zip(default.productIterator.toIterable)
+      .flatMap {
+        case (deepSetting, defaultSetting: Product) =>
+          deepSetting.flat.zip(defaultSetting.productIterator.toIterable)
+        case (s, defaultValue) =>
+          (s, defaultValue) :: Nil
+      }
+
+  }
   override def toString: String = s"Surface(settings=$settings)"
   object Deprecated {
     def unapply(key: String): Option[DeprecatedName] =

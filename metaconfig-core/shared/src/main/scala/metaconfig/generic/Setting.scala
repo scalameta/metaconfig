@@ -4,6 +4,9 @@ import scala.annotation.StaticAnnotation
 import metaconfig.annotation._
 
 final class Setting(val field: Field) {
+  def flat: List[Setting] =
+    field.flat.map(new Setting(_))
+
   override def toString: String = s"Setting($field)"
   def name: String = field.name
   def annotations: List[StaticAnnotation] = field.annotations
