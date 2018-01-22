@@ -4,6 +4,8 @@ import java.io.File
 import scala.meta.inputs.Position
 import scala.util.Try
 import metaconfig.Extractors._
+import metaconfig.generic.Setting
+import metaconfig.internal.ConfGet
 import org.langmeta.inputs.Input
 import org.scalameta.logger
 
@@ -26,17 +28,13 @@ sealed abstract class Conf extends Product with Serializable {
     ev.read(this)
   def getSettingOrElse[T](setting: Setting, default: T)(
       implicit ev: ConfDecoder[T]): Configured[T] =
-    Metaconfig.getOrElse(
-      this,
-      default,
-      setting.name,
-      setting.alternativeNames: _*)
+    ConfGet.getOrElse(this, default, setting.name, setting.alternativeNames: _*)
   def get[T](path: String, extraNames: String*)(
       implicit ev: ConfDecoder[T]): Configured[T] =
-    Metaconfig.get(this, path, extraNames: _*)
+    ConfGet.get(this, path, extraNames: _*)
   def getOrElse[T](path: String, extraNames: String*)(default: T)(
       implicit ev: ConfDecoder[T]): Configured[T] =
-    Metaconfig.getOrElse(this, default, path, extraNames: _*)
+    ConfGet.getOrElse(this, default, path, extraNames: _*)
 }
 
 object Conf {

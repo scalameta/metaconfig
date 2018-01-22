@@ -6,13 +6,16 @@ import scala.language.higherKinds
 import scala.collection.generic.CanBuildFrom
 import scala.reflect.ClassTag
 import metaconfig.Configured._
+import metaconfig.generic.Settings
 import metaconfig.internal.CanBuildFromDecoder
 import metaconfig.internal.NoTyposDecoder
 
 trait ConfDecoder[A] { self =>
+
   def read(conf: Conf): Configured[A]
   final def read(conf: Configured[Conf]): Configured[A] =
     conf.andThen(self.read)
+
   def map[B](f: A => B): ConfDecoder[B] =
     self.flatMap(x => Ok(f(x)))
   def orElse(other: ConfDecoder[A]): ConfDecoder[A] =
@@ -61,6 +64,10 @@ object ConfDecoder {
           }
         )
     }
+
+  def constant[T](value: T): ConfDecoder[T] = new ConfDecoder[T] {
+    override def read(conf: Conf): Configured[T] = Configured.ok(value)
+  }
 
   implicit val intConfDecoder: ConfDecoder[Int] =
     instanceExpect[Int]("Number") {

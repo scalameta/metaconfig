@@ -1,4 +1,4 @@
-package metaconfig
+package metaconfig.annotation
 
 import scala.annotation.StaticAnnotation
 

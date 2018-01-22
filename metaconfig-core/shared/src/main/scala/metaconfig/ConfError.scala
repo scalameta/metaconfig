@@ -9,6 +9,8 @@ import java.nio.file.Path
 import scala.meta.inputs.Position
 import scala.meta.internal.inputs._
 import metaconfig.ConfError.TypeMismatch
+import metaconfig.annotation.DeprecatedName
+import metaconfig.error.CompositeException
 
 sealed abstract class ConfError(val msg: String) extends Serializable { self =>
   def extra: List[String] = Nil

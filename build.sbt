@@ -3,7 +3,9 @@ import java.util.Date
 lazy val ScalaVersions = Seq("2.11.11", "2.12.2")
 
 organization in ThisBuild := "com.geirsson"
-version in ThisBuild := customVersion.getOrElse(version.in(ThisBuild).value)
+version in ThisBuild ~= { old =>
+  customVersion.getOrElse(old).replace('+', '-')
+}
 allSettings
 noPublish
 
@@ -15,6 +17,15 @@ commands += Command.command("release") { s =>
     s
 }
 
+lazy val `metaconfig-docs` = project
+  .settings(
+    allSettings,
+    libraryDependencies ++= List(
+      "com.lihaoyi" %% "scalatags" % "0.6.7"
+    )
+  )
+  .dependsOn(`metaconfig-coreJVM`)
+
 lazy val website = project
   .settings(
     allSettings,
@@ -22,9 +33,8 @@ lazy val website = project
     tutSourceDirectory := baseDirectory.in(ThisBuild).value / "docs",
     sourceDirectory.in(Preprocess) := tutTargetDirectory.value,
     sourceDirectory.in(GitBook) := target.in(Preprocess).value,
-    siteSubdirName in GitBook := "preprocess",
     preprocessVars in Preprocess := Map(
-      "VERSION" -> version.value,
+      "VERSION" -> version.value.replaceAll("-.*", ""),
       "DATE" -> new Date().toString
     ),
     siteSourceDirectory := target.in(GitBook).value,
@@ -39,7 +49,10 @@ lazy val website = project
     GitBookPlugin,
     TutPlugin
   )
-  .dependsOn(`metaconfig-coreJVM`, `metaconfig-typesafe-config`)
+  .dependsOn(
+    `metaconfig-docs`,
+    `metaconfig-typesafe-config`
+  )
 
 lazy val MetaVersion = "2.0.0-M3"
 

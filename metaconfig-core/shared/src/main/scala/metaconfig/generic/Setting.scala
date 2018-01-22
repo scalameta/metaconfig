@@ -1,11 +1,16 @@
-package metaconfig
+package metaconfig.generic
 
 import scala.annotation.StaticAnnotation
-import scala.reflect.ClassTag
+import metaconfig.annotation._
 
 final class Setting(val field: Field) {
   def name: String = field.name
+  def tpe: String = field.tpe
   def annotations: List[StaticAnnotation] = field.annotations
+  def underlying: List[List[Field]] = field.underlying
+  def flat: List[Setting] =
+    field.flat.map(new Setting(_))
+  override def toString: String = s"Setting($field)"
 
   def description: Option[String] = field.annotations.collectFirst {
     case Description(value) => value
@@ -33,11 +38,6 @@ final class Setting(val field: Field) {
 }
 
 object Setting {
-  def apply[T: ClassTag](name: String): Setting =
-    new Setting(Field(name, None, implicitly[ClassTag[T]], Nil))
-  def apply[T: ClassTag: DefaultValueShow](
-      name: String,
-      defaultValue: T): Setting = new Setting(
-    Field(name, Some(DefaultValue(defaultValue)), implicitly[ClassTag[T]], Nil)
-  )
+  def apply[T](name: String, tpe: String): Setting =
+    new Setting(new Field(name, tpe, Nil, Nil))
 }
