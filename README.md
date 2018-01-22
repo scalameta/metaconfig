@@ -161,7 +161,7 @@ scala> val fileDecoder = ConfDecoder.stringConfDecoder.flatMap { string =>
      |   if (file.exists()) Configured.ok(file)
      |   else ConfError.fileDoesNotExist(file).notOk
      | }
-fileDecoder: metaconfig.ConfDecoder[java.io.File] = metaconfig.ConfDecoder$$anon$1@374affee
+fileDecoder: metaconfig.ConfDecoder[java.io.File] = metaconfig.ConfDecoder$$anon$1@363da088
 
 scala> fileDecoder.read(Conf.fromString(".scalafmt.conf"))
 res8: metaconfig.Configured[java.io.File] = Ok(.scalafmt.conf)
@@ -439,7 +439,7 @@ case class App(
   @ExtraName("v")
   verbose: Boolean = false,
   @Description("The input files for app")
-  @ExtraName("alternativeArgs")
+  @ExtraName("remainingArgs")
   files: List[String] = Nil
 )
 implicit val surface = generic.deriveSurface[App]
@@ -459,7 +459,7 @@ Decode the cli args into `App` like normal
 
 ```scala
 scala> val app = decoder.read(conf.get)
-app: metaconfig.Configured[App] = Ok(App(/tmp,true,List()))
+app: metaconfig.Configured[App] = Ok(App(/tmp,true,List(input.txt)))
 ```
 
 ## Settings.toCliHelp
