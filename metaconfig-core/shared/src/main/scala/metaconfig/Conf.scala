@@ -4,6 +4,7 @@ import java.io.File
 import scala.meta.inputs.Position
 import scala.util.Try
 import metaconfig.Extractors._
+import metaconfig.generic.Setting
 import org.langmeta.inputs.Input
 import org.scalameta.logger
 

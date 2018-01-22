@@ -4,7 +4,7 @@ import metaconfig.Conf
 import metaconfig.ConfDecoder
 import metaconfig.ConfError
 import metaconfig.Configured
-import metaconfig.Settings
+import metaconfig.generic.Settings
 
 object NoTyposDecoder {
   def apply[A](underlying: ConfDecoder[A])(

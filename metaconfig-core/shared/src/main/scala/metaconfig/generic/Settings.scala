@@ -1,6 +1,9 @@
-package metaconfig
+package metaconfig.generic
+
+import metaconfig.annotation.DeprecatedName
 
 final class Settings[T](val settings: List[Setting]) {
+  def fields = settings.map(_.field)
   override def toString: String = s"Surface(settings=$settings)"
   object Deprecated {
     def unapply(key: String): Option[DeprecatedName] =

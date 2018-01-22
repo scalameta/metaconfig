@@ -179,6 +179,7 @@ Configured.ok(42).get
 To use automatic derivation, you first need a `Surface[T]` typeclass instance
 
 ```tut
+import metaconfig.generic._
 implicit val userSurface: Surface[User] =
   generic.deriveSurface[User]
 ```
@@ -234,6 +235,7 @@ As your configuration evolves, you may want to rename some settings but you have
 Use the `@DeprecatedName` annotation to continue supporting the old name even if you go ahead with the rename.
 
 ```tut:silent
+import metaconfig.annotation._
 case class EvolvingConfig(
     @DeprecatedName("goodName", "Use isGoodName instead", "1.0")
     isGoodName: Boolean

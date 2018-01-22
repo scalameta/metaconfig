@@ -1,7 +1,6 @@
-package metaconfig
+package metaconfig.generic
 
 import scala.annotation.StaticAnnotation
-import scala.reflect.ClassTag
 
 /**
   * Metadata about one field of a class.
@@ -13,11 +12,12 @@ import scala.reflect.ClassTag
 final class Field(
     val name: String,
     val tpe: String,
-    val annotations: List[StaticAnnotation]
+    val annotations: List[StaticAnnotation],
+    val underlying: List[Setting]
 ) {
   override def toString: String = {
     val annots = annotations.map(annot => s"@$annot").mkString(", ")
-    s"""Field(name="$name",tpe="$tpe",annotations=List($annots))"""
+    s"""Field(name="$name",tpe="$tpe",annotations=List($annots),underlying=$underlying)"""
   }
 }
 

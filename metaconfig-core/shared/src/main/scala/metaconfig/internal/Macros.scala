@@ -3,10 +3,11 @@ package metaconfig.internal
 import scala.language.experimental.macros
 
 import scala.annotation.StaticAnnotation
-import scala.reflect.ClassTag
 import scala.reflect.macros.blackbox
 import metaconfig._
-import org.scalameta.logger
+import metaconfig.generic.Field
+import metaconfig.generic.Settings
+import metaconfig.generic.Surface
 
 object Macros
 class Macros(val c: blackbox.Context) {
@@ -90,15 +91,29 @@ class Macros(val c: blackbox.Context) {
     val ctor = Tclass.primaryConstructor.asMethod
     val argss = ctor.paramLists.map { params =>
       val fields = params.map { param =>
+        val paramTpe = param.info.resultType
         val annots = param.annotations.collect {
           case annot if annot.tree.tpe <:< typeOf[StaticAnnotation] =>
             annot.tree
         }
+        val fieldsParamTpe = c.internal.typeRef(
+          NoPrefix,
+          weakTypeOf[Surface[_]].typeSymbol,
+          paramTpe :: Nil
+        )
+        val underlyingInferred = c.inferImplicitValue(fieldsParamTpe)
+        val underlying =
+          if (underlyingInferred == null || underlyingInferred.isEmpty) {
+            q"_root_.scala.Nil"
+          } else {
+            q"$underlyingInferred.fields"
+          }
 
-        val field = q"""new _root_.metaconfig.Field(
+        val field = q"""new ${weakTypeOf[Field]}(
            ${param.name.decodedName.toString},
-           ${param.info.resultType.toString},
-           _root_.scala.List.apply(..$annots)
+           ${paramTpe.toString},
+           _root_.scala.List.apply(..$annots),
+           $underlying
          )"""
         field
       }

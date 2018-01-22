@@ -6,6 +6,7 @@ import scala.language.higherKinds
 import scala.collection.generic.CanBuildFrom
 import scala.reflect.ClassTag
 import metaconfig.Configured._
+import metaconfig.generic.Settings
 import metaconfig.internal.CanBuildFromDecoder
 import metaconfig.internal.NoTyposDecoder
 

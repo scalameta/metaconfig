@@ -1,5 +1,9 @@
 package metaconfig
 
+import metaconfig.annotation.Deprecated
+import metaconfig.annotation.DeprecatedName
+import metaconfig.annotation.ExtraName
+import metaconfig.generic.Settings
 import org.scalatest.FunSuite
 
 class SettingsSuite extends FunSuite {
@@ -8,7 +12,7 @@ class SettingsSuite extends FunSuite {
   test("Settings[T].toString") {
     implicit val surface = generic.deriveSurface[ToString]
     val obtained = Settings[ToString].toString
-    val expected = """Surface(settings=List(Setting(Field(name="name",tpe="String",annotations=List(@ExtraName(extra))))))"""
+    val expected = """Surface(settings=List(Setting(Field(name="name",tpe="String",annotations=List(@ExtraName(extra)),underlying=List()))))"""
     assert(obtained == expected)
   }
 

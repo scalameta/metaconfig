@@ -1,9 +1,9 @@
 package metaconfig.docs
 
 import scalatags.Text.all._
-import metaconfig.Description
-import metaconfig.Settings
+import metaconfig.annotation.Description
 import metaconfig.generic
+import metaconfig.generic.Settings
 
 object Docs {
   case class User(

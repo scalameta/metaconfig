@@ -1,6 +1,7 @@
-package metaconfig
+package metaconfig.generic
 
 import scala.annotation.StaticAnnotation
+import metaconfig.annotation._
 
 final class Setting(val field: Field) {
   override def toString: String = s"Setting($field)"
@@ -34,5 +35,5 @@ final class Setting(val field: Field) {
 
 object Setting {
   def apply[T](name: String, tpe: String): Setting =
-    new Setting(new Field(name, tpe, Nil))
+    new Setting(new Field(name, tpe, Nil, Nil))
 }

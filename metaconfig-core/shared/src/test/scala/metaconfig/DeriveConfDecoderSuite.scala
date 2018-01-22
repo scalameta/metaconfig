@@ -1,6 +1,9 @@
 package metaconfig
 
 import metaconfig.Conf._
+import metaconfig.annotation._
+import metaconfig.generic.Settings
+import metaconfig.generic.Surface
 import org.scalatest.FunSuite
 
 case class AllTheAnnotations(

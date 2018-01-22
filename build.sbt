@@ -3,7 +3,9 @@ import java.util.Date
 lazy val ScalaVersions = Seq("2.11.11", "2.12.2")
 
 organization in ThisBuild := "com.geirsson"
-version in ThisBuild := customVersion.getOrElse(version.in(ThisBuild).value)
+version in ThisBuild ~= { old =>
+  customVersion.getOrElse(old).replace('+', '-')
+}
 allSettings
 noPublish
 
@@ -25,9 +27,9 @@ lazy val website = project
     tutSourceDirectory := baseDirectory.in(ThisBuild).value / "docs",
     sourceDirectory.in(Preprocess) := tutTargetDirectory.value,
     sourceDirectory.in(GitBook) := target.in(Preprocess).value,
-    siteSubdirName in GitBook := "preprocess",
     preprocessVars in Preprocess := Map(
-      "VERSION" -> version.value,
+      "NIGHLY_VERSION" -> version.value,
+      "VERSION" -> version.value.replaceAll("-.*", ""),
       "DATE" -> new Date().toString
     ),
     siteSourceDirectory := target.in(GitBook).value,
