@@ -47,8 +47,6 @@ final class Field(
   */
 final class Surface[T](val fields: List[List[Field]]) {
   override def toString: String = s"Surface($fields)"
-  def this(fields: List[Field]*) =
-    this(fields.toList)
 }
 object Surface {
   def apply[T](implicit ev: Surface[T]): Surface[T] = ev

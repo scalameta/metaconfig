@@ -37,6 +37,8 @@ class Macros(val c: blackbox.Context) {
         s"Curried parameter lists are not supported yet."
       )
     }
+    if (paramss.head.isEmpty)
+      return q"_root_.metaconfig.ConfDecoder.constant($default)"
 
     val (head :: params) :: Nil = paramss
     def next(param: Symbol): Tree = {
@@ -120,7 +122,8 @@ class Macros(val c: blackbox.Context) {
       val args = q"_root_.scala.List.apply(..$fields)"
       args
     }
-    val result = q"new ${weakTypeOf[Surface[T]]}(..$argss)"
+    val args = q"_root_.scala.List.apply(..$argss)"
+    val result = q"new ${weakTypeOf[Surface[T]]}($args)"
     c.untypecheck(result)
   }
 

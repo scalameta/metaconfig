@@ -40,12 +40,13 @@ All of the following code examples assume that you have `import metaconfig._` in
   * [Getting started](#getting-started)
   * [Conf](#conf)
   * [Conf.parse](#confparse)
-  * [ConfDecoder.instance](#confdecoderinstance)
+  * [ConfDecoder](#confdecoder)
   * [ConfError](#conferror)
   * [Configured](#configured)
   * [generic.deriveSurface](#genericderivesurface)
   * [generic.deriveDecoder](#genericderivedecoder)
-  * [DeprecatedName](#deprecatedname)
+    * [Limitations](#limitations)
+  * [@DeprecatedName](#deprecatedname)
   * [Docs](#docs)
 
 <!-- /TOC -->
@@ -83,7 +84,7 @@ For a Scala.js alternative, depend on the `metaconfig-hocon` module and replace 
 import metaconfig.hocon._
 ```
 
-## ConfDecoder.instance
+## ConfDecoder
 
 To convert `Conf` into higher-level data structures you need a `ConfDecoder[T]` instance.
 Convert a partial function from `Conf` to your target type using `ConfDecoder.instance[T]`.
@@ -119,6 +120,18 @@ decoder.read(Conf.parseString("""
 name = 42
 age = "Susan"
 """))
+```
+
+You can also use existing decoders to build more complex decoders
+
+```tut
+val fileDecoder = ConfDecoder.stringConfDecoder.flatMap { string =>
+  val file = new java.io.File(string)
+  if (file.exists()) Configured.ok(file)
+  else ConfError.fileDoesNotExist(file).notOk
+}
+fileDecoder.read(Conf.fromString(".scalafmt.conf"))
+fileDecoder.read(Conf.fromString(".foobar"))
 ```
 
 ## ConfError
@@ -227,9 +240,16 @@ This will fail wiith a fail cryptic compile error
 implicit val decoder = generic.deriveDecoder[Funky](Funky(new File("")))
 ```
 
-Observer that the error message is complaining about a missing `metaconfig.ConfDecoder[java.io.File]` implicit.
+Observe that the error message is complaining about a missing `metaconfig.ConfDecoder[java.io.File]` implicit.
 
-## DeprecatedName
+### Limitations
+
+The following features are not supported by generic derivation
+
+* derivation for objects, sealed traits or non-case classes, only case classes are supported
+* parameterized types, it's possible to derive decoders for a concrete parameterized type like `Option[Foo]` but note that the type field (`Field.tpe`) will be pretty-printed to the generic representation of that field: `Option[T].value: T`.
+
+## @DeprecatedName
 
 As your configuration evolves, you may want to rename some settings but you have existing users who are using the old name.
 Use the `@DeprecatedName` annotation to continue supporting the old name even if you go ahead with the rename.
@@ -261,29 +281,22 @@ libraryDependencies += "com.geirsson" %% "metaconfig-docs" % "@VERSION@"
 First define your configuration
 
 ```tut:silent
+case class Home(
+    @Description("Address description")
+    address: String = "Lakelands 2",
+    @Description("Country description")
+    country: String = "Iceland"
+)
+implicit val homeSurface = generic.deriveSurface[Home]
+
 case class User(
     @Description("Name description")
     name: String = "John",
     @Description("Age description")
-    age: Int = 42
+    age: Int = 42,
+    home: Home = Home()
 )
-implicit val surface = generic.deriveSurface[User]
-  case class Home(
-      @Description("Address description")
-      address: String = "Lakelands 2",
-      @Description("Country description")
-      country: String = "Iceland"
-  )
-  implicit val homeSurface = generic.deriveSurface[Home]
-
-  case class User(
-      @Description("Name description")
-      name: String = "John",
-      @Description("Age description")
-      age: Int = 42,
-      home: Home = Home()
-  )
-  implicit val userSurface = generic.deriveSurface[User]
+implicit val userSurface = generic.deriveSurface[User]
 ```
 
 To generate html documentation, pass in a default value

@@ -113,6 +113,17 @@ class DeriveConfDecoderSuite extends FunSuite {
     assert(obtained == expected)
   }
 
+  case class NoParam()
+  object NoParam {
+    implicit val surface: Surface[NoParam] = generic.deriveSurface[NoParam]
+  }
+  test("no param") {
+    val decoder = generic.deriveDecoder[NoParam](NoParam())
+    val obtained = decoder.read(Obj("param" -> Num(2))).get
+    val expected = NoParam()
+    assert(obtained == expected)
+  }
+
   case class Curry(a: Int)(b: String)
   object Curry {
     implicit val surface: Surface[Curry] = generic.deriveSurface[Curry]
@@ -139,4 +150,5 @@ class DeriveConfDecoderSuite extends FunSuite {
         |}""".stripMargin
     )
   }
+
 }

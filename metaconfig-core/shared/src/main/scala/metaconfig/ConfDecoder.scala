@@ -65,6 +65,10 @@ object ConfDecoder {
         )
     }
 
+  def constant[T](value: T): ConfDecoder[T] = new ConfDecoder[T] {
+    override def read(conf: Conf): Configured[T] = Configured.ok(value)
+  }
+
   implicit val intConfDecoder: ConfDecoder[Int] =
     instanceExpect[Int]("Number") {
       case Conf.Num(x) => Ok(x.toInt)

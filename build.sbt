@@ -34,7 +34,6 @@ lazy val website = project
     sourceDirectory.in(Preprocess) := tutTargetDirectory.value,
     sourceDirectory.in(GitBook) := target.in(Preprocess).value,
     preprocessVars in Preprocess := Map(
-      "NIGHLY_VERSION" -> version.value,
       "VERSION" -> version.value.replaceAll("-.*", ""),
       "DATE" -> new Date().toString
     ),

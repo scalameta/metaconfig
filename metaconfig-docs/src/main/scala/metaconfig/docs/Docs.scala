@@ -6,10 +6,10 @@ import metaconfig.generic.Settings
 
 object Docs {
   def htmlSetting(setting: Setting, defaultValue: Any) = tr(
-    th(setting.name),
-    th(setting.field.tpe),
-    th(setting.description),
-    th(defaultValue.toString)
+    td(code(setting.name)),
+    td(code(setting.field.tpe)),
+    td(setting.description),
+    td(defaultValue.toString)
   )
 
   def html[T <: Product](default: T)(implicit settings: Settings[T]): String = {

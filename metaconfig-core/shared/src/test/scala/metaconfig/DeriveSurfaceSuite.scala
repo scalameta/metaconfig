@@ -1,6 +1,7 @@
 package metaconfig
 
 import java.io.File
+import metaconfig.generic.Surface
 import org.scalatest.FunSuite
 
 class DeriveSurfaceSuite extends FunSuite {
@@ -47,5 +48,18 @@ class DeriveSurfaceSuite extends FunSuite {
   class MissingCase(a: Int)
   test("case") {
     assertDoesNotCompile("generic.deriveSurface[MissingCase]")
+  }
+
+  case class TypeParam[T](value: T)
+  object TypeParam {
+    implicit def surface[T: Surface] = generic.deriveSurface[TypeParam[T]]
+  }
+  test("tparam") {
+    implicit val is: Surface[Int] = new Surface[Int](Nil)
+    val surface = TypeParam.surface[Int]
+    val List(value :: Nil) = surface.fields
+    assert(value.name == "value")
+    assert(value.tpe == "T")
+
   }
 }
