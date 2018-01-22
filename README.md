@@ -161,7 +161,7 @@ scala> val fileDecoder = ConfDecoder.stringConfDecoder.flatMap { string =>
      |   if (file.exists()) Configured.ok(file)
      |   else ConfError.fileDoesNotExist(file).notOk
      | }
-fileDecoder: metaconfig.ConfDecoder[java.io.File] = metaconfig.ConfDecoder$$anon$1@39004c4d
+fileDecoder: metaconfig.ConfDecoder[java.io.File] = metaconfig.ConfDecoder$$anon$1@374affee
 
 scala> fileDecoder.read(Conf.fromString(".scalafmt.conf"))
 res8: metaconfig.Configured[java.io.File] = Ok(.scalafmt.conf)
@@ -438,7 +438,9 @@ case class App(
   @Description("Print out debugging diagnostics")
   @ExtraName("v")
   verbose: Boolean = false,
-  remainingArgs: List[String] = Nil
+  @Description("The input files for app")
+  @ExtraName("alternativeArgs")
+  files: List[String] = Nil
 )
 implicit val surface = generic.deriveSurface[App]
 implicit val decoder = generic.deriveDecoder[App](App())
@@ -457,7 +459,7 @@ Decode the cli args into `App` like normal
 
 ```scala
 scala> val app = decoder.read(conf.get)
-app: metaconfig.Configured[App] = Ok(App(/tmp,true,List(input.txt)))
+app: metaconfig.Configured[App] = Ok(App(/tmp,true,List()))
 ```
 
 ## Settings.toCliHelp
@@ -467,7 +469,7 @@ Generate a --help message with a `Settings[T]`.
 ```scala
 scala> Settings[App].toCliHelp(default = App())
 res31: String =
---target: String = out                 The directory to output files
---verbose: Boolean = false             Print out debugging diagnostics
---remaining-args: List[String] = List()
+--target: String = out        The directory to output files
+--verbose: Boolean = false    Print out debugging diagnostics
+--files: List[String] = List()The input files for app
 ```

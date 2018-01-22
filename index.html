@@ -280,7 +280,7 @@ NotOk(2 errors
      |   <span class="hljs-keyword">if</span> (file.exists()) <span class="hljs-type">Configured</span>.ok(file)
      |   <span class="hljs-keyword">else</span> <span class="hljs-type">ConfError</span>.fileDoesNotExist(file).notOk
      | }
-fileDecoder: metaconfig.<span class="hljs-type">ConfDecoder</span>[java.io.<span class="hljs-type">File</span>] = metaconfig.<span class="hljs-type">ConfDecoder</span>$$anon$<span class="hljs-number">1</span>@<span class="hljs-number">39004</span>c4d
+fileDecoder: metaconfig.<span class="hljs-type">ConfDecoder</span>[java.io.<span class="hljs-type">File</span>] = metaconfig.<span class="hljs-type">ConfDecoder</span>$$anon$<span class="hljs-number">1</span>@<span class="hljs-number">374</span>affee
 
 scala&gt; fileDecoder.read(<span class="hljs-type">Conf</span>.fromString(<span class="hljs-string">&quot;.scalafmt.conf&quot;</span>))
 res8: metaconfig.<span class="hljs-type">Configured</span>[java.io.<span class="hljs-type">File</span>] = <span class="hljs-type">Ok</span>(.scalafmt.conf)
@@ -495,7 +495,9 @@ res30: <span class="hljs-type">String</span> =
   <span class="hljs-meta">@Description</span>(<span class="hljs-string">&quot;Print out debugging diagnostics&quot;</span>)
   <span class="hljs-meta">@ExtraName</span>(<span class="hljs-string">&quot;v&quot;</span>)
   verbose: <span class="hljs-type">Boolean</span> = <span class="hljs-literal">false</span>,
-  remainingArgs: <span class="hljs-type">List</span>[<span class="hljs-type">String</span>] = <span class="hljs-type">Nil</span>
+  <span class="hljs-meta">@Description</span>(<span class="hljs-string">&quot;The input files for app&quot;</span>)
+  <span class="hljs-meta">@ExtraName</span>(<span class="hljs-string">&quot;alternativeArgs&quot;</span>)
+  files: <span class="hljs-type">List</span>[<span class="hljs-type">String</span>] = <span class="hljs-type">Nil</span>
 )
 <span class="hljs-keyword">implicit</span> <span class="hljs-keyword">val</span> surface = generic.deriveSurface[<span class="hljs-type">App</span>]
 <span class="hljs-keyword">implicit</span> <span class="hljs-keyword">val</span> decoder = generic.deriveDecoder[<span class="hljs-type">App</span>](<span class="hljs-type">App</span>())
@@ -509,15 +511,15 @@ conf: metaconfig.<span class="hljs-type">Configured</span>[metaconfig.<span clas
 </code></pre>
 <p>Decode the cli args into <code>App</code> like normal</p>
 <pre><code class="lang-scala">scala&gt; <span class="hljs-keyword">val</span> app = decoder.read(conf.get)
-app: metaconfig.<span class="hljs-type">Configured</span>[<span class="hljs-type">App</span>] = <span class="hljs-type">Ok</span>(<span class="hljs-type">App</span>(/tmp,<span class="hljs-literal">true</span>,<span class="hljs-type">List</span>(input.txt)))
+app: metaconfig.<span class="hljs-type">Configured</span>[<span class="hljs-type">App</span>] = <span class="hljs-type">Ok</span>(<span class="hljs-type">App</span>(/tmp,<span class="hljs-literal">true</span>,<span class="hljs-type">List</span>()))
 </code></pre>
 <h2 id="settingstoclihelp"><a name="settingstoclihelp" class="plugin-anchor" href="#settingstoclihelp"><i class="fa fa-link" aria-hidden="true"></i></a>Settings.toCliHelp</h2>
 <p>Generate a --help message with a <code>Settings[T]</code>.</p>
 <pre><code class="lang-scala">scala&gt; <span class="hljs-type">Settings</span>[<span class="hljs-type">App</span>].toCliHelp(<span class="hljs-keyword">default</span> = <span class="hljs-type">App</span>())
 res31: <span class="hljs-type">String</span> =
---target: <span class="hljs-type">String</span> = out                 <span class="hljs-type">The</span> directory to output files
---verbose: <span class="hljs-type">Boolean</span> = <span class="hljs-literal">false</span>             <span class="hljs-type">Print</span> out debugging diagnostics
---remaining-args: <span class="hljs-type">List</span>[<span class="hljs-type">String</span>] = <span class="hljs-type">List</span>()
+--target: <span class="hljs-type">String</span> = out        <span class="hljs-type">The</span> directory to output files
+--verbose: <span class="hljs-type">Boolean</span> = <span class="hljs-literal">false</span>    <span class="hljs-type">Print</span> out debugging diagnostics
+--files: <span class="hljs-type">List</span>[<span class="hljs-type">String</span>] = <span class="hljs-type">List</span>()<span class="hljs-type">The</span> input files <span class="hljs-keyword">for</span> app
 </code></pre>
 
                                 
@@ -554,7 +556,7 @@ res31: <span class="hljs-type">String</span> =
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Introduction","level":"1.1","depth":1,"dir":"ltr"},"config":{"plugins":["editlink","github","anchors"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"github":{"url":"https://github.com/olafurpg/metaconfig/"},"editlink":{"label":"Edit This Page","multilingual":false,"base":"https://github.com/olafurpg/metaconfig/tree/master/docs"},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"highlight":{},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false},"anchors":{}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"Metaconfig","gitbook":"3.2.x","description":"Parse hocon configuration into Scala case class"},"file":{"path":"README.md","mtime":"2018-01-22T22:33:51.000Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2018-01-22T22:33:52.788Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Introduction","level":"1.1","depth":1,"dir":"ltr"},"config":{"plugins":["editlink","github","anchors"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"github":{"url":"https://github.com/olafurpg/metaconfig/"},"editlink":{"label":"Edit This Page","multilingual":false,"base":"https://github.com/olafurpg/metaconfig/tree/master/docs"},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"highlight":{},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false},"anchors":{}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"Metaconfig","gitbook":"3.2.x","description":"Parse hocon configuration into Scala case class"},"file":{"path":"README.md","mtime":"2018-01-22T23:01:20.000Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2018-01-22T23:01:22.212Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>
