@@ -1,6 +1,7 @@
 package metaconfig.generic
 
 import metaconfig.annotation.DeprecatedName
+import metaconfig.internal.Cli
 
 final class Settings[T](val settings: List[Setting]) {
   def fields: List[Field] = settings.map(_.field)
@@ -23,14 +24,20 @@ final class Settings[T](val settings: List[Setting]) {
         deprecation <- setting.deprecation(key).toList
       } yield deprecation).headOption
   }
+  def names: List[String] = settings.map(_.name)
   def allNames: List[String] =
     for {
       setting <- settings
       name <- setting.allNames
     } yield name
-  def getOption(name: String): Option[Setting] =
-    settings.find(_.allNames.contains(name))
-  def get(name: String): Setting = getOption(name).get
+  def get(name: String): Option[Setting] =
+    settings.find(_.matchesLowercase(name))
+  def unsafeGet(name: String): Setting = get(name).get
+  def withDefault(default: T)(
+      implicit ev: T <:< Product): List[(Setting, Any)] =
+    settings.zip(default.productIterator.toList)
+  def toCliHelp(default: T)(implicit ev: T <:< Product): String =
+    Cli.help[T](default)(this, ev)
 }
 
 object Settings {

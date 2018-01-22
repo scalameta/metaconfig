@@ -2,6 +2,7 @@ package metaconfig.annotation
 
 import scala.annotation.StaticAnnotation
 
+final case class ShortName(value: Char) extends StaticAnnotation
 final case class ExtraName(value: String) extends StaticAnnotation
 final case class DeprecatedName(
     name: String,
