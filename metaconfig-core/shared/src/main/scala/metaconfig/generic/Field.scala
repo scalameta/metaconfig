@@ -13,7 +13,7 @@ final class Field(
     val name: String,
     val tpe: String,
     val annotations: List[StaticAnnotation],
-    val underlying: List[Setting]
+    val underlying: List[List[Field]]
 ) {
   override def toString: String = {
     val annots = annotations.map(annot => s"@$annot").mkString(", ")
