@@ -18,6 +18,9 @@ commands += Command.command("release") { s =>
 lazy val website = project
   .settings(
     allSettings,
+    libraryDependencies ++= List(
+      "com.lihaoyi" %% "scalatags" % "0.6.7"
+    ),
     tutNameFilter := "README.md".r,
     tutSourceDirectory := baseDirectory.in(ThisBuild).value / "docs",
     sourceDirectory.in(Preprocess) := tutTargetDirectory.value,

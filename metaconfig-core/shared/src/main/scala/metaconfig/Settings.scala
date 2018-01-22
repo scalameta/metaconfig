@@ -1,6 +1,7 @@
 package metaconfig
 
 final class Settings[T](val settings: List[Setting]) {
+  override def toString: String = s"Surface(settings=$settings)"
   object Deprecated {
     def unapply(key: String): Option[DeprecatedName] =
       (for {
@@ -22,5 +23,5 @@ object Settings {
   implicit def FieldsToSettings[T](implicit ev: Surface[T]): Settings[T] =
     apply(ev)
   def apply[T](implicit ev: Surface[T]): Settings[T] =
-    new Settings[T](ev.fields.map(new Setting(_)))
+    new Settings[T](ev.fields.flatten.map(new Setting(_)))
 }

@@ -1,6 +1,5 @@
 package metaconfig
 
-import java.io.File
 import metaconfig.Conf._
 import org.scalatest.FunSuite
 
@@ -28,43 +27,6 @@ object AllTheAnnotations {
     generic.deriveDecoder[AllTheAnnotations](AllTheAnnotations()).noTypos
 }
 
-class DeriveSurfaceSuite extends FunSuite {
-
-  case class WithFile(file: File)
-  test("Surface[T]") {
-    assertCompiles("generic.deriveSurface[WithFile]")
-  }
-
-  test("Settings[T]") {
-    val List(s1, s2, _) = Settings[AllTheAnnotations].settings
-    assert(s1.name == "number")
-    assert(
-      s1.extraNames == List(
-        "extraName",
-        "extraName2"
-      )
-    )
-    assert(
-      s1.deprecatedNames ==
-        List(
-          DeprecatedName("deprecatedName", "Use x instead", "2.0"),
-          DeprecatedName("deprecatedName2", "Use y instead", "3.0"))
-    )
-    assert(
-      s1.exampleValues ==
-        List("value", "value2")
-    )
-    assert(s1.description.contains("descriptioon"))
-    assert(s1.sinceVersion.contains("2.1"))
-    assert(
-      s1.deprecated.contains(Deprecated("Use newFeature instead", "2.1"))
-    )
-
-    assert(s2.name == "string")
-    assert(s2.annotations.isEmpty)
-  }
-
-}
 class DeriveConfDecoderSuite extends FunSuite {
 
   def checkError(name: String, obj: Conf, expected: String): Unit = {

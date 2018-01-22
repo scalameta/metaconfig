@@ -1,9 +1,9 @@
 package metaconfig
 
 import scala.annotation.StaticAnnotation
-import scala.reflect.ClassTag
 
 final class Setting(val field: Field) {
+  override def toString: String = s"Setting($field)"
   def name: String = field.name
   def annotations: List[StaticAnnotation] = field.annotations
 
@@ -33,11 +33,6 @@ final class Setting(val field: Field) {
 }
 
 object Setting {
-  def apply[T: ClassTag](name: String): Setting =
-    new Setting(Field(name, None, implicitly[ClassTag[T]], Nil))
-  def apply[T: ClassTag: DefaultValueShow](
-      name: String,
-      defaultValue: T): Setting = new Setting(
-    Field(name, Some(DefaultValue(defaultValue)), implicitly[ClassTag[T]], Nil)
-  )
+  def apply[T](name: String, tpe: String): Setting =
+    new Setting(new Field(name, tpe, Nil))
 }

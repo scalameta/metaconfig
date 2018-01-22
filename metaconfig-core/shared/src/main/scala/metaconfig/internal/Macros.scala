@@ -87,40 +87,25 @@ class Macros(val c: blackbox.Context) {
     if (!T.typeSymbol.isClass || !T.typeSymbol.asClass.isCaseClass)
       c.abort(c.enclosingPosition, s"$T must be a case class")
     val Tclass = T.typeSymbol.asClass
-    val none = typeOf[None.type].termSymbol
-    val some = typeOf[Some[_]].typeSymbol
     val ctor = Tclass.primaryConstructor.asMethod
-    val fields = for {
-      (params, i) <- ctor.paramLists.zipWithIndex
-      (param, j) <- params.zipWithIndex
-    } yield {
-      val default = if (i == 0 && param.asTerm.isParamWithDefault) {
-        val nme = TermName(termNames.CONSTRUCTOR + "$default$" + (j + 1)).encodedName.toTermName
-        val getter = T.companion.member(nme)
-        val defaultValue = q"_root_.metaconfig.DefaultValue($getter)"
-        q"new $some($defaultValue)"
-      } else q"$none"
-      val annots = param.annotations.collect {
-        case annot if annot.tree.tpe <:< typeOf[StaticAnnotation] =>
-          annot.tree
-      }
-      val paramTpe = internal.typeRef(
-        NoPrefix,
-        typeOf[ClassTag[_]].typeSymbol,
-        param.info :: Nil
-      )
+    val argss = ctor.paramLists.map { params =>
+      val fields = params.map { param =>
+        val annots = param.annotations.collect {
+          case annot if annot.tree.tpe <:< typeOf[StaticAnnotation] =>
+            annot.tree
+        }
 
-      val classtag = c.inferImplicitValue(paramTpe)
-      val field = q"""new _root_.metaconfig.Field(
+        val field = q"""new _root_.metaconfig.Field(
            ${param.name.decodedName.toString},
-           $default,
-           $classtag,
+           ${param.info.resultType.toString},
            _root_.scala.List.apply(..$annots)
          )"""
-      field
+        field
+      }
+      val args = q"_root_.scala.List.apply(..$fields)"
+      args
     }
-    val args = q"_root_.scala.List.apply(..$fields)"
-    val result = q"new ${weakTypeOf[Surface[T]]}($args)"
+    val result = q"new ${weakTypeOf[Surface[T]]}(..$argss)"
     c.untypecheck(result)
   }
 

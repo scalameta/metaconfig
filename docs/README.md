@@ -46,6 +46,7 @@ All of the following code examples assume that you have `import metaconfig._` in
   * [generic.deriveSurface](#genericderivesurface)
   * [generic.deriveDecoder](#genericderivedecoder)
   * [DeprecatedName](#deprecatedname)
+  * [Docs](#docs)
 
 <!-- /TOC -->
 
@@ -245,4 +246,34 @@ implicit val decoder = generic.deriveDecoder[EvolvingConfig](EvolvingConfig(true
 decoder.read(Conf.Obj("goodName" -> Conf.fromBoolean(false)))
 decoder.read(Conf.Obj("isGoodName" -> Conf.fromBoolean(false)))
 decoder.read(Conf.Obj("gooodName" -> Conf.fromBoolean(false)))
+```
+
+## Docs
+
+To generate documentation for you configuration, add a dependency to the following module
+
+```scala
+libraryDependencies += "com.geirsson" %% "metaconfig-docs" % "@VERSION@"
+```
+
+First define your configuration
+
+```tut:silent
+case class User(
+    @Description("Name description")
+    name: String = "John",
+    @Description("Age description")
+    age: Int = 42
+)
+implicit val surface = generic.deriveSurface[User]
+```
+
+To generate html documentation, pass in a default value
+
+```tut
+docs.Docs.html(User())
+```
+
+```tut:passthrough
+println(docs.Docs.html(User()))
 ```

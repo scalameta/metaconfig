@@ -7,16 +7,19 @@ import scala.reflect.ClassTag
   * Metadata about one field of a class.
   *
   * @param name the parameter name of this field.
-  * @param defaultValue the default value of this parameter, if any
-  * @param classTag the classtag of the the type of this field
+  * @param tpe the pretty-printed type of this parameter
   * @param annotations static annotations attached to this field.
   */
-final case class Field(
-    name: String,
-    defaultValue: Option[DefaultValue[_]],
-    classTag: ClassTag[_],
-    annotations: List[StaticAnnotation]
-)
+final class Field(
+    val name: String,
+    val tpe: String,
+    val annotations: List[StaticAnnotation]
+) {
+  override def toString: String = {
+    val annots = annotations.map(annot => s"@$annot").mkString(", ")
+    s"""Field(name="$name",tpe="$tpe",annotations=List($annots))"""
+  }
+}
 
 /**
   * Aggregated metadata about a given type.
@@ -24,7 +27,11 @@ final case class Field(
   * @param fields the fields of this type
   * @tparam T not used for anything but to drive implicit resolution.
   */
-case class Surface[T](fields: List[Field])
+final class Surface[T](val fields: List[List[Field]]) {
+  override def toString: String = s"Surface($fields)"
+  def this(fields: List[Field]*) =
+    this(fields.toList)
+}
 object Surface {
   def apply[T](implicit ev: Surface[T]): Surface[T] = ev
 }
