@@ -47,7 +47,6 @@ All of the following code examples assume that you have `import metaconfig._` in
   * [generic.deriveDecoder](#genericderivedecoder)
   * [DeprecatedName](#deprecatedname)
   * [Docs](#docs)
-  * [Field.underlying](#fieldunderlying)
 
 <!-- /TOC -->
 
@@ -299,6 +298,12 @@ The output will look like this when rendered in a markdown or html document
 println(docs.Docs.html(User()))
 ```
 
-## Field.underlying
+The `Docs.html` method does nothing magical, it's possible to implement custom renderings by inspecting `Settings[T]` directly.
 
-A good practice is to group togher similar configuration settings, resuling in a hierarchy of options.
+```tut
+Settings[User].settings
+val flat = Settings[User].flat(User())
+flat.map { case (setting, defaultValue) =>
+  s"Setting ${setting.name} of type ${setting.tpe} has default value $defaultValue"
+}.mkString("\n==============\n")
+```

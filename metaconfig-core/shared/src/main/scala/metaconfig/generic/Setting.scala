@@ -4,12 +4,13 @@ import scala.annotation.StaticAnnotation
 import metaconfig.annotation._
 
 final class Setting(val field: Field) {
+  def name: String = field.name
+  def tpe: String = field.tpe
+  def annotations: List[StaticAnnotation] = field.annotations
+  def underlying: List[List[Field]] = field.underlying
   def flat: List[Setting] =
     field.flat.map(new Setting(_))
-
   override def toString: String = s"Setting($field)"
-  def name: String = field.name
-  def annotations: List[StaticAnnotation] = field.annotations
 
   def description: Option[String] = field.annotations.collectFirst {
     case Description(value) => value

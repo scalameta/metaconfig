@@ -17,12 +17,18 @@ commands += Command.command("release") { s =>
     s
 }
 
-lazy val website = project
+lazy val `metaconfig-docs` = project
   .settings(
     allSettings,
     libraryDependencies ++= List(
       "com.lihaoyi" %% "scalatags" % "0.6.7"
-    ),
+    )
+  )
+  .dependsOn(`metaconfig-coreJVM`)
+
+lazy val website = project
+  .settings(
+    allSettings,
     tutNameFilter := "README.md".r,
     tutSourceDirectory := baseDirectory.in(ThisBuild).value / "docs",
     sourceDirectory.in(Preprocess) := tutTargetDirectory.value,
@@ -44,7 +50,10 @@ lazy val website = project
     GitBookPlugin,
     TutPlugin
   )
-  .dependsOn(`metaconfig-coreJVM`, `metaconfig-typesafe-config`)
+  .dependsOn(
+    `metaconfig-docs`,
+    `metaconfig-typesafe-config`
+  )
 
 lazy val MetaVersion = "2.0.0-M3"
 

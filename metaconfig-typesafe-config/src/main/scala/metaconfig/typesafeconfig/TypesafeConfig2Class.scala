@@ -5,7 +5,7 @@ import com.typesafe.config._
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.meta.inputs._
-import scala.meta.io.AbsolutePath
+import metaconfig.internal.ConfGet
 
 object TypesafeConfig2Class {
   def gimmeConfFromString(string: String): Configured[Conf] =
@@ -70,7 +70,7 @@ object TypesafeConfig2Class {
       input = Input.File(new java.io.File(url.toURI))
       offsetByLine = cache.getOrElseUpdate(
         input,
-        Metaconfig.getOffsetByLine(input.chars))
+        ConfGet.getOffsetByLine(input.chars))
       if line < offsetByLine.length
       start = offsetByLine(line)
     } yield Position.Range(input, start, start)
