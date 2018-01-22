@@ -48,6 +48,8 @@ All of the following code examples assume that you have `import metaconfig._` in
     * [Limitations](#limitations)
   * [@DeprecatedName](#deprecatedname)
   * [Docs](#docs)
+  * [Conf.parseCliArgs](#confparsecliargs)
+  * [Settings.toCliHelp](#settingstoclihelp)
 
 <!-- /TOC -->
 
@@ -319,4 +321,45 @@ val flat = Settings[User].flat(User())
 flat.map { case (setting, defaultValue) =>
   s"Setting ${setting.name} of type ${setting.tpe} has default value $defaultValue"
 }.mkString("\n==============\n")
+```
+
+## Conf.parseCliArgs
+
+Metaconfig can parse command line arguments into a `Conf`.
+
+```tut:silent
+case class App(
+  @Description("The directory to output files")
+  target: String = "out",
+  @Description("Print out debugging diagnostics")
+  @ExtraName("v")
+  verbose: Boolean = false,
+  @Description("The input files for app")
+  @ExtraName("alternativeArgs")
+  files: List[String] = Nil
+)
+implicit val surface = generic.deriveSurface[App]
+implicit val decoder = generic.deriveDecoder[App](App())
+```
+
+```tut
+val conf = Conf.parseCliArgs[App](List(
+  "--verbose",
+  "--target", "/tmp",
+  "input.txt"
+))
+```
+
+Decode the cli args into `App` like normal
+
+```tut
+val app = decoder.read(conf.get)
+```
+
+## Settings.toCliHelp
+
+Generate a --help message with a `Settings[T]`.
+
+```tut
+Settings[App].toCliHelp(default = App())
 ```

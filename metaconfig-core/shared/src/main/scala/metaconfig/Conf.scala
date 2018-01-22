@@ -5,6 +5,8 @@ import scala.meta.inputs.Position
 import scala.util.Try
 import metaconfig.Extractors._
 import metaconfig.generic.Setting
+import metaconfig.generic.Settings
+import metaconfig.internal.CliParser
 import metaconfig.internal.ConfGet
 import org.langmeta.inputs.Input
 import org.scalameta.logger
@@ -43,7 +45,12 @@ object Conf {
   def fromBoolean(bool: Boolean): Conf = Conf.Bool(bool)
   def fromInt(n: Int): Conf = Conf.Num(n)
   def fromBigDecimal(n: BigDecimal): Conf = Conf.Num(n)
+  def fromNumberOrString(str: String): Conf =
+    Try(fromBigDecimal(BigDecimal(str.toDouble))).getOrElse(fromString(str))
   def fromString(str: String): Conf = Conf.Str(str)
+  def parseCliArgs[T](args: List[String])(
+      implicit settings: Settings[T]): Configured[Conf] =
+    CliParser.parseArgs[T](args)
   def parseFile(file: File)(
       implicit parser: MetaconfigParser): Configured[Conf] =
     parseInput(Input.File(file))

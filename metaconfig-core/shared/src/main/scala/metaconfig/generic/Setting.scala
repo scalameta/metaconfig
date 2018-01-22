@@ -30,9 +30,12 @@ final class Setting(val field: Field) {
   def deprecated: Option[Deprecated] = field.annotations.collectFirst {
     case value: Deprecated => value
   }
+  def isBoolean: Boolean = field.tpe == "Boolean"
   def alternativeNames: List[String] =
     extraNames ::: deprecatedNames.map(_.name)
   def allNames: List[String] = name :: alternativeNames
+  def matchesLowercase(name: String): Boolean =
+    allNames.exists(_.equalsIgnoreCase(name))
   def deprecation(name: String): Option[DeprecatedName] =
     deprecatedNames.find(_.name == name)
 }

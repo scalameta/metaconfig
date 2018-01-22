@@ -27,7 +27,14 @@ class DocsSuite extends org.scalatest.FunSuite {
 
   test("html") {
     val docs = Docs.html(User())
-    pprint.log(docs)
+    assert(docs.contains("table"))
+    assert(docs.contains("th"))
+    assert(docs.contains("code"))
+    assert(docs.contains("country"))
+    assert(docs.contains("Iceland"))
+    assert(docs.contains("home.address"))
+    assert(docs.contains("home.country"))
+    assert(docs.contains("Default value"))
   }
 
 }

@@ -46,7 +46,8 @@ class Macros(val c: blackbox.Context) {
       val name = param.name.decodedName.toString
       val getter = T.member(param.name)
       val fallback = q"tmp.$getter"
-      val next = q"conf.getSettingOrElse[$P](settings.get($name), $fallback)"
+      val next =
+        q"conf.getSettingOrElse[$P](settings.unsafeGet($name), $fallback)"
       next
     }
     val product = params.foldLeft(next(head)) {
