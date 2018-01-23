@@ -81,6 +81,15 @@ object ConfDecoder {
     instanceExpect[String]("String") { case Conf.Str(x) => Ok(x) }
   implicit val booleanConfDecoder: ConfDecoder[Boolean] =
     instanceExpect[Boolean]("Bool") { case Conf.Bool(x) => Ok(x) }
+  implicit def canBuildFromOption[A](
+      implicit ev: ConfDecoder[A],
+      classTag: ClassTag[A]): ConfDecoder[Option[A]] =
+    new ConfDecoder[Option[A]] {
+      override def read(conf: Conf): Configured[Option[A]] = conf match {
+        case Conf.Null() => Configured.ok(None)
+        case _ => ev.read(conf).map(Some(_))
+      }
+    }
   implicit def canBuildFromMapWithStringKey[A](
       implicit ev: ConfDecoder[A],
       classTag: ClassTag[A]): ConfDecoder[Map[String, A]] =

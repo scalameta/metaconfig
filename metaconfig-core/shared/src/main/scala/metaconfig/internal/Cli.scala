@@ -14,5 +14,4 @@ object Cli {
     }
     tabulate(keyValues).render(80)
   }
-
 }
