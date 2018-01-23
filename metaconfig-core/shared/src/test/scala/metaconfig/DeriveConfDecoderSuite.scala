@@ -151,4 +151,22 @@ class DeriveConfDecoderSuite extends FunSuite {
     )
   }
 
+  case class HasOption(b: Option[Int] = None)
+  object HasOption {
+    def check(conf: Conf, expected: HasOption)(
+        implicit decoder: ConfDecoder[HasOption]): Unit = {
+      test("option-" + conf.toString) {
+        val obtained = decoder.read(conf).get
+        assert(obtained == expected)
+
+      }
+    }
+    implicit val surface = generic.deriveSurface[HasOption]
+    implicit val decoder = generic.deriveDecoder[HasOption](HasOption())
+  }
+  HasOption.check(Obj("b" -> Num(2)), HasOption(Some(2)))
+  HasOption.check(Obj("a" -> Num(2)), HasOption(None))
+  HasOption.check(Obj("b" -> Null()), HasOption(None))(
+    generic.deriveDecoder[HasOption](HasOption(Some(2))))
+
 }

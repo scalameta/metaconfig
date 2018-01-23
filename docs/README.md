@@ -335,7 +335,7 @@ case class App(
   @ExtraName("v")
   verbose: Boolean = false,
   @Description("The input files for app")
-  @ExtraName("alternativeArgs")
+  @ExtraName("remainingArgs")
   files: List[String] = Nil
 )
 implicit val surface = generic.deriveSurface[App]
