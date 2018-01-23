@@ -16,11 +16,11 @@ trait ConfDecoder[A] { self =>
   final def read(conf: Configured[Conf]): Configured[A] =
     conf.andThen(self.read)
 
-  def map[B](f: A => B): ConfDecoder[B] =
+  final def map[B](f: A => B): ConfDecoder[B] =
     self.flatMap(x => Ok(f(x)))
-  def orElse(other: ConfDecoder[A]): ConfDecoder[A] =
+  final def orElse(other: ConfDecoder[A]): ConfDecoder[A] =
     ConfDecoder.orElse(this, other)
-  def flatMap[TT](f: A => Configured[TT]): ConfDecoder[TT] =
+  final def flatMap[TT](f: A => Configured[TT]): ConfDecoder[TT] =
     new ConfDecoder[TT] {
       override def read(any: Conf): Configured[TT] = self.read(any) match {
         case Ok(x) => f(x)
@@ -35,7 +35,7 @@ trait ConfDecoder[A] { self =>
     * will fail if an object contains unknown fields, which typically hint the
     * user entered a typo in the config file.
     */
-  def noTypos(implicit ev: Settings[A]): ConfDecoder[A] =
+  final def noTypos(implicit ev: Settings[A]): ConfDecoder[A] =
     NoTyposDecoder[A](self)
 }
 
