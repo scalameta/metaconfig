@@ -12,6 +12,9 @@ import metaconfig.ConfError.TypeMismatch
 import metaconfig.annotation.DeprecatedName
 import metaconfig.error.CompositeException
 
+// TODO(olafur) I think ConfError needs to be rethinked from scratch.
+// It would be much cleaner as NonEmptyList[Error] where Error
+// is an ADT with Exception | TypeMismatch | MissingFile | ...
 sealed abstract class ConfError(val msg: String) extends Serializable { self =>
   def extra: List[String] = Nil
   final def all: List[String] = msg :: extra
@@ -47,7 +50,7 @@ sealed abstract class ConfError(val msg: String) extends Serializable { self =>
 
   def isEmpty: Boolean = msg.isEmpty && extra.isEmpty
 
-  def combine(other: ConfError): ConfError =
+  final def combine(other: ConfError): ConfError =
     if (isEmpty) other
     else if (other.isEmpty) this
     else {
@@ -133,7 +136,10 @@ object ConfError {
     }
   def typeMismatch(expected: String, obtained: Conf): ConfError =
     typeMismatch(expected, obtained, "")
-  def typeMismatch(expected: String, obtained: Conf, path: String): ConfError = {
+  def typeMismatch(
+      expected: String,
+      obtained: Conf,
+      path: String): ConfError = {
     typeMismatch(expected, s"${obtained.kind} (value: $obtained)", path)
   }
   def typeMismatch(
