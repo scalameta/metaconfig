@@ -107,7 +107,8 @@ lazy val `metaconfig-core` = crossProject
       // TODO(olafur) enable mima check in CI after 0.6.0 release.
       val previousArtifactVersion = "0.6.0"
       val binaryVersion =
-        if (crossVersion.value.isInstanceOf[CrossVersion.Full]) scalaVersion.value
+        if (crossVersion.value.isInstanceOf[CrossVersion.Full])
+          scalaVersion.value
         else scalaBinaryVersion.value
       Set(
         organization.value % s"${moduleName.value}_$binaryVersion" % previousArtifactVersion

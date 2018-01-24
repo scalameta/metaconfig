@@ -54,10 +54,7 @@ class BaseCliParserSuite extends FunSuite with DiffAssertions {
       }
       .mkString("\n")
   }
-  def check(
-      name: String,
-      args: List[String],
-      expectedOptions: Options): Unit = {
+  def check(name: String, args: List[String], expectedOptions: Options): Unit = {
     test(name) {
       val conf = Conf.parseCliArgs[Options](args).get
       val obtainedOptions = ConfDecoder[Options].read(conf).get
