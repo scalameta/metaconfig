@@ -7,6 +7,15 @@ import metaconfig.annotation._
 import metaconfig._
 import metaconfig.generic.Settings
 
+case class Site(
+    foo: String = "foo",
+    custom: Map[String, String] = Map.empty
+)
+object Site {
+  implicit val surface = generic.deriveSurface[Site]
+  implicit val decoder = generic.deriveDecoder[Site](Site())
+}
+
 case class Options(
     @Description("The input directory to generate the fox site.")
     @ExtraName("i")
@@ -25,7 +34,8 @@ case class Options(
     baseUrl: String = "",
     encoding: String = "UTF-8",
     configPath: String = Paths.get("fox.conf").toString,
-    remainingArgs: List[String] = Nil
+    remainingArgs: List[String] = Nil,
+    site: Site = Site()
 )
 object Options {
   implicit val surface = generic.deriveSurface[Options]
@@ -33,7 +43,7 @@ object Options {
     generic.deriveDecoder[Options](Options())
 }
 
-class CliParserSuite extends FunSuite with DiffAssertions {
+class BaseCliParserSuite extends FunSuite with DiffAssertions {
   val settings = Settings[Options]
   def toString(options: Options): String = {
     settings.settings
@@ -44,7 +54,10 @@ class CliParserSuite extends FunSuite with DiffAssertions {
       }
       .mkString("\n")
   }
-  def check(name: String, args: List[String], expectedOptions: Options): Unit = {
+  def check(
+      name: String,
+      args: List[String],
+      expectedOptions: Options): Unit = {
     test(name) {
       val conf = Conf.parseCliArgs[Options](args).get
       val obtainedOptions = ConfDecoder[Options].read(conf).get
@@ -53,6 +66,9 @@ class CliParserSuite extends FunSuite with DiffAssertions {
       assertNoDiff(obtained, expected)
     }
   }
+}
+
+class CliParserSuite extends BaseCliParserSuite {
 
   check(
     "empty",
@@ -108,4 +124,15 @@ class CliParserSuite extends FunSuite with DiffAssertions {
     Options(in = "in", remainingArgs = "arg1" :: Nil)
   )
 
+  check(
+    "nested",
+    "--site.foo" :: "blah" :: Nil,
+    Options(site = Site(foo = "blah"))
+  )
+
+  check(
+    "map",
+    "--site.custom.key" :: "value" :: Nil,
+    Options(site = Site(custom = Map("key" -> "value")))
+  )
 }

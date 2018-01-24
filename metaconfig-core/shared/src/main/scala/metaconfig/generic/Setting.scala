@@ -7,7 +7,13 @@ final class Setting(val field: Field) {
   def name: String = field.name
   def tpe: String = field.tpe
   def annotations: List[StaticAnnotation] = field.annotations
-  def underlying: List[List[Field]] = field.underlying
+  def underlying: Option[Settings[Nothing]] =
+    if (field.underlying.isEmpty) None
+    else {
+      Some(
+        new Settings(field.underlying.flatten.map(new Setting(_)))
+      )
+    }
   def flat: List[Setting] =
     field.flat.map(new Setting(_))
   override def toString: String = s"Setting($field)"
@@ -31,6 +37,7 @@ final class Setting(val field: Field) {
     case value: Deprecated => value
   }
   def isBoolean: Boolean = field.tpe == "Boolean"
+  def isMap: Boolean = field.tpe.startsWith("Map")
   def alternativeNames: List[String] =
     extraNames ::: deprecatedNames.map(_.name)
   def allNames: List[String] = name :: alternativeNames

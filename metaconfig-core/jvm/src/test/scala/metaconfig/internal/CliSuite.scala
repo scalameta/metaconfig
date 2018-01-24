@@ -7,9 +7,9 @@ import org.scalatest.FunSuite
 class CliSuite extends FunSuite with DiffAssertions {
   test("help") {
     val obtained = Settings[Options].toCliHelp(default = Options(cwd = "/tmp"))
+    // println(obtained)
     val expected =
-      """
-        |--in: String = docs                                 The input directory to
+      """--in: String = docs                                 The input directory to
         |                                                    generate the fox site.
         |--out: String = target/fox                          The output directory to
         |                                                    generate the fox site.
@@ -25,6 +25,7 @@ class CliSuite extends FunSuite with DiffAssertions {
         |--encoding: String = UTF-8
         |--config-path: String = fox.conf
         |--remaining-args: List[String] = List()
+        |--site: metaconfig.internal.Site = Site(foo,Map())
       """.stripMargin
     assertNoDiff(obtained, expected)
   }
