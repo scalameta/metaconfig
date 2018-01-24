@@ -30,8 +30,22 @@ final class Settings[T](val settings: List[Setting]) {
       setting <- settings
       name <- setting.allNames
     } yield name
+
   def get(name: String): Option[Setting] =
     settings.find(_.matchesLowercase(name))
+
+  def get(name: String, rest: List[String]): Option[Setting] =
+    get(name).flatMap { setting =>
+      rest match {
+        case Nil => Some(setting)
+        case _ :: Nil if setting.isMap => Some(setting)
+        case head :: tail =>
+          for {
+            underlying <- setting.underlying
+            next <- underlying.get(head, tail)
+          } yield next
+      }
+    }
   def unsafeGet(name: String): Setting = get(name).get
   def withDefault(default: T)(
       implicit ev: T <:< Product): List[(Setting, Any)] =

@@ -136,10 +136,7 @@ object ConfError {
     }
   def typeMismatch(expected: String, obtained: Conf): ConfError =
     typeMismatch(expected, obtained, "")
-  def typeMismatch(
-      expected: String,
-      obtained: Conf,
-      path: String): ConfError = {
+  def typeMismatch(expected: String, obtained: Conf, path: String): ConfError = {
     typeMismatch(expected, s"${obtained.kind} (value: $obtained)", path)
   }
   def typeMismatch(
