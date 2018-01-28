@@ -26,6 +26,29 @@ lazy val `metaconfig-docs` = project
   )
   .dependsOn(`metaconfig-coreJVM`)
 
+lazy val vork = project.settings(
+  allSettings,
+  fork.in(run) := true,
+  TaskKey[Unit]("vork") := Def.taskDyn {
+    val cp = fullClasspath
+        .in(website, Compile)
+        .value
+        .map(_.data.getAbsolutePath)
+        .filterNot(_.contains("ammonite"))
+        .mkString(java.io.File.pathSeparator)
+    Def.task(
+      runMain
+          .in(Compile)
+          .toTask(
+            s" vork.Cli --in ../docs --classpath $cp --exclude-files node_modules")
+          .value
+    )
+  }.value,
+  resolvers += Resolver.sonatypeRepo("snapshots"),
+  libraryDependencies ++= List(
+    "com.geirsson" %% "vork" % "0.1.1-3-18691269-SNAPSHOT"
+  )
+)
 lazy val website = project
   .settings(
     allSettings,
@@ -57,7 +80,7 @@ lazy val website = project
 lazy val MetaVersion = "2.0.0-M3"
 
 lazy val baseSettings = Seq(
-  scalaVersion := ScalaVersions.head,
+  scalaVersion := ScalaVersions.last,
   crossScalaVersions := ScalaVersions,
   libraryDependencies ++= List(
     "org.scalacheck" %%% "scalacheck" % "1.13.5" % Test,
