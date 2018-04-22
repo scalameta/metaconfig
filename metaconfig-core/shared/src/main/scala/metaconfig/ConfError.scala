@@ -111,9 +111,6 @@ object ConfError {
     new ConfError(deprecation.toString) {
       override def isDeprecation: Boolean = true
     }
-  @deprecated("Use message instead", "0.6.0")
-  def msg(message: String): ConfError =
-    this.message(message)
   def message(message: String): ConfError =
     new ConfError(message) {}
   def exception(e: Throwable, stackSize: Int = 10): ConfError = {

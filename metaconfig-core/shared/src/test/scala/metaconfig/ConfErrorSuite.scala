@@ -3,14 +3,13 @@ package metaconfig
 import org.scalatest.FunSuite
 import ConfError._
 import metaconfig.Conf._
-import scala.meta.testkit.DiffAssertions
 
-class ConfErrorSuite extends FunSuite with DiffAssertions {
+class ConfErrorSuite extends FunSuite {
 
   def check(name: String, error: => ConfError, expected: => String): Unit = {
     test(name) {
       val obtained = error.toString.trim
-      assertNoDiff(obtained, expected)
+      assert(obtained === expected.trim)
     }
   }
 
@@ -77,7 +76,8 @@ class ConfErrorSuite extends FunSuite with DiffAssertions {
       parseError(pos, "No var")
     },
     """|foo.scala:2:2 error: No var
-       |var x
-       |^^^""".stripMargin
+       |  var x
+       |  ^^^
+       |""".stripMargin
   )
 }

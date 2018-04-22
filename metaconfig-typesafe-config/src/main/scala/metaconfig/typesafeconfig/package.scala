@@ -1,7 +1,5 @@
 package metaconfig
 
-import scala.meta.inputs.Input
-
 package object typesafeconfig {
   implicit val typesafeConfigMetaconfigParser = new MetaconfigParser {
     override def fromInput(input: Input): Configured[Conf] = input match {

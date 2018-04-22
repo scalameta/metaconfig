@@ -77,7 +77,7 @@ object Conf {
       })
     def getOption[T](path: String, extraNames: String*)(
         implicit ev: ConfDecoder[T]): Configured[Option[T]] =
-      Metaconfig
+      ConfGet
         .getKey(this, path +: extraNames)
         .map(
           value => ev.read(value).map(Some(_))

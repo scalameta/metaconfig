@@ -1,5 +1,6 @@
 package metaconfig
 
+import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
@@ -80,14 +81,17 @@ object Input {
     override def toString = s"""Input.VirtualFile("$path", "...")"""
   }
 
+  final case class File(file: Path, charset: Charset)
+      extends Input(
+        file.toString,
+        new Predef.String(Files.readAllBytes(file), charset.name)
+      )
   object File {
     def apply(file: java.io.File): Input = {
-      Input.File(file.toPath)
+      Input.File(file.toPath, StandardCharsets.UTF_8)
     }
     def apply(path: Path): Input = {
-      val text =
-        new Predef.String(Files.readAllBytes(path), StandardCharsets.UTF_8)
-      Input.VirtualFile(path.toString, text)
+      Input.File(path, StandardCharsets.UTF_8)
     }
   }
 

@@ -4,7 +4,6 @@ package typesafeconfig
 import com.typesafe.config._
 import scala.collection.JavaConverters._
 import scala.collection.mutable
-import scala.meta.inputs._
 import metaconfig.internal.ConfGet
 
 object TypesafeConfig2Class {
