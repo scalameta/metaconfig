@@ -1,12 +1,11 @@
 package metaconfig.hocon
 
-import scala.meta.inputs._
-
+import metaconfig.Position
+import metaconfig.Input
 import fastparse.core.Parsed
 import metaconfig.Conf
 import metaconfig.ConfError
 import metaconfig.Configured
-import metaconfig.Metaconfig
 
 object Hocon2Class {
   def gimmeConfig(input: Input): metaconfig.Configured[Conf] = {

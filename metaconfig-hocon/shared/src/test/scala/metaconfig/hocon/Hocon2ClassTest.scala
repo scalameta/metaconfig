@@ -1,8 +1,6 @@
 package metaconfig
 package hocon
 
-import scala.meta.inputs.Input
-
 import org.scalatest.FunSuite
 
 case class MyConfig(

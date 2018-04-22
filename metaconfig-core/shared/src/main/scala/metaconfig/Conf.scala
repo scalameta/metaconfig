@@ -1,15 +1,12 @@
 package metaconfig
 
 import java.io.File
-import scala.meta.inputs.Position
 import scala.util.Try
 import metaconfig.Extractors._
 import metaconfig.generic.Setting
 import metaconfig.generic.Settings
 import metaconfig.internal.CliParser
 import metaconfig.internal.ConfGet
-import org.langmeta.inputs.Input
-import org.scalameta.logger
 
 sealed abstract class Conf extends Product with Serializable {
   def dynamic: ConfDynamic = ConfDynamic(Configured.Ok(this))
@@ -80,7 +77,7 @@ object Conf {
       })
     def getOption[T](path: String, extraNames: String*)(
         implicit ev: ConfDecoder[T]): Configured[Option[T]] =
-      Metaconfig
+      ConfGet
         .getKey(this, path +: extraNames)
         .map(
           value => ev.read(value).map(Some(_))

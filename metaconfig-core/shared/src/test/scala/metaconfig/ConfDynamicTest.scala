@@ -1,6 +1,5 @@
 package metaconfig
 
-import org.scalameta.logger
 import org.scalatest.FunSuite
 
 class ConfDynamicTest extends FunSuite {

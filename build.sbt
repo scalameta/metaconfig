@@ -54,8 +54,6 @@ lazy val website = project
     `metaconfig-typesafe-config`
   )
 
-lazy val MetaVersion = "2.0.0-M3"
-
 lazy val baseSettings = Seq(
   scalaVersion := ScalaVersions.head,
   crossScalaVersions := ScalaVersions,
@@ -96,7 +94,6 @@ lazy val `metaconfig-core` = crossProject
     allSettings,
     // Position/Input
     libraryDependencies ++= List(
-      "org.scalameta" %%% "inputs" % MetaVersion,
       "com.lihaoyi" %%% "pprint" % "0.5.3",
       "org.typelevel" %%% "paiges-core" % "0.2.0",
       scalaOrganization.value % "scala-reflect" % scalaVersion.value % Provided
@@ -115,7 +112,7 @@ lazy val `metaconfig-core` = crossProject
       )
     },
     mimaBinaryIssueFilters ++= Mima.ignoredABIProblems,
-    libraryDependencies += "org.scalameta" %% "testkit" % MetaVersion % Test
+    libraryDependencies += "org.scalameta" %% "testkit" % "3.7.3" % Test
   )
 lazy val `metaconfig-coreJVM` = `metaconfig-core`.jvm
 lazy val `metaconfig-coreJS` = `metaconfig-core`.js

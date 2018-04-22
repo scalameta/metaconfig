@@ -3,15 +3,13 @@ package metaconfig
 import org.scalatest.FunSuite
 import ConfError._
 import metaconfig.Conf._
-import org.langmeta.inputs.Input
-import org.langmeta.inputs.Position
 
 class ConfErrorSuite extends FunSuite {
 
   def check(name: String, error: => ConfError, expected: => String): Unit = {
     test(name) {
       val obtained = error.toString.trim
-      assert(obtained == expected)
+      assert(obtained === expected.trim)
     }
   }
 
@@ -73,12 +71,13 @@ class ConfErrorSuite extends FunSuite {
           |}
         """.stripMargin
       )
-      val i = input.value.indexOf('v')
+      val i = input.text.indexOf('v')
       val pos = Position.Range(input, i, i + 2)
       parseError(pos, "No var")
     },
-    """|foo.scala:3: error: No var
-       |var x
-       |  ^""".stripMargin
+    """|foo.scala:2:2 error: No var
+       |  var x
+       |  ^^^
+       |""".stripMargin
   )
 }
