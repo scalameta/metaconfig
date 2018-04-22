@@ -3,15 +3,14 @@ package metaconfig
 import org.scalatest.FunSuite
 import ConfError._
 import metaconfig.Conf._
-import org.langmeta.inputs.Input
-import org.langmeta.inputs.Position
+import scala.meta.testkit.DiffAssertions
 
-class ConfErrorSuite extends FunSuite {
+class ConfErrorSuite extends FunSuite with DiffAssertions {
 
   def check(name: String, error: => ConfError, expected: => String): Unit = {
     test(name) {
       val obtained = error.toString.trim
-      assert(obtained == expected)
+      assertNoDiff(obtained, expected)
     }
   }
 
@@ -73,12 +72,12 @@ class ConfErrorSuite extends FunSuite {
           |}
         """.stripMargin
       )
-      val i = input.value.indexOf('v')
+      val i = input.text.indexOf('v')
       val pos = Position.Range(input, i, i + 2)
       parseError(pos, "No var")
     },
-    """|foo.scala:3: error: No var
+    """|foo.scala:2:2 error: No var
        |var x
-       |  ^""".stripMargin
+       |^^^""".stripMargin
   )
 }

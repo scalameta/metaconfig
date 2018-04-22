@@ -6,8 +6,6 @@ import java.io.PrintStream
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.nio.file.Path
-import scala.meta.inputs.Position
-import scala.meta.internal.inputs._
 import metaconfig.ConfError.TypeMismatch
 import metaconfig.annotation.DeprecatedName
 import metaconfig.error.CompositeException
@@ -75,7 +73,7 @@ sealed abstract class ConfError(val msg: String) extends Serializable { self =>
     if (hasPos) this // avoid duplicate position
     else if (position == Position.None) this
     else {
-      new ConfError(position.formatMessage("error", msg)) {
+      new ConfError(position.pretty("error", msg)) {
         override def hasPos: Boolean = true
       }
     }
@@ -131,7 +129,7 @@ object ConfError {
   def fileDoesNotExist(path: String): ConfError =
     message(s"File $path does not exist.")
   def parseError(position: Position, message: String): ConfError =
-    new ConfError(position.formatMessage("error", message)) {
+    new ConfError(position.pretty("error", message)) {
       override def isParseError: Boolean = true
     }
   def typeMismatch(expected: String, obtained: Conf): ConfError =
