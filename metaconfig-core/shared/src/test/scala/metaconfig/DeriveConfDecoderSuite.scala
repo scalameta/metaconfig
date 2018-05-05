@@ -6,30 +6,6 @@ import metaconfig.generic.Settings
 import metaconfig.generic.Surface
 import org.scalatest.FunSuite
 
-case class AllTheAnnotations(
-    @Description("descriptioon")
-    @ExampleValue("value")
-    @ExampleValue("value2")
-    @ExtraName("extraName")
-    @ExtraName("extraName2")
-    @DeprecatedName("deprecatedName", "Use x instead", "2.0")
-    @DeprecatedName("deprecatedName2", "Use y instead", "3.0")
-    @SinceVersion("2.1")
-    @Description("Description")
-    @Deprecated("Use newFeature instead", "2.1")
-    number: Int = 2,
-    string: String = "string",
-    lst: List[String] = Nil
-)
-
-object AllTheAnnotations {
-  implicit lazy val fields: Surface[AllTheAnnotations] =
-    generic.deriveSurface[AllTheAnnotations]
-  lazy val settings = Settings[AllTheAnnotations]
-  implicit lazy val decoder: ConfDecoder[AllTheAnnotations] =
-    generic.deriveDecoder[AllTheAnnotations](AllTheAnnotations()).noTypos
-}
-
 class DeriveConfDecoderSuite extends FunSuite {
 
   def checkError(name: String, obj: Conf, expected: String): Unit = {
@@ -42,6 +18,7 @@ class DeriveConfDecoderSuite extends FunSuite {
       }
     }
   }
+
   def checkOk(name: String, obj: Conf, expected: AllTheAnnotations): Unit = {
     test(name) {
       ConfDecoder.decode[AllTheAnnotations](obj) match {
@@ -102,10 +79,6 @@ class DeriveConfDecoderSuite extends FunSuite {
     AllTheAnnotations(33, "string", List())
   )
 
-  case class OneParam(param: Int)
-  object OneParam {
-    implicit val surface: Surface[OneParam] = generic.deriveSurface[OneParam]
-  }
   test("one param") {
     val decoder = generic.deriveDecoder[OneParam](OneParam(42))
     val obtained = decoder.read(Obj("param" -> Num(2))).get
@@ -113,24 +86,11 @@ class DeriveConfDecoderSuite extends FunSuite {
     assert(obtained == expected)
   }
 
-  case class NoParam()
-  object NoParam {
-    implicit val surface: Surface[NoParam] = generic.deriveSurface[NoParam]
-  }
   test("no param") {
     val decoder = generic.deriveDecoder[NoParam](NoParam())
     val obtained = decoder.read(Obj("param" -> Num(2))).get
     val expected = NoParam()
     assert(obtained == expected)
-  }
-
-  case class Curry(a: Int)(b: String)
-  object Curry {
-    implicit val surface: Surface[Curry] = generic.deriveSurface[Curry]
-  }
-  case class NoCurry(a: Int)
-  object NoCurry {
-    implicit val surface: Surface[NoCurry] = generic.deriveSurface[NoCurry]
   }
 
   test("compile error") {
@@ -151,22 +111,16 @@ class DeriveConfDecoderSuite extends FunSuite {
     )
   }
 
-  case class HasOption(b: Option[Int] = None)
-  object HasOption {
-    def check(conf: Conf, expected: HasOption)(
-        implicit decoder: ConfDecoder[HasOption]): Unit = {
-      test("option-" + conf.toString) {
-        val obtained = decoder.read(conf).get
-        assert(obtained == expected)
-
-      }
+  def checkOption(conf: Conf, expected: HasOption)(
+      implicit decoder: ConfDecoder[HasOption]): Unit = {
+    test("option-" + conf.toString) {
+      val obtained = decoder.read(conf).get
+      assert(obtained == expected)
     }
-    implicit val surface = generic.deriveSurface[HasOption]
-    implicit val decoder = generic.deriveDecoder[HasOption](HasOption())
   }
-  HasOption.check(Obj("b" -> Num(2)), HasOption(Some(2)))
-  HasOption.check(Obj("a" -> Num(2)), HasOption(None))
-  HasOption.check(Obj("b" -> Null()), HasOption(None))(
+  checkOption(Obj("b" -> Num(2)), HasOption(Some(2)))
+  checkOption(Obj("a" -> Num(2)), HasOption(None))
+  checkOption(Obj("b" -> Null()), HasOption(None))(
     generic.deriveDecoder[HasOption](HasOption(Some(2))))
 
 }

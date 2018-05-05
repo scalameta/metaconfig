@@ -36,20 +36,22 @@ All of the following code examples assume that you have `import metaconfig._` in
 
 <!-- TOC -->
 
-* [Metaconfig](#metaconfig)
-  * [Getting started](#getting-started)
-  * [Conf](#conf)
-  * [Conf.parse](#confparse)
-  * [ConfDecoder](#confdecoder)
-  * [ConfError](#conferror)
-  * [Configured](#configured)
-  * [generic.deriveSurface](#genericderivesurface)
-  * [generic.deriveDecoder](#genericderivedecoder)
-    * [Limitations](#limitations)
-  * [@DeprecatedName](#deprecatedname)
-  * [Docs](#docs)
-  * [Conf.parseCliArgs](#confparsecliargs)
-  * [Settings.toCliHelp](#settingstoclihelp)
+- [Metaconfig](#metaconfig)
+    - [Getting started](#getting-started)
+    - [Conf](#conf)
+    - [Conf.parse](#confparse)
+    - [ConfDecoder](#confdecoder)
+    - [ConfEncoder](#confencoder)
+    - [ConfCodec](#confcodec)
+    - [ConfError](#conferror)
+    - [Configured](#configured)
+    - [generic.deriveSurface](#genericderivesurface)
+    - [generic.deriveDecoder](#genericderivedecoder)
+        - [Limitations](#limitations)
+    - [@DeprecatedName](#deprecatedname)
+    - [Docs](#docs)
+    - [Conf.parseCliArgs](#confparsecliargs)
+    - [Settings.toCliHelp](#settingstoclihelp)
 
 <!-- /TOC -->
 
@@ -136,6 +138,56 @@ fileDecoder.read(Conf.fromString(".scalafmt.conf"))
 fileDecoder.read(Conf.fromString(".foobar"))
 ```
 
+## ConfEncoder
+
+To convert a class instance into `Conf` use `ConfEncoder[T]`.
+It's possible to automatically derive a `ConfEncoder[T]` instance for any case class
+with `generic.deriveEncoder`.
+
+```tut
+implicit val encoder = generic.deriveEncoder[User]
+
+ConfEncoder[User].write(User("John", 42))
+```
+
+It's possible to compose `ConfEncoder` instances with `contramap`
+
+```tut:silent
+val ageEncoder = ConfEncoder.IntEncoder.contramap[User](user => user.age)
+```
+
+```
+ageEncoder.write(User("Ignored", 88))
+```
+
+## ConfCodec
+
+It's common to have a class that has both a `ConfDecoder[T]` and `ConfEncoder[T]` instance.
+For convenience, it's possible to use the `ConfCodec[T]` typeclass to wrap an encoder and decoder in one instance.
+
+```tut:silent
+case class Bijective(name: String)
+implicit val surface = generic.deriveSurface[Bijective]
+implicit val codec = generic.deriveCodec[Bijective](new Bijective("default"))
+```
+
+```tut
+ConfEncoder[Bijective].write(Bijective("John"))
+ConfDecoder[Bijective].read(Conf.Obj("name" -> Conf.Str("Susan")))
+```
+
+It's possible to compose `ConfCodec` instances with `bimap`
+
+```tut:silent
+val bijectiveString = ConfCodec.StringCodec.bimap[Bijective](_.name, Bijective(_))
+```
+
+```tut
+bijectiveString.write(Bijective("write"))
+bijectiveString.read(Conf.Str("write"))
+```
+
+
 ## ConfError
 
 `ConfError` is a helper to produce readable and potentially aggregated error messages.
@@ -147,10 +199,9 @@ ConfError.typeMismatch("Int", "String", "field")
 ConfError.message("Failure 1").combine(ConfError.message("Failure 2"))
 ```
 
-Metaconfig uses Scalameta `Input` to represent an input source and `Position` to represent range positions in a given `Input`
+Metaconfig uses `Input` to represent a source that can be parsed and `Position` to represent range positions in a given `Input`
 
 ```tut:silent
-import scala.meta.inputs._
 val input = Input.VirtualFile(
   "foo.scala",
   """
@@ -159,7 +210,7 @@ val input = Input.VirtualFile(
     |}
   """.stripMargin
 )
-val i = input.value.indexOf('v')
+val i = input.text.indexOf('v')
 val pos = Position.Range(input, i, i)
 ```
 
