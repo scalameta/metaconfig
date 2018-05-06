@@ -57,9 +57,12 @@ lazy val website = project
 lazy val baseSettings = Seq(
   scalaVersion := ScalaVersions.head,
   crossScalaVersions := ScalaVersions,
+  testOptions.in(Test) +=
+    Tests.Argument(TestFrameworks.ScalaCheck, "-verbosity", "2"),
   libraryDependencies ++= List(
-    "org.scalacheck" %%% "scalacheck" % "1.13.5" % Test,
-    "org.scalatest" %%% "scalatest" % "3.0.2" % Test
+    "org.scalatest" %%% "scalatest" % "3.0.2" % Test,
+    "org.scalacheck" %% "scalacheck" % "1.14.0" % Test,
+    "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.6" % Test
   )
 )
 

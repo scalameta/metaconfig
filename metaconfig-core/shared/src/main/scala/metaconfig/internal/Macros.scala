@@ -18,6 +18,50 @@ class Macros(val c: blackbox.Context) {
       c.abort(c.enclosingPosition, s"$T must be a case class")
     T
   }
+
+  def params(T: Type): List[Symbol] = {
+    val paramss = T.typeSymbol.asClass.primaryConstructor.asMethod.paramLists
+    if (paramss.lengthCompare(1) > 0) {
+      c.abort(
+        c.enclosingPosition,
+        s"${T.typeSymbol} has a curried parameter list, which is not supported."
+      )
+    }
+    paramss.head
+  }
+
+  def deriveConfCodecImpl[T: c.WeakTypeTag](default: Tree): Tree = {
+    val T = assumeClass[T]
+    q"""
+        _root_.metaconfig.ConfCodec.EncoderDecoderToCodec[$T](
+          _root_.metaconfig.generic.deriveEncoder[$T],
+          _root_.metaconfig.generic.deriveDecoder[$T]($default)
+        )
+     """
+  }
+
+  def deriveConfEncoderImpl[T: c.WeakTypeTag]: Tree = {
+    val T = assumeClass[T]
+    val params = this.params(T)
+    val writes = params.map { param =>
+      val name = param.name.decodedName.toString
+      val select = Select(q"value", param.name)
+      val encoder =
+        q"_root_.scala.Predef.implicitly[_root_.metaconfig.ConfEncoder[${param.info}]]"
+      q"($name, $encoder.write($select))"
+    }
+    val result = q"""
+       new ${weakTypeOf[ConfEncoder[T]]} {
+         override def write(value: ${weakTypeOf[T]}): _root_.metaconfig.Conf = {
+           new _root_.metaconfig.Conf.Obj(
+             _root_.scala.List.apply(..$writes)
+           )
+         }
+       }
+     """
+    result
+  }
+
   def deriveConfDecoderImpl[T: c.WeakTypeTag](default: Tree): Tree = {
     val T = assumeClass[T]
     val Tclass = T.typeSymbol.asClass
@@ -31,12 +75,7 @@ class Macros(val c: blackbox.Context) {
       )
     }
     val paramss = Tclass.primaryConstructor.asMethod.paramLists
-    if (paramss.size > 1) {
-      c.abort(
-        c.enclosingPosition,
-        s"Curried parameter lists are not supported yet."
-      )
-    }
+    if (paramss.size > 1) {}
     if (paramss.head.isEmpty)
       return q"_root_.metaconfig.ConfDecoder.constant($default)"
 

@@ -40,8 +40,11 @@ trait ConfDecoder[A] { self =>
 }
 
 object ConfDecoder {
+
+  @deprecated("Use ConfDecoder[T].read instead", "0.6.1")
   def decode[T](conf: Conf)(implicit ev: ConfDecoder[T]): Configured[T] =
     ev.read(conf)
+
   def apply[T](implicit ev: ConfDecoder[T]): ConfDecoder[T] = ev
 
   // TODO(olafur) remove in favor of instanceExpect.
