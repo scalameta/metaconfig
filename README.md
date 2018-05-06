@@ -20,10 +20,10 @@ There are alternatives to metaconfig that you might want to give a try first
 ## Getting started
 
 ```scala
-libraryDependencies += "com.geirsson" %% "metaconfig-core" % "0.6.0"
+libraryDependencies += "com.geirsson" %% "metaconfig-core" % "0.7.0"
 
 // Use https://github.com/lightbend/config to parse HOCON
-libraryDependencies += "com.geirsson" %% "metaconfig-typesafe-config" % "0.6.0"
+libraryDependencies += "com.geirsson" %% "metaconfig-typesafe-config" % "0.7.0"
 ```
 
 Use this import to access the metaconfig API
@@ -36,20 +36,22 @@ All of the following code examples assume that you have `import metaconfig._` in
 
 <!-- TOC -->
 
-* [Metaconfig](#metaconfig)
-  * [Getting started](#getting-started)
-  * [Conf](#conf)
-  * [Conf.parse](#confparse)
-  * [ConfDecoder](#confdecoder)
-  * [ConfError](#conferror)
-  * [Configured](#configured)
-  * [generic.deriveSurface](#genericderivesurface)
-  * [generic.deriveDecoder](#genericderivedecoder)
-    * [Limitations](#limitations)
-  * [@DeprecatedName](#deprecatedname)
-  * [Docs](#docs)
-  * [Conf.parseCliArgs](#confparsecliargs)
-  * [Settings.toCliHelp](#settingstoclihelp)
+- [Metaconfig](#metaconfig)
+    - [Getting started](#getting-started)
+    - [Conf](#conf)
+    - [Conf.parse](#confparse)
+    - [ConfDecoder](#confdecoder)
+    - [ConfEncoder](#confencoder)
+    - [ConfCodec](#confcodec)
+    - [ConfError](#conferror)
+    - [Configured](#configured)
+    - [generic.deriveSurface](#genericderivesurface)
+    - [generic.deriveDecoder](#genericderivedecoder)
+        - [Limitations](#limitations)
+    - [@DeprecatedName](#deprecatedname)
+    - [Docs](#docs)
+    - [Conf.parseCliArgs](#confparsecliargs)
+    - [Settings.toCliHelp](#settingstoclihelp)
 
 <!-- /TOC -->
 
@@ -161,7 +163,7 @@ scala> val fileDecoder = ConfDecoder.stringConfDecoder.flatMap { string =>
      |   if (file.exists()) Configured.ok(file)
      |   else ConfError.fileDoesNotExist(file).notOk
      | }
-fileDecoder: metaconfig.ConfDecoder[java.io.File] = metaconfig.ConfDecoder$$anon$1@363da088
+fileDecoder: metaconfig.ConfDecoder[java.io.File] = metaconfig.ConfDecoder$$anon$1@54d607f9
 
 scala> fileDecoder.read(Conf.fromString(".scalafmt.conf"))
 res8: metaconfig.Configured[java.io.File] = Ok(.scalafmt.conf)
@@ -170,37 +172,94 @@ scala> fileDecoder.read(Conf.fromString(".foobar"))
 res9: metaconfig.Configured[java.io.File] = NotOk(File /Users/ollie/dev/metaconfig/.foobar does not exist.)
 ```
 
+## ConfEncoder
+
+To convert a class instance into `Conf` use `ConfEncoder[T]`.
+It's possible to automatically derive a `ConfEncoder[T]` instance for any case class
+with `generic.deriveEncoder`.
+
+```scala
+scala> implicit val encoder = generic.deriveEncoder[User]
+encoder: metaconfig.ConfEncoder[User] = $anon$1@103b4066
+
+scala> ConfEncoder[User].write(User("John", 42))
+res10: metaconfig.Conf = {"name": "John", "age": 42}
+```
+
+It's possible to compose `ConfEncoder` instances with `contramap`
+
+```scala
+val ageEncoder = ConfEncoder.IntEncoder.contramap[User](user => user.age)
+```
+
+```
+ageEncoder.write(User("Ignored", 88))
+```
+
+## ConfCodec
+
+It's common to have a class that has both a `ConfDecoder[T]` and `ConfEncoder[T]` instance.
+For convenience, it's possible to use the `ConfCodec[T]` typeclass to wrap an encoder and decoder in one instance.
+
+```scala
+case class Bijective(name: String)
+implicit val surface = generic.deriveSurface[Bijective]
+implicit val codec = generic.deriveCodec[Bijective](new Bijective("default"))
+```
+
+```scala
+scala> ConfEncoder[Bijective].write(Bijective("John"))
+res11: metaconfig.Conf = {"name": "John"}
+
+scala> ConfDecoder[Bijective].read(Conf.Obj("name" -> Conf.Str("Susan")))
+res12: metaconfig.Configured[Bijective] = Ok(Bijective(Susan))
+```
+
+It's possible to compose `ConfCodec` instances with `bimap`
+
+```scala
+val bijectiveString = ConfCodec.StringCodec.bimap[Bijective](_.name, Bijective(_))
+```
+
+```scala
+scala> bijectiveString.write(Bijective("write"))
+res13: metaconfig.Conf = "write"
+
+scala> bijectiveString.read(Conf.Str("write"))
+res14: metaconfig.Configured[Bijective] = Ok(Bijective(write))
+```
+
+
 ## ConfError
 
 `ConfError` is a helper to produce readable and potentially aggregated error messages.
 
 ```scala
 scala> ConfError.message("Not good!")
-res10: metaconfig.ConfError = Not good!
+res15: metaconfig.ConfError = Not good!
 
 scala> ConfError.exception(new IllegalArgumentException("Expected String!"), stackSize = 2)
-res11: metaconfig.ConfError =
+res16: metaconfig.ConfError =
 java.lang.IllegalArgumentException: Expected String!
-	at .<init>(<console>:19)
+	at .<init>(<console>:22)
 	at .<clinit>(<console>)
 
 scala> ConfError.typeMismatch("Int", "String", "field")
-res12: metaconfig.ConfError =
+res17: metaconfig.ConfError =
 Type mismatch at 'field';
   found    : String
   expected : Int
 
 scala> ConfError.message("Failure 1").combine(ConfError.message("Failure 2"))
-res13: metaconfig.ConfError =
+res18: metaconfig.ConfError =
 2 errors
 [E0] Failure 1
 [E1] Failure 2
 ```
 
-Metaconfig uses Scalameta `Input` to represent an input source and `Position` to represent range positions in a given `Input`
+Metaconfig uses `Input` to represent a source that can be parsed and `Position` to represent range positions in a given `Input`
 
 ```scala
-import scala.meta.inputs._
 val input = Input.VirtualFile(
   "foo.scala",
   """
@@ -209,15 +268,15 @@ val input = Input.VirtualFile(
     |}
   """.stripMargin
 )
-val i = input.value.indexOf('v')
+val i = input.text.indexOf('v')
 val pos = Position.Range(input, i, i)
 ```
 
 ```scala
 scala> ConfError.parseError(pos, "No var")
-res14: metaconfig.ConfError =
-foo.scala:3: error: No var
-var x
+res19: metaconfig.ConfError =
+foo.scala:2:2 error: No var
+  var x
   ^
 ```
 
@@ -227,10 +286,10 @@ var x
 
 ```scala
 scala> Configured.ok("Hello world!")
-res15: metaconfig.Configured[String] = Ok(Hello world!)
+res20: metaconfig.Configured[String] = Ok(Hello world!)
 
 scala> Configured.ok(List(1, 2))
-res16: metaconfig.Configured[List[Int]] = Ok(List(1, 2))
+res21: metaconfig.Configured[List[Int]] = Ok(List(1, 2))
 
 scala> val error = ConfError.message("Boom!")
 error: metaconfig.ConfError = Boom!
@@ -239,7 +298,7 @@ scala> val configured = error.notOk
 configured: metaconfig.Configured[Nothing] = NotOk(Boom!)
 
 scala> configured.toEither
-res17: Either[metaconfig.ConfError,Nothing] = Left(Boom!)
+res22: Either[metaconfig.ConfError,Nothing] = Left(Boom!)
 ```
 
 To skip error handling, use the nuclear `.get`
@@ -253,7 +312,7 @@ java.util.NoSuchElementException: Boom!
 
 ```scala
 scala> Configured.ok(42).get
-res19: Int = 42
+res24: Int = 42
 ```
 
 ## generic.deriveSurface
@@ -288,19 +347,19 @@ scala> ConfDecoder[User].read(Conf.parseString("""
      | name = Susan
      | age = 34
      | """))
-res20: metaconfig.Configured[User] = Ok(User(Susan,34))
+res25: metaconfig.Configured[User] = Ok(User(Susan,34))
 
 scala> ConfDecoder[User].read(Conf.parseString("""
      | nam = John
      | age = 23
      | """))
-res21: metaconfig.Configured[User] = NotOk(Invalid field: nam. Expected one of name, age)
+res26: metaconfig.Configured[User] = NotOk(Invalid field: nam. Expected one of name, age)
 
 scala> ConfDecoder[User].read(Conf.parseString("""
      | name = John
      | age = Old
      | """))
-res22: metaconfig.Configured[User] =
+res27: metaconfig.Configured[User] =
 NotOk(Type mismatch;
   found    : String (value: "Old")
   expected : Number)
@@ -354,13 +413,13 @@ implicit val decoder = generic.deriveDecoder[EvolvingConfig](EvolvingConfig(true
 
 ```scala
 scala> decoder.read(Conf.Obj("goodName" -> Conf.fromBoolean(false)))
-res23: metaconfig.Configured[EvolvingConfig] = Ok(EvolvingConfig(false))
+res28: metaconfig.Configured[EvolvingConfig] = Ok(EvolvingConfig(false))
 
 scala> decoder.read(Conf.Obj("isGoodName" -> Conf.fromBoolean(false)))
-res24: metaconfig.Configured[EvolvingConfig] = Ok(EvolvingConfig(false))
+res29: metaconfig.Configured[EvolvingConfig] = Ok(EvolvingConfig(false))
 
 scala> decoder.read(Conf.Obj("gooodName" -> Conf.fromBoolean(false)))
-res25: metaconfig.Configured[EvolvingConfig] = NotOk(Invalid field: gooodName. Expected one of isGoodName)
+res30: metaconfig.Configured[EvolvingConfig] = NotOk(Invalid field: gooodName. Expected one of isGoodName)
 ```
 
 ## Docs
@@ -368,7 +427,7 @@ res25: metaconfig.Configured[EvolvingConfig] = NotOk(Invalid field: gooodName. E
 To generate documentation for you configuration, add a dependency to the following module
 
 ```scala
-libraryDependencies += "com.geirsson" %% "metaconfig-docs" % "0.6.0"
+libraryDependencies += "com.geirsson" %% "metaconfig-docs" % "0.7.0"
 ```
 
 First define your configuration
@@ -396,7 +455,7 @@ To generate html documentation, pass in a default value
 
 ```scala
 scala> docs.Docs.html(User())
-res27: String = <table><thead><tr><th>Name</th><th>Type</th><th>Description</th><th>Default value</th></tr></thead><tbody><tr><td><code>name</code></td><td><code>String</code></td><td>Name description</td><td>John</td></tr><tr><td><code>age</code></td><td><code>Int</code></td><td>Age description</td><td>42</td></tr><tr><td><code>home.address</code></td><td><code>String</code></td><td>Address description</td><td>Lakelands 2</td></tr><tr><td><code>home.country</code></td><td><code>String</code></td><td>Country description</td><td>Iceland</td></tr></tbody></table>
+res32: String = <table><thead><tr><th>Name</th><th>Type</th><th>Description</th><th>Default value</th></tr></thead><tbody><tr><td><code>name</code></td><td><code>String</code></td><td>Name description</td><td>John</td></tr><tr><td><code>age</code></td><td><code>Int</code></td><td>Age description</td><td>42</td></tr><tr><td><code>home.address</code></td><td><code>String</code></td><td>Address description</td><td>Lakelands 2</td></tr><tr><td><code>home.country</code></td><td><code>String</code></td><td>Country description</td><td>Iceland</td></tr></tbody></table>
 ```
 
 The output will look like this when rendered in a markdown or html document
@@ -409,7 +468,7 @@ The `Docs.html` method does nothing magical, it's possible to implement custom r
 
 ```scala
 scala> Settings[User].settings
-res29: List[metaconfig.generic.Setting] = List(Setting(Field(name="name",tpe="String",annotations=List(@Description(Name description)),underlying=List())), Setting(Field(name="age",tpe="Int",annotations=List(@Description(Age description)),underlying=List())), Setting(Field(name="home",tpe="Home",annotations=List(),underlying=List(List(Field(name="address",tpe="String",annotations=List(@Description(Address description)),underlying=List()), Field(name="country",tpe="String",annotations=List(@Description(Country description)),underlying=List()))))))
+res34: List[metaconfig.generic.Setting] = List(Setting(Field(name="name",tpe="String",annotations=List(@Description(Name description)),underlying=List())), Setting(Field(name="age",tpe="Int",annotations=List(@Description(Age description)),underlying=List())), Setting(Field(name="home",tpe="Home",annotations=List(),underlying=List(List(Field(name="address",tpe="String",annotations=List(@Description(Address description)),underlying=List()), Field(name="country",tpe="String",annotations=List(@Description(Country description)),underlying=List()))))))
 
 scala> val flat = Settings[User].flat(User())
 flat: List[(metaconfig.generic.Setting, Any)] = List((Setting(Field(name="name",tpe="String",annotations=List(@Description(Name description)),underlying=List())),John), (Setting(Field(name="age",tpe="Int",annotations=List(@Description(Age description)),underlying=List())),42), (Setting(Field(name="home.address",tpe="String",annotations=List(@Description(Address description)),underlying=List())),Lakelands 2), (Setting(Field(name="home.country",tpe="String",annotations=List(@Description(Country description)),underlying=List())),Iceland))
@@ -417,7 +476,7 @@ flat: List[(metaconfig.generic.Setting, Any)] = List((Setting(Field(name="name",
 scala> flat.map { case (setting, defaultValue) =>
      |   s"Setting ${setting.name} of type ${setting.tpe} has default value $defaultValue"
      | }.mkString("\n==============\n")
-res30: String =
+res35: String =
 Setting name of type String has default value John
 ==============
 Setting age of type Int has default value 42
@@ -468,7 +527,7 @@ Generate a --help message with a `Settings[T]`.
 
 ```scala
 scala> Settings[App].toCliHelp(default = App())
-res31: String =
+res36: String =
 --target: String = out        The directory to output files
 --verbose: Boolean = false    Print out debugging diagnostics
 --files: List[String] = List()The input files for app

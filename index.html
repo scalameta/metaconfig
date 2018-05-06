@@ -165,10 +165,10 @@ Users should get helpful error messages when they mistype a setting name.</p>
 <li><a href="https://github.com/pureconfig/pureconfig" target="_blank">https://github.com/pureconfig/pureconfig</a></li>
 </ul>
 <h2 id="getting-started"><a name="getting-started" class="plugin-anchor" href="#getting-started"><i class="fa fa-link" aria-hidden="true"></i></a>Getting started</h2>
-<pre><code class="lang-scala">libraryDependencies += <span class="hljs-string">&quot;com.geirsson&quot;</span> %% <span class="hljs-string">&quot;metaconfig-core&quot;</span> % <span class="hljs-string">&quot;0.6.0&quot;</span>
+<pre><code class="lang-scala">libraryDependencies += <span class="hljs-string">&quot;com.geirsson&quot;</span> %% <span class="hljs-string">&quot;metaconfig-core&quot;</span> % <span class="hljs-string">&quot;0.7.0&quot;</span>
 
 <span class="hljs-comment">// Use https://github.com/lightbend/config to parse HOCON</span>
-libraryDependencies += <span class="hljs-string">&quot;com.geirsson&quot;</span> %% <span class="hljs-string">&quot;metaconfig-typesafe-config&quot;</span> % <span class="hljs-string">&quot;0.6.0&quot;</span>
+libraryDependencies += <span class="hljs-string">&quot;com.geirsson&quot;</span> %% <span class="hljs-string">&quot;metaconfig-typesafe-config&quot;</span> % <span class="hljs-string">&quot;0.7.0&quot;</span>
 </code></pre>
 <p>Use this import to access the metaconfig API</p>
 <pre><code class="lang-scala"><span class="hljs-keyword">import</span> metaconfig._
@@ -181,6 +181,8 @@ libraryDependencies += <span class="hljs-string">&quot;com.geirsson&quot;</span>
 <li><a href="#conf">Conf</a></li>
 <li><a href="#confparse">Conf.parse</a></li>
 <li><a href="#confdecoder">ConfDecoder</a></li>
+<li><a href="#confencoder">ConfEncoder</a></li>
+<li><a href="#confcodec">ConfCodec</a></li>
 <li><a href="#conferror">ConfError</a></li>
 <li><a href="#configured">Configured</a></li>
 <li><a href="#genericderivesurface">generic.deriveSurface</a></li>
@@ -280,7 +282,7 @@ NotOk(2 errors
      |   <span class="hljs-keyword">if</span> (file.exists()) <span class="hljs-type">Configured</span>.ok(file)
      |   <span class="hljs-keyword">else</span> <span class="hljs-type">ConfError</span>.fileDoesNotExist(file).notOk
      | }
-fileDecoder: metaconfig.<span class="hljs-type">ConfDecoder</span>[java.io.<span class="hljs-type">File</span>] = metaconfig.<span class="hljs-type">ConfDecoder</span>$$anon$<span class="hljs-number">1</span>@<span class="hljs-number">363</span>da088
+fileDecoder: metaconfig.<span class="hljs-type">ConfDecoder</span>[java.io.<span class="hljs-type">File</span>] = metaconfig.<span class="hljs-type">ConfDecoder</span>$$anon$<span class="hljs-number">1</span>@<span class="hljs-number">54</span>d607f9
 
 scala&gt; fileDecoder.read(<span class="hljs-type">Conf</span>.fromString(<span class="hljs-string">&quot;.scalafmt.conf&quot;</span>))
 res8: metaconfig.<span class="hljs-type">Configured</span>[java.io.<span class="hljs-type">File</span>] = <span class="hljs-type">Ok</span>(.scalafmt.conf)
@@ -288,32 +290,67 @@ res8: metaconfig.<span class="hljs-type">Configured</span>[java.io.<span class="
 scala&gt; fileDecoder.read(<span class="hljs-type">Conf</span>.fromString(<span class="hljs-string">&quot;.foobar&quot;</span>))
 res9: metaconfig.<span class="hljs-type">Configured</span>[java.io.<span class="hljs-type">File</span>] = <span class="hljs-type">NotOk</span>(<span class="hljs-type">File</span> /<span class="hljs-type">Users</span>/ollie/dev/metaconfig/.foobar does not exist.)
 </code></pre>
+<h2 id="confencoder"><a name="confencoder" class="plugin-anchor" href="#confencoder"><i class="fa fa-link" aria-hidden="true"></i></a>ConfEncoder</h2>
+<p>To convert a class instance into <code>Conf</code> use <code>ConfEncoder[T]</code>.
+It&apos;s possible to automatically derive a <code>ConfEncoder[T]</code> instance for any case class
+with <code>generic.deriveEncoder</code>.</p>
+<pre><code class="lang-scala">scala&gt; <span class="hljs-keyword">implicit</span> <span class="hljs-keyword">val</span> encoder = generic.deriveEncoder[<span class="hljs-type">User</span>]
+encoder: metaconfig.<span class="hljs-type">ConfEncoder</span>[<span class="hljs-type">User</span>] = $anon$<span class="hljs-number">1</span>@<span class="hljs-number">103</span>b4066
+
+scala&gt; <span class="hljs-type">ConfEncoder</span>[<span class="hljs-type">User</span>].write(<span class="hljs-type">User</span>(<span class="hljs-string">&quot;John&quot;</span>, <span class="hljs-number">42</span>))
+res10: metaconfig.<span class="hljs-type">Conf</span> = {<span class="hljs-string">&quot;name&quot;</span>: <span class="hljs-string">&quot;John&quot;</span>, <span class="hljs-string">&quot;age&quot;</span>: <span class="hljs-number">42</span>}
+</code></pre>
+<p>It&apos;s possible to compose <code>ConfEncoder</code> instances with <code>contramap</code></p>
+<pre><code class="lang-scala"><span class="hljs-keyword">val</span> ageEncoder = <span class="hljs-type">ConfEncoder</span>.<span class="hljs-type">IntEncoder</span>.contramap[<span class="hljs-type">User</span>](user =&gt; user.age)
+</code></pre>
+<pre><code>ageEncoder.write(User(&quot;Ignored&quot;, 88))
+</code></pre><h2 id="confcodec"><a name="confcodec" class="plugin-anchor" href="#confcodec"><i class="fa fa-link" aria-hidden="true"></i></a>ConfCodec</h2>
+<p>It&apos;s common to have a class that has both a <code>ConfDecoder[T]</code> and <code>ConfEncoder[T]</code> instance.
+For convenience, it&apos;s possible to use the <code>ConfCodec[T]</code> typeclass to wrap an encoder and decoder in one instance.</p>
+<pre><code class="lang-scala"><span class="hljs-keyword">case</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Bijective</span>(<span class="hljs-params">name: <span class="hljs-type">String</span></span>)</span>
+<span class="hljs-keyword">implicit</span> <span class="hljs-keyword">val</span> surface = generic.deriveSurface[<span class="hljs-type">Bijective</span>]
+<span class="hljs-keyword">implicit</span> <span class="hljs-keyword">val</span> codec = generic.deriveCodec[<span class="hljs-type">Bijective</span>](<span class="hljs-keyword">new</span> <span class="hljs-type">Bijective</span>(<span class="hljs-string">&quot;default&quot;</span>))
+</code></pre>
+<pre><code class="lang-scala">scala&gt; <span class="hljs-type">ConfEncoder</span>[<span class="hljs-type">Bijective</span>].write(<span class="hljs-type">Bijective</span>(<span class="hljs-string">&quot;John&quot;</span>))
+res11: metaconfig.<span class="hljs-type">Conf</span> = {<span class="hljs-string">&quot;name&quot;</span>: <span class="hljs-string">&quot;John&quot;</span>}
+
+scala&gt; <span class="hljs-type">ConfDecoder</span>[<span class="hljs-type">Bijective</span>].read(<span class="hljs-type">Conf</span>.<span class="hljs-type">Obj</span>(<span class="hljs-string">&quot;name&quot;</span> -&gt; <span class="hljs-type">Conf</span>.<span class="hljs-type">Str</span>(<span class="hljs-string">&quot;Susan&quot;</span>)))
+res12: metaconfig.<span class="hljs-type">Configured</span>[<span class="hljs-type">Bijective</span>] = <span class="hljs-type">Ok</span>(<span class="hljs-type">Bijective</span>(<span class="hljs-type">Susan</span>))
+</code></pre>
+<p>It&apos;s possible to compose <code>ConfCodec</code> instances with <code>bimap</code></p>
+<pre><code class="lang-scala"><span class="hljs-keyword">val</span> bijectiveString = <span class="hljs-type">ConfCodec</span>.<span class="hljs-type">StringCodec</span>.bimap[<span class="hljs-type">Bijective</span>](_.name, <span class="hljs-type">Bijective</span>(_))
+</code></pre>
+<pre><code class="lang-scala">scala&gt; bijectiveString.write(<span class="hljs-type">Bijective</span>(<span class="hljs-string">&quot;write&quot;</span>))
+res13: metaconfig.<span class="hljs-type">Conf</span> = <span class="hljs-string">&quot;write&quot;</span>
+
+scala&gt; bijectiveString.read(<span class="hljs-type">Conf</span>.<span class="hljs-type">Str</span>(<span class="hljs-string">&quot;write&quot;</span>))
+res14: metaconfig.<span class="hljs-type">Configured</span>[<span class="hljs-type">Bijective</span>] = <span class="hljs-type">Ok</span>(<span class="hljs-type">Bijective</span>(write))
+</code></pre>
 <h2 id="conferror"><a name="conferror" class="plugin-anchor" href="#conferror"><i class="fa fa-link" aria-hidden="true"></i></a>ConfError</h2>
 <p><code>ConfError</code> is a helper to produce readable and potentially aggregated error messages.</p>
 <pre><code class="lang-scala">scala&gt; <span class="hljs-type">ConfError</span>.message(<span class="hljs-string">&quot;Not good!&quot;</span>)
-res10: metaconfig.<span class="hljs-type">ConfError</span> = <span class="hljs-type">Not</span> good!
+res15: metaconfig.<span class="hljs-type">ConfError</span> = <span class="hljs-type">Not</span> good!
 
 scala&gt; <span class="hljs-type">ConfError</span>.exception(<span class="hljs-keyword">new</span> <span class="hljs-type">IllegalArgumentException</span>(<span class="hljs-string">&quot;Expected String!&quot;</span>), stackSize = <span class="hljs-number">2</span>)
-res11: metaconfig.<span class="hljs-type">ConfError</span> =
+res16: metaconfig.<span class="hljs-type">ConfError</span> =
 java.lang.<span class="hljs-type">IllegalArgumentException</span>: <span class="hljs-type">Expected</span> <span class="hljs-type">String</span>!
-    at .&lt;init&gt;(&lt;console&gt;:<span class="hljs-number">19</span>)
+    at .&lt;init&gt;(&lt;console&gt;:<span class="hljs-number">22</span>)
     at .&lt;clinit&gt;(&lt;console&gt;)
 
 scala&gt; <span class="hljs-type">ConfError</span>.typeMismatch(<span class="hljs-string">&quot;Int&quot;</span>, <span class="hljs-string">&quot;String&quot;</span>, <span class="hljs-string">&quot;field&quot;</span>)
-res12: metaconfig.<span class="hljs-type">ConfError</span> =
+res17: metaconfig.<span class="hljs-type">ConfError</span> =
 <span class="hljs-type">Type</span> mismatch at <span class="hljs-symbol">&apos;fiel</span>d&apos;;
   found    : <span class="hljs-type">String</span>
   expected : <span class="hljs-type">Int</span>
 
 scala&gt; <span class="hljs-type">ConfError</span>.message(<span class="hljs-string">&quot;Failure 1&quot;</span>).combine(<span class="hljs-type">ConfError</span>.message(<span class="hljs-string">&quot;Failure 2&quot;</span>))
-res13: metaconfig.<span class="hljs-type">ConfError</span> =
+res18: metaconfig.<span class="hljs-type">ConfError</span> =
 <span class="hljs-number">2</span> errors
 [<span class="hljs-type">E0</span>] <span class="hljs-type">Failure</span> <span class="hljs-number">1</span>
 [<span class="hljs-type">E1</span>] <span class="hljs-type">Failure</span> <span class="hljs-number">2</span>
 </code></pre>
-<p>Metaconfig uses Scalameta <code>Input</code> to represent an input source and <code>Position</code> to represent range positions in a given <code>Input</code></p>
-<pre><code class="lang-scala">import scala.meta.inputs._
-val input = Input.VirtualFile(
+<p>Metaconfig uses <code>Input</code> to represent a source that can be parsed and <code>Position</code> to represent range positions in a given <code>Input</code></p>
+<pre><code class="lang-scala">val input = Input.VirtualFile(
   &quot;foo.scala&quot;,
   &quot;&quot;&quot;
     |object A {
@@ -321,22 +358,22 @@ val input = Input.VirtualFile(
     |}
   &quot;&quot;&quot;.stripMargin
 )
-val i = input.value.indexOf(&apos;v&apos;)
+val i = input.text.indexOf(&apos;v&apos;)
 val pos = Position.Range(input, i, i)
 </code></pre>
 <pre><code class="lang-scala">scala&gt; <span class="hljs-type">ConfError</span>.parseError(pos, <span class="hljs-string">&quot;No var&quot;</span>)
-res14: metaconfig.<span class="hljs-type">ConfError</span> =
-foo.scala:<span class="hljs-number">3</span>: error: <span class="hljs-type">No</span> <span class="hljs-keyword">var</span>
-<span class="hljs-keyword">var</span> x
+res19: metaconfig.<span class="hljs-type">ConfError</span> =
+foo.scala:<span class="hljs-number">2</span>:<span class="hljs-number">2</span> error: <span class="hljs-type">No</span> <span class="hljs-keyword">var</span>
+  <span class="hljs-keyword">var</span> x
   ^
 </code></pre>
 <h2 id="configured"><a name="configured" class="plugin-anchor" href="#configured"><i class="fa fa-link" aria-hidden="true"></i></a>Configured</h2>
 <p><code>Configured[T]</code> is like an <code>Either[metaconfig.ConfError, T]</code> which is used througout the metaconfig API to either represent a successfully parsed/decoded value or a failure.</p>
 <pre><code class="lang-scala">scala&gt; <span class="hljs-type">Configured</span>.ok(<span class="hljs-string">&quot;Hello world!&quot;</span>)
-res15: metaconfig.<span class="hljs-type">Configured</span>[<span class="hljs-type">String</span>] = <span class="hljs-type">Ok</span>(<span class="hljs-type">Hello</span> world!)
+res20: metaconfig.<span class="hljs-type">Configured</span>[<span class="hljs-type">String</span>] = <span class="hljs-type">Ok</span>(<span class="hljs-type">Hello</span> world!)
 
 scala&gt; <span class="hljs-type">Configured</span>.ok(<span class="hljs-type">List</span>(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>))
-res16: metaconfig.<span class="hljs-type">Configured</span>[<span class="hljs-type">List</span>[<span class="hljs-type">Int</span>]] = <span class="hljs-type">Ok</span>(<span class="hljs-type">List</span>(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>))
+res21: metaconfig.<span class="hljs-type">Configured</span>[<span class="hljs-type">List</span>[<span class="hljs-type">Int</span>]] = <span class="hljs-type">Ok</span>(<span class="hljs-type">List</span>(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>))
 
 scala&gt; <span class="hljs-keyword">val</span> error = <span class="hljs-type">ConfError</span>.message(<span class="hljs-string">&quot;Boom!&quot;</span>)
 error: metaconfig.<span class="hljs-type">ConfError</span> = <span class="hljs-type">Boom</span>!
@@ -345,7 +382,7 @@ scala&gt; <span class="hljs-keyword">val</span> configured = error.notOk
 configured: metaconfig.<span class="hljs-type">Configured</span>[<span class="hljs-type">Nothing</span>] = <span class="hljs-type">NotOk</span>(<span class="hljs-type">Boom</span>!)
 
 scala&gt; configured.toEither
-res17: <span class="hljs-type">Either</span>[metaconfig.<span class="hljs-type">ConfError</span>,<span class="hljs-type">Nothing</span>] = <span class="hljs-type">Left</span>(<span class="hljs-type">Boom</span>!)
+res22: <span class="hljs-type">Either</span>[metaconfig.<span class="hljs-type">ConfError</span>,<span class="hljs-type">Nothing</span>] = <span class="hljs-type">Left</span>(<span class="hljs-type">Boom</span>!)
 </code></pre>
 <p>To skip error handling, use the nuclear <code>.get</code></p>
 <pre><code class="lang-scala">scala&gt; configured.get
@@ -354,7 +391,7 @@ java.util.<span class="hljs-type">NoSuchElementException</span>: <span class="hl
   ... <span class="hljs-number">45</span> elided
 </code></pre>
 <pre><code class="lang-scala">scala&gt; <span class="hljs-type">Configured</span>.ok(<span class="hljs-number">42</span>).get
-res19: <span class="hljs-type">Int</span> = <span class="hljs-number">42</span>
+res24: <span class="hljs-type">Int</span> = <span class="hljs-number">42</span>
 </code></pre>
 <h2 id="genericderivesurface"><a name="genericderivesurface" class="plugin-anchor" href="#genericderivesurface"><i class="fa fa-link" aria-hidden="true"></i></a>generic.deriveSurface</h2>
 <p>To use automatic derivation, you first need a <code>Surface[T]</code> typeclass instance</p>
@@ -378,19 +415,19 @@ This becomes especially true when you have documentation to keep up-to-date as w
      | name = Susan
      | age = 34
      | &quot;&quot;&quot;))
-res20: metaconfig.Configured[User] = Ok(User(Susan,34))
+res25: metaconfig.Configured[User] = Ok(User(Susan,34))
 
 scala&gt; ConfDecoder[User].read(Conf.parseString(&quot;&quot;&quot;
      | nam = John
      | age = 23
      | &quot;&quot;&quot;))
-res21: metaconfig.Configured[User] = NotOk(Invalid field: nam. Expected one of name, age)
+res26: metaconfig.Configured[User] = NotOk(Invalid field: nam. Expected one of name, age)
 
 scala&gt; ConfDecoder[User].read(Conf.parseString(&quot;&quot;&quot;
      | name = John
      | age = Old
      | &quot;&quot;&quot;))
-res22: metaconfig.Configured[User] =
+res27: metaconfig.Configured[User] =
 NotOk(Type mismatch;
   found    : String (value: &quot;Old&quot;)
   expected : Number)
@@ -430,17 +467,17 @@ Use the <code>@DeprecatedName</code> annotation to continue supporting the old n
 <span class="hljs-keyword">implicit</span> <span class="hljs-keyword">val</span> decoder = generic.deriveDecoder[<span class="hljs-type">EvolvingConfig</span>](<span class="hljs-type">EvolvingConfig</span>(<span class="hljs-literal">true</span>)).noTypos
 </code></pre>
 <pre><code class="lang-scala">scala&gt; decoder.read(<span class="hljs-type">Conf</span>.<span class="hljs-type">Obj</span>(<span class="hljs-string">&quot;goodName&quot;</span> -&gt; <span class="hljs-type">Conf</span>.fromBoolean(<span class="hljs-literal">false</span>)))
-res23: metaconfig.<span class="hljs-type">Configured</span>[<span class="hljs-type">EvolvingConfig</span>] = <span class="hljs-type">Ok</span>(<span class="hljs-type">EvolvingConfig</span>(<span class="hljs-literal">false</span>))
+res28: metaconfig.<span class="hljs-type">Configured</span>[<span class="hljs-type">EvolvingConfig</span>] = <span class="hljs-type">Ok</span>(<span class="hljs-type">EvolvingConfig</span>(<span class="hljs-literal">false</span>))
 
 scala&gt; decoder.read(<span class="hljs-type">Conf</span>.<span class="hljs-type">Obj</span>(<span class="hljs-string">&quot;isGoodName&quot;</span> -&gt; <span class="hljs-type">Conf</span>.fromBoolean(<span class="hljs-literal">false</span>)))
-res24: metaconfig.<span class="hljs-type">Configured</span>[<span class="hljs-type">EvolvingConfig</span>] = <span class="hljs-type">Ok</span>(<span class="hljs-type">EvolvingConfig</span>(<span class="hljs-literal">false</span>))
+res29: metaconfig.<span class="hljs-type">Configured</span>[<span class="hljs-type">EvolvingConfig</span>] = <span class="hljs-type">Ok</span>(<span class="hljs-type">EvolvingConfig</span>(<span class="hljs-literal">false</span>))
 
 scala&gt; decoder.read(<span class="hljs-type">Conf</span>.<span class="hljs-type">Obj</span>(<span class="hljs-string">&quot;gooodName&quot;</span> -&gt; <span class="hljs-type">Conf</span>.fromBoolean(<span class="hljs-literal">false</span>)))
-res25: metaconfig.<span class="hljs-type">Configured</span>[<span class="hljs-type">EvolvingConfig</span>] = <span class="hljs-type">NotOk</span>(<span class="hljs-type">Invalid</span> field: gooodName. <span class="hljs-type">Expected</span> one of isGoodName)
+res30: metaconfig.<span class="hljs-type">Configured</span>[<span class="hljs-type">EvolvingConfig</span>] = <span class="hljs-type">NotOk</span>(<span class="hljs-type">Invalid</span> field: gooodName. <span class="hljs-type">Expected</span> one of isGoodName)
 </code></pre>
 <h2 id="docs"><a name="docs" class="plugin-anchor" href="#docs"><i class="fa fa-link" aria-hidden="true"></i></a>Docs</h2>
 <p>To generate documentation for you configuration, add a dependency to the following module</p>
-<pre><code class="lang-scala">libraryDependencies += <span class="hljs-string">&quot;com.geirsson&quot;</span> %% <span class="hljs-string">&quot;metaconfig-docs&quot;</span> % <span class="hljs-string">&quot;0.6.0&quot;</span>
+<pre><code class="lang-scala">libraryDependencies += <span class="hljs-string">&quot;com.geirsson&quot;</span> %% <span class="hljs-string">&quot;metaconfig-docs&quot;</span> % <span class="hljs-string">&quot;0.7.0&quot;</span>
 </code></pre>
 <p>First define your configuration</p>
 <pre><code class="lang-scala"><span class="hljs-keyword">case</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Home</span>(<span class="hljs-params">
@@ -462,7 +499,7 @@ res25: metaconfig.<span class="hljs-type">Configured</span>[<span class="hljs-ty
 </code></pre>
 <p>To generate html documentation, pass in a default value</p>
 <pre><code class="lang-scala">scala&gt; docs.<span class="hljs-type">Docs</span>.html(<span class="hljs-type">User</span>())
-res27: <span class="hljs-type">String</span> = &lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;<span class="hljs-type">Name</span>&lt;/th&gt;&lt;th&gt;<span class="hljs-type">Type</span>&lt;/th&gt;&lt;th&gt;<span class="hljs-type">Description</span>&lt;/th&gt;&lt;th&gt;<span class="hljs-type">Default</span> value&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td&gt;&lt;code&gt;name&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&lt;code&gt;<span class="hljs-type">String</span>&lt;/code&gt;&lt;/td&gt;&lt;td&gt;<span class="hljs-type">Name</span> description&lt;/td&gt;&lt;td&gt;<span class="hljs-type">John</span>&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;code&gt;age&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&lt;code&gt;<span class="hljs-type">Int</span>&lt;/code&gt;&lt;/td&gt;&lt;td&gt;<span class="hljs-type">Age</span> description&lt;/td&gt;&lt;td&gt;<span class="hljs-number">42</span>&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;code&gt;home.address&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&lt;code&gt;<span class="hljs-type">String</span>&lt;/code&gt;&lt;/td&gt;&lt;td&gt;<span class="hljs-type">Address</span> description&lt;/td&gt;&lt;td&gt;<span class="hljs-type">Lakelands</span> <span class="hljs-number">2</span>&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;code&gt;home.country&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&lt;code&gt;<span class="hljs-type">String</span>&lt;/code&gt;&lt;/td&gt;&lt;td&gt;<span class="hljs-type">Country</span> description&lt;/td&gt;&lt;td&gt;<span class="hljs-type">Iceland</span>&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;
+res32: <span class="hljs-type">String</span> = &lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;<span class="hljs-type">Name</span>&lt;/th&gt;&lt;th&gt;<span class="hljs-type">Type</span>&lt;/th&gt;&lt;th&gt;<span class="hljs-type">Description</span>&lt;/th&gt;&lt;th&gt;<span class="hljs-type">Default</span> value&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td&gt;&lt;code&gt;name&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&lt;code&gt;<span class="hljs-type">String</span>&lt;/code&gt;&lt;/td&gt;&lt;td&gt;<span class="hljs-type">Name</span> description&lt;/td&gt;&lt;td&gt;<span class="hljs-type">John</span>&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;code&gt;age&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&lt;code&gt;<span class="hljs-type">Int</span>&lt;/code&gt;&lt;/td&gt;&lt;td&gt;<span class="hljs-type">Age</span> description&lt;/td&gt;&lt;td&gt;<span class="hljs-number">42</span>&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;code&gt;home.address&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&lt;code&gt;<span class="hljs-type">String</span>&lt;/code&gt;&lt;/td&gt;&lt;td&gt;<span class="hljs-type">Address</span> description&lt;/td&gt;&lt;td&gt;<span class="hljs-type">Lakelands</span> <span class="hljs-number">2</span>&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;code&gt;home.country&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&lt;code&gt;<span class="hljs-type">String</span>&lt;/code&gt;&lt;/td&gt;&lt;td&gt;<span class="hljs-type">Country</span> description&lt;/td&gt;&lt;td&gt;<span class="hljs-type">Iceland</span>&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;
 </code></pre>
 <p>The output will look like this when rendered in a markdown or html document</p>
 <table><thead><tr><th>Name</th><th>Type</th><th>Description</th><th>Default value</th></tr></thead><tbody><tr><td><code>name</code></td><td><code>String</code></td><td>Name description</td><td>John</td></tr><tr><td><code>age</code></td><td><code>Int</code></td><td>Age description</td><td>42</td></tr><tr><td><code>home.address</code></td><td><code>String</code></td><td>Address description</td><td>Lakelands 2</td></tr><tr><td><code>home.country</code></td><td><code>String</code></td><td>Country description</td><td>Iceland</td></tr></tbody></table>
@@ -470,7 +507,7 @@ res27: <span class="hljs-type">String</span> = &lt;table&gt;&lt;thead&gt;&lt;tr&
 
 <p>The <code>Docs.html</code> method does nothing magical, it&apos;s possible to implement custom renderings by inspecting <code>Settings[T]</code> directly.</p>
 <pre><code class="lang-scala">scala&gt; <span class="hljs-type">Settings</span>[<span class="hljs-type">User</span>].settings
-res29: <span class="hljs-type">List</span>[metaconfig.generic.<span class="hljs-type">Setting</span>] = <span class="hljs-type">List</span>(<span class="hljs-type">Setting</span>(<span class="hljs-type">Field</span>(name=<span class="hljs-string">&quot;name&quot;</span>,tpe=<span class="hljs-string">&quot;String&quot;</span>,annotations=<span class="hljs-type">List</span>(<span class="hljs-meta">@Description</span>(<span class="hljs-type">Name</span> description)),underlying=<span class="hljs-type">List</span>())), <span class="hljs-type">Setting</span>(<span class="hljs-type">Field</span>(name=<span class="hljs-string">&quot;age&quot;</span>,tpe=<span class="hljs-string">&quot;Int&quot;</span>,annotations=<span class="hljs-type">List</span>(<span class="hljs-meta">@Description</span>(<span class="hljs-type">Age</span> description)),underlying=<span class="hljs-type">List</span>())), <span class="hljs-type">Setting</span>(<span class="hljs-type">Field</span>(name=<span class="hljs-string">&quot;home&quot;</span>,tpe=<span class="hljs-string">&quot;Home&quot;</span>,annotations=<span class="hljs-type">List</span>(),underlying=<span class="hljs-type">List</span>(<span class="hljs-type">List</span>(<span class="hljs-type">Field</span>(name=<span class="hljs-string">&quot;address&quot;</span>,tpe=<span class="hljs-string">&quot;String&quot;</span>,annotations=<span class="hljs-type">List</span>(<span class="hljs-meta">@Description</span>(<span class="hljs-type">Address</span> description)),underlying=<span class="hljs-type">List</span>()), <span class="hljs-type">Field</span>(name=<span class="hljs-string">&quot;country&quot;</span>,tpe=<span class="hljs-string">&quot;String&quot;</span>,annotations=<span class="hljs-type">List</span>(<span class="hljs-meta">@Description</span>(<span class="hljs-type">Country</span> description)),underlying=<span class="hljs-type">List</span>()))))))
+res34: <span class="hljs-type">List</span>[metaconfig.generic.<span class="hljs-type">Setting</span>] = <span class="hljs-type">List</span>(<span class="hljs-type">Setting</span>(<span class="hljs-type">Field</span>(name=<span class="hljs-string">&quot;name&quot;</span>,tpe=<span class="hljs-string">&quot;String&quot;</span>,annotations=<span class="hljs-type">List</span>(<span class="hljs-meta">@Description</span>(<span class="hljs-type">Name</span> description)),underlying=<span class="hljs-type">List</span>())), <span class="hljs-type">Setting</span>(<span class="hljs-type">Field</span>(name=<span class="hljs-string">&quot;age&quot;</span>,tpe=<span class="hljs-string">&quot;Int&quot;</span>,annotations=<span class="hljs-type">List</span>(<span class="hljs-meta">@Description</span>(<span class="hljs-type">Age</span> description)),underlying=<span class="hljs-type">List</span>())), <span class="hljs-type">Setting</span>(<span class="hljs-type">Field</span>(name=<span class="hljs-string">&quot;home&quot;</span>,tpe=<span class="hljs-string">&quot;Home&quot;</span>,annotations=<span class="hljs-type">List</span>(),underlying=<span class="hljs-type">List</span>(<span class="hljs-type">List</span>(<span class="hljs-type">Field</span>(name=<span class="hljs-string">&quot;address&quot;</span>,tpe=<span class="hljs-string">&quot;String&quot;</span>,annotations=<span class="hljs-type">List</span>(<span class="hljs-meta">@Description</span>(<span class="hljs-type">Address</span> description)),underlying=<span class="hljs-type">List</span>()), <span class="hljs-type">Field</span>(name=<span class="hljs-string">&quot;country&quot;</span>,tpe=<span class="hljs-string">&quot;String&quot;</span>,annotations=<span class="hljs-type">List</span>(<span class="hljs-meta">@Description</span>(<span class="hljs-type">Country</span> description)),underlying=<span class="hljs-type">List</span>()))))))
 
 scala&gt; <span class="hljs-keyword">val</span> flat = <span class="hljs-type">Settings</span>[<span class="hljs-type">User</span>].flat(<span class="hljs-type">User</span>())
 flat: <span class="hljs-type">List</span>[(metaconfig.generic.<span class="hljs-type">Setting</span>, <span class="hljs-type">Any</span>)] = <span class="hljs-type">List</span>((<span class="hljs-type">Setting</span>(<span class="hljs-type">Field</span>(name=<span class="hljs-string">&quot;name&quot;</span>,tpe=<span class="hljs-string">&quot;String&quot;</span>,annotations=<span class="hljs-type">List</span>(<span class="hljs-meta">@Description</span>(<span class="hljs-type">Name</span> description)),underlying=<span class="hljs-type">List</span>())),<span class="hljs-type">John</span>), (<span class="hljs-type">Setting</span>(<span class="hljs-type">Field</span>(name=<span class="hljs-string">&quot;age&quot;</span>,tpe=<span class="hljs-string">&quot;Int&quot;</span>,annotations=<span class="hljs-type">List</span>(<span class="hljs-meta">@Description</span>(<span class="hljs-type">Age</span> description)),underlying=<span class="hljs-type">List</span>())),<span class="hljs-number">42</span>), (<span class="hljs-type">Setting</span>(<span class="hljs-type">Field</span>(name=<span class="hljs-string">&quot;home.address&quot;</span>,tpe=<span class="hljs-string">&quot;String&quot;</span>,annotations=<span class="hljs-type">List</span>(<span class="hljs-meta">@Description</span>(<span class="hljs-type">Address</span> description)),underlying=<span class="hljs-type">List</span>())),<span class="hljs-type">Lakelands</span> <span class="hljs-number">2</span>), (<span class="hljs-type">Setting</span>(<span class="hljs-type">Field</span>(name=<span class="hljs-string">&quot;home.country&quot;</span>,tpe=<span class="hljs-string">&quot;String&quot;</span>,annotations=<span class="hljs-type">List</span>(<span class="hljs-meta">@Description</span>(<span class="hljs-type">Country</span> description)),underlying=<span class="hljs-type">List</span>())),<span class="hljs-type">Iceland</span>))
@@ -478,7 +515,7 @@ flat: <span class="hljs-type">List</span>[(metaconfig.generic.<span class="hljs-
 scala&gt; flat.map { <span class="hljs-keyword">case</span> (setting, defaultValue) =&gt;
      |   <span class="hljs-string">s&quot;Setting <span class="hljs-subst">${setting.name}</span> of type <span class="hljs-subst">${setting.tpe}</span> has default value <span class="hljs-subst">$defaultValue</span>&quot;</span>
      | }.mkString(<span class="hljs-string">&quot;\n==============\n&quot;</span>)
-res30: <span class="hljs-type">String</span> =
+res35: <span class="hljs-type">String</span> =
 <span class="hljs-type">Setting</span> name of <span class="hljs-class"><span class="hljs-keyword">type</span> <span class="hljs-title">String</span> <span class="hljs-title">has</span> <span class="hljs-title">default</span> <span class="hljs-title">value</span> <span class="hljs-title">John</span></span>
 ==============
 <span class="hljs-type">Setting</span> age of <span class="hljs-class"><span class="hljs-keyword">type</span> <span class="hljs-title">Int</span> <span class="hljs-title">has</span> <span class="hljs-title">default</span> <span class="hljs-title">value</span> 42</span>
@@ -516,7 +553,7 @@ app: metaconfig.<span class="hljs-type">Configured</span>[<span class="hljs-type
 <h2 id="settingstoclihelp"><a name="settingstoclihelp" class="plugin-anchor" href="#settingstoclihelp"><i class="fa fa-link" aria-hidden="true"></i></a>Settings.toCliHelp</h2>
 <p>Generate a --help message with a <code>Settings[T]</code>.</p>
 <pre><code class="lang-scala">scala&gt; <span class="hljs-type">Settings</span>[<span class="hljs-type">App</span>].toCliHelp(<span class="hljs-keyword">default</span> = <span class="hljs-type">App</span>())
-res31: <span class="hljs-type">String</span> =
+res36: <span class="hljs-type">String</span> =
 --target: <span class="hljs-type">String</span> = out        <span class="hljs-type">The</span> directory to output files
 --verbose: <span class="hljs-type">Boolean</span> = <span class="hljs-literal">false</span>    <span class="hljs-type">Print</span> out debugging diagnostics
 --files: <span class="hljs-type">List</span>[<span class="hljs-type">String</span>] = <span class="hljs-type">List</span>()<span class="hljs-type">The</span> input files <span class="hljs-keyword">for</span> app
@@ -556,7 +593,7 @@ res31: <span class="hljs-type">String</span> =
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Introduction","level":"1.1","depth":1,"dir":"ltr"},"config":{"plugins":["editlink","github","anchors"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"github":{"url":"https://github.com/olafurpg/metaconfig/"},"editlink":{"label":"Edit This Page","multilingual":false,"base":"https://github.com/olafurpg/metaconfig/tree/master/docs"},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"highlight":{},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false},"anchors":{}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"Metaconfig","gitbook":"3.2.x","description":"Parse hocon configuration into Scala case class"},"file":{"path":"README.md","mtime":"2018-01-22T23:05:12.000Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2018-01-22T23:05:13.364Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Introduction","level":"1.1","depth":1,"dir":"ltr"},"config":{"plugins":["editlink","github","anchors"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"github":{"url":"https://github.com/olafurpg/metaconfig/"},"editlink":{"label":"Edit This Page","multilingual":false,"base":"https://github.com/olafurpg/metaconfig/tree/master/docs"},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"highlight":{},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false},"anchors":{}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"Metaconfig","gitbook":"3.2.x","description":"Parse hocon configuration into Scala case class"},"file":{"path":"README.md","mtime":"2018-05-06T15:39:55.675Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2018-05-06T15:39:57.310Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>
