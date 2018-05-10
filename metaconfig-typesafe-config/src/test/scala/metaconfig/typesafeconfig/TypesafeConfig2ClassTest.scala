@@ -3,10 +3,7 @@ package metaconfig.typesafeconfig
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
-
 import metaconfig.Conf
-import metaconfig.Configured
-import org.scalameta.logger
 import org.scalatest.FunSuite
 
 class TypesafeConfig2ClassTest extends FunSuite {

@@ -18,6 +18,15 @@ object ConfEncoder {
     override def write(value: A): Conf = f(value)
   }
 
+  private val GenericConfEncoder: ConfEncoder[Conf] =
+    new ConfEncoder[Conf] {
+      override def write(value: Conf): Conf = value
+    }
+
+  // Invariant type-classes don't work unfortunately so we do this work by hand.
+  implicit def ConfEncoder[T <: Conf]: ConfEncoder[T] =
+    GenericConfEncoder.asInstanceOf[ConfEncoder[T]]
+
   implicit val BooleanEncoder: ConfEncoder[Boolean] =
     new ConfEncoder[Boolean] {
       override def write(value: Boolean): Conf = Conf.Bool(value)

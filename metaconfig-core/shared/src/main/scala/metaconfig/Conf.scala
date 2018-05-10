@@ -7,6 +7,8 @@ import metaconfig.generic.Setting
 import metaconfig.generic.Settings
 import metaconfig.internal.CliParser
 import metaconfig.internal.ConfGet
+import metaconfig.internal.ConfPatch
+import metaconfig.internal.HoconPrinter
 
 sealed abstract class Conf extends Product with Serializable {
   def dynamic: ConfDynamic = ConfDynamic(Configured.Ok(this))
@@ -16,12 +18,8 @@ sealed abstract class Conf extends Product with Serializable {
   final def kind: String = ConfOps.kind(this)
   final def show: String = ConfOps.show(this)
   final def foreach(f: Conf => Unit): Unit = ConfOps.foreach(this)(f)
+  @deprecated("No longer supported", "0.7.1")
   final def diff(other: Conf): Option[(Conf, Conf)] = ConfOps.diff(this, other)
-  // Customize equals because we subtype classes (which is bad)
-  override final def equals(obj: scala.Any): Boolean = obj match {
-    case other: Conf => ConfOps.diff(this, other).isEmpty
-    case _ => false
-  }
   final override def toString: String = show
   def as[T](implicit ev: ConfDecoder[T]): Configured[T] =
     ev.read(this)
@@ -45,6 +43,7 @@ object Conf {
   def fromNumberOrString(str: String): Conf =
     Try(fromBigDecimal(BigDecimal(str.toDouble))).getOrElse(fromString(str))
   def fromString(str: String): Conf = Conf.Str(str)
+
   def parseCliArgs[T](args: List[String])(
       implicit settings: Settings[T]): Configured[Conf] =
     CliParser.parseArgs[T](args)
@@ -61,6 +60,19 @@ object Conf {
       implicit parser: MetaconfigParser): Configured[Conf] =
     parser.fromInput(input)
 
+  /** Pretty-print this value as a HOCON string. */
+  def printHocon[T: ConfEncoder](value: T): String = {
+    HoconPrinter.toHocon(value).render(100)
+  }
+
+  /** Produce a minimal Conf that when merged with original yields revised. **/
+  def patch(original: Conf, revised: Conf): Conf =
+    ConfPatch.patch(original, revised)
+
+  /** Applies the patch configuration on top of original. */
+  def applyPatch(original: Conf, patch: Conf): Conf =
+    ConfOps.merge(original, patch)
+
   case class Null() extends Conf
   case class Str(value: String) extends Conf
   case class Num(value: BigDecimal) extends Conf
@@ -68,6 +80,13 @@ object Conf {
   case class Lst(values: List[Conf]) extends Conf
   object Lst { def apply(values: Conf*): Lst = Lst(values.toList) }
   case class Obj(values: List[(String, Conf)]) extends Conf {
+    override final def equals(obj: scala.Any): Boolean =
+      this.eq(obj.asInstanceOf[AnyRef]) || {
+        obj match {
+          case o: Conf.Obj => map equals o.map // Ignore key ordering.
+          case _ => false
+        }
+      }
     lazy val map: Map[String, Conf] = values.toMap
     def field(key: String): Option[Conf] = map.get(key)
     def keys: List[String] = values.map(_._1)
@@ -122,12 +141,15 @@ object ConfOps {
           }
           .headOption
     case (Lst(l1), Lst(l2)) =>
-      l1.zip(l1)
-        .flatMap {
-          case (c1, c2) =>
-            diff(c1, c2)
-        }
-        .headOption
+      if (l1.lengthCompare(l2.length) != 0) Some(a -> b)
+      else {
+        l1.zip(l1)
+          .flatMap {
+            case (c1, c2) =>
+              diff(c1, c2)
+          }
+          .headOption
+      }
     case (Str(x), Str(y)) => if (x != y) Some(a -> b) else None
     case (Bool(x), Bool(y)) => if (x != y) Some(a -> b) else None
     case (Num(x), Num(y)) => if (x != y) Some(a -> b) else None
@@ -231,24 +253,5 @@ object ConfOps {
     case Lst(_) => "List[T]"
     case Obj(_) => "Map[K, V]"
     case Null() => "Null"
-  }
-}
-
-object Extractors {
-  object Number {
-    def unapply(arg: String): Option[BigDecimal] =
-      Try(BigDecimal(arg)).toOption
-  }
-  object NestedKey {
-    def unapply(arg: String): Option[(String, String)] = {
-      val idx = arg.indexOf('.')
-      if (idx == -1) None
-      else {
-        arg.splitAt(idx) match {
-          case (_, "") => None
-          case (a, b) => Some(a -> b.stripPrefix("."))
-        }
-      }
-    }
   }
 }
