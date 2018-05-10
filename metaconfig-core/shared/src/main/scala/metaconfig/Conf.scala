@@ -69,6 +69,10 @@ object Conf {
   def patch(original: Conf, revised: Conf): Conf =
     ConfPatch.patch(original, revised)
 
+  /** Applies the patch configuration on top of original. */
+  def applyPatch(original: Conf, patch: Conf): Conf =
+    ConfOps.merge(original, patch)
+
   case class Null() extends Conf
   case class Str(value: String) extends Conf
   case class Num(value: BigDecimal) extends Conf

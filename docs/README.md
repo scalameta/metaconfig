@@ -1,16 +1,20 @@
 # Metaconfig
 
-Metaconfig is a library to read HOCON configuration into Scala case classes.
-Key features of Metaconfig include
+Metaconfig is a library to read HOCON configuration into Scala case classes. Key
+features of Metaconfig include
 
-* helpful error messages on common mistakes like typos or type mismatch (expected string, obtained int)
-* configurable, semi-automatic derivation of decoders, with support for deprecating setting options
+* helpful error messages on common mistakes like typos or type mismatch
+  (expected string, obtained int)
+* configurable, semi-automatic derivation of decoders, with support for
+  deprecating setting options
 * cross-platform, supports JS/JVM. Native support is on the roadmap
 
-The target use-case for metaconfig is tool maintainers who support HOCON configuration in their tool.
-Metaconfig is used by scalafmt to read `.scalafmt.conf` and scalafix to read `.scalafix.conf`.
-With metaconfig, tool maintainers should be able to safely evolve their configuration (deprecate old fields, add new fields) without breaking existing configuration files.
-Users should get helpful error messages when they mistype a setting name.
+The target use-case for metaconfig is tool maintainers who support HOCON
+configuration in their tool. Metaconfig is used by scalafmt to read
+`.scalafmt.conf` and scalafix to read `.scalafix.conf`. With metaconfig, tool
+maintainers should be able to safely evolve their configuration (deprecate old
+fields, add new fields) without breaking existing configuration files. Users
+should get helpful error messages when they mistype a setting name.
 
 There are alternatives to metaconfig that you might want to give a try first
 
@@ -32,26 +36,29 @@ Use this import to access the metaconfig API
 import metaconfig._
 ```
 
-All of the following code examples assume that you have `import metaconfig._` in scope.
+All of the following code examples assume that you have `import metaconfig._` in
+scope.
 
 <!-- TOC -->
 
-- [Metaconfig](#metaconfig)
-    - [Getting started](#getting-started)
-    - [Conf](#conf)
-    - [Conf.parse](#confparse)
-    - [ConfDecoder](#confdecoder)
-    - [ConfEncoder](#confencoder)
-    - [ConfCodec](#confcodec)
-    - [ConfError](#conferror)
-    - [Configured](#configured)
-    - [generic.deriveSurface](#genericderivesurface)
-    - [generic.deriveDecoder](#genericderivedecoder)
-        - [Limitations](#limitations)
-    - [@DeprecatedName](#deprecatedname)
-    - [Docs](#docs)
-    - [Conf.parseCliArgs](#confparsecliargs)
-    - [Settings.toCliHelp](#settingstoclihelp)
+* [Metaconfig](#metaconfig)
+  * [Getting started](#getting-started)
+  * [Conf](#conf)
+  * [Conf.parse](#confparse)
+  * [Conf.printHocon](#confprinthocon)
+  * [Conf.patch](#confpatch)
+  * [ConfDecoder](#confdecoder)
+  * [ConfEncoder](#confencoder)
+  * [ConfCodec](#confcodec)
+  * [ConfError](#conferror)
+  * [Configured](#configured)
+  * [generic.deriveSurface](#genericderivesurface)
+  * [generic.deriveDecoder](#genericderivedecoder)
+    * [Limitations](#limitations)
+  * [@DeprecatedName](#deprecatedname)
+  * [Docs](#docs)
+  * [Conf.parseCliArgs](#confparsecliargs)
+  * [Settings.toCliHelp](#settingstoclihelp)
 
 <!-- /TOC -->
 
@@ -68,8 +75,8 @@ Conf.fromMap(Map("a" -> string, "b" -> int))
 
 ## Conf.parse
 
-You need an implicit `MetaconfigParser` to convert HOCON into `Conf`.
-Assuming you depend on the `metaconfig-typesafe-config` module,
+You need an implicit `MetaconfigParser` to convert HOCON into `Conf`. Assuming
+you depend on the `metaconfig-typesafe-config` module,
 
 ```tut
 import metaconfig.typesafeconfig._
@@ -81,17 +88,82 @@ reference = ${a}
 Conf.parseFile(new java.io.File(".scalafmt.conf"))
 ```
 
-Note. The example above is JVM-only.
-For a Scala.js alternative, depend on the `metaconfig-hocon` module and replace `metaconfig.typesafeconfig` with
+Note. The example above is JVM-only. For a Scala.js alternative, depend on the
+`metaconfig-hocon` module and replace `metaconfig.typesafeconfig` with
 
 ```scala
 import metaconfig.hocon._
 ```
 
+## Conf.printHocon
+
+It's possible to print `Conf` as
+[HOCON](https://github.com/lightbend/config/blob/master/HOCON.md).
+
+```tut
+Conf.printHocon(Conf.Obj(
+  "a" -> Conf.Obj(
+    "b" -> Conf.Str("3"),
+    "c" -> Conf.Num(1),
+    "d" -> Conf.Lst(
+      Conf.Null(),
+      Conf.Bool(true)
+))))
+```
+
+The printer is tested against the roundtrip property
+
+```
+parse(print(conf)) == conf
+```
+
+so it should be safe to parse the output from the printer.
+
+## Conf.patch
+
+Imagine the scenario
+
+* your application has many configuration options with default values,
+* you have a custom configuration object that overrides only a few specific
+  fields.
+* you want to pretty-print the minimal HOCON configuration to obtain that custom
+  configuration
+
+Use `Conf.patch` compute a minimal `Conf` to go from an original `Conf` to a
+revised `Conf`.
+
+```tut
+val original = Conf.Obj(
+  "a" -> Conf.Obj(
+    "b" -> Conf.Str("c"),
+    "d" -> Conf.Str("e")
+  ),
+  "f" -> Conf.Bool(true)
+)
+val revised = Conf.Obj(
+  "a" -> Conf.Obj(
+    "b" -> Conf.Str("c"),
+    "d" -> Conf.Str("ee") // <-- only overridden setting
+  ),
+  "f" -> Conf.Bool(true)
+)
+val patch = Conf.patch(original, revised)
+Conf.printHocon(patch)
+val revised2 = Conf.applyPatch(original, patch)
+assert(revised == revised2)
+```
+
+The `patch` operation is tested against the property
+
+```
+applyPatch(original, revised) == applyPatch(original, patch(original, revised))
+```
+
 ## ConfDecoder
 
-To convert `Conf` into higher-level data structures you need a `ConfDecoder[T]` instance.
-Convert a partial function from `Conf` to your target type using `ConfDecoder.instance[T]`.
+To convert `Conf` into higher-level data structures you need a `ConfDecoder[T]`
+instance. Convert a partial function from `Conf` to your target type using
+`ConfDecoder.instance[T]`.
 
 ```tut:silent
 val number2 = ConfDecoder.instance[Int] {
@@ -104,7 +176,8 @@ number2.read(Conf.fromString("2"))
 number2.read(Conf.fromInt(2))
 ```
 
-Convert a regular function from `Conf` to your target type using `ConfDecoder.instanceF[T]`.
+Convert a regular function from `Conf` to your target type using
+`ConfDecoder.instanceF[T]`.
 
 ```tut:silent
 case class User(name: String, age: Int)
@@ -140,9 +213,9 @@ fileDecoder.read(Conf.fromString(".foobar"))
 
 ## ConfEncoder
 
-To convert a class instance into `Conf` use `ConfEncoder[T]`.
-It's possible to automatically derive a `ConfEncoder[T]` instance for any case class
-with `generic.deriveEncoder`.
+To convert a class instance into `Conf` use `ConfEncoder[T]`. It's possible to
+automatically derive a `ConfEncoder[T]` instance for any case class with
+`generic.deriveEncoder`.
 
 ```tut
 implicit val encoder = generic.deriveEncoder[User]
@@ -162,8 +235,9 @@ ageEncoder.write(User("Ignored", 88))
 
 ## ConfCodec
 
-It's common to have a class that has both a `ConfDecoder[T]` and `ConfEncoder[T]` instance.
-For convenience, it's possible to use the `ConfCodec[T]` typeclass to wrap an encoder and decoder in one instance.
+It's common to have a class that has both a `ConfDecoder[T]` and
+`ConfEncoder[T]` instance. For convenience, it's possible to use the
+`ConfCodec[T]` typeclass to wrap an encoder and decoder in one instance.
 
 ```tut:silent
 case class Bijective(name: String)
@@ -187,10 +261,10 @@ bijectiveString.write(Bijective("write"))
 bijectiveString.read(Conf.Str("write"))
 ```
 
-
 ## ConfError
 
-`ConfError` is a helper to produce readable and potentially aggregated error messages.
+`ConfError` is a helper to produce readable and potentially aggregated error
+messages.
 
 ```tut
 ConfError.message("Not good!")
@@ -199,7 +273,8 @@ ConfError.typeMismatch("Int", "String", "field")
 ConfError.message("Failure 1").combine(ConfError.message("Failure 2"))
 ```
 
-Metaconfig uses `Input` to represent a source that can be parsed and `Position` to represent range positions in a given `Input`
+Metaconfig uses `Input` to represent a source that can be parsed and `Position`
+to represent range positions in a given `Input`
 
 ```tut:silent
 val input = Input.VirtualFile(
@@ -220,7 +295,9 @@ ConfError.parseError(pos, "No var")
 
 ## Configured
 
-`Configured[T]` is like an `Either[metaconfig.ConfError, T]` which is used througout the metaconfig API to either represent a successfully parsed/decoded value or a failure.
+`Configured[T]` is like an `Either[metaconfig.ConfError, T]` which is used
+througout the metaconfig API to either represent a successfully parsed/decoded
+value or a failure.
 
 ```tut
 Configured.ok("Hello world!")
@@ -250,14 +327,16 @@ implicit val userSurface: Surface[User] =
   generic.deriveSurface[User]
 ```
 
-The surface is used by metaconfig to support configurable decoding such as alternative fields names.
-In the future, the plan is to use `Surface[T]` to automatically generate html/markdown documentation for configuration settings.
-For now, you can ignore `Surface[T]` and just consider it as an annoying requirement from metaconfig.
+The surface is used by metaconfig to support configurable decoding such as
+alternative fields names. In the future, the plan is to use `Surface[T]` to
+automatically generate html/markdown documentation for configuration settings.
+For now, you can ignore `Surface[T]` and just consider it as an annoying
+requirement from metaconfig.
 
 ## generic.deriveDecoder
 
-Writing manual decoder by hand grows tiring quickly.
-This becomes especially true when you have documentation to keep up-to-date as well.
+Writing manual decoder by hand grows tiring quickly. This becomes especially
+true when you have documentation to keep up-to-date as well.
 
 ```tut:silent
 implicit val decoder: ConfDecoder[User] =
@@ -279,7 +358,8 @@ age = Old
 """))
 ```
 
-Sometimes automatic derivation fails, for example if your class contains fields that have no `ConfDecoder` instance
+Sometimes automatic derivation fails, for example if your class contains fields
+that have no `ConfDecoder` instance
 
 ```tut
 import java.io.File
@@ -293,19 +373,25 @@ This will fail wiith a fail cryptic compile error
 implicit val decoder = generic.deriveDecoder[Funky](Funky(new File("")))
 ```
 
-Observe that the error message is complaining about a missing `metaconfig.ConfDecoder[java.io.File]` implicit.
+Observe that the error message is complaining about a missing
+`metaconfig.ConfDecoder[java.io.File]` implicit.
 
 ### Limitations
 
 The following features are not supported by generic derivation
 
-* derivation for objects, sealed traits or non-case classes, only case classes are supported
-* parameterized types, it's possible to derive decoders for a concrete parameterized type like `Option[Foo]` but note that the type field (`Field.tpe`) will be pretty-printed to the generic representation of that field: `Option[T].value: T`.
+* derivation for objects, sealed traits or non-case classes, only case classes
+  are supported
+* parameterized types, it's possible to derive decoders for a concrete
+  parameterized type like `Option[Foo]` but note that the type field
+  (`Field.tpe`) will be pretty-printed to the generic representation of that
+  field: `Option[T].value: T`.
 
 ## @DeprecatedName
 
-As your configuration evolves, you may want to rename some settings but you have existing users who are using the old name.
-Use the `@DeprecatedName` annotation to continue supporting the old name even if you go ahead with the rename.
+As your configuration evolves, you may want to rename some settings but you have
+existing users who are using the old name. Use the `@DeprecatedName` annotation
+to continue supporting the old name even if you go ahead with the rename.
 
 ```tut:silent
 import metaconfig.annotation._
@@ -325,7 +411,8 @@ decoder.read(Conf.Obj("gooodName" -> Conf.fromBoolean(false)))
 
 ## Docs
 
-To generate documentation for you configuration, add a dependency to the following module
+To generate documentation for you configuration, add a dependency to the
+following module
 
 ```scala
 libraryDependencies += "com.geirsson" %% "metaconfig-docs" % "@VERSION@"
@@ -364,7 +451,8 @@ The output will look like this when rendered in a markdown or html document
 println(docs.Docs.html(User()))
 ```
 
-The `Docs.html` method does nothing magical, it's possible to implement custom renderings by inspecting `Settings[T]` directly.
+The `Docs.html` method does nothing magical, it's possible to implement custom
+renderings by inspecting `Settings[T]` directly.
 
 ```tut
 Settings[User].settings

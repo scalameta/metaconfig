@@ -16,8 +16,8 @@ object PatchProps {
     val original = Conf.parseString(a).get
     val revised = Conf.parseString(b).get
     val patch = Conf.patch(original, revised)
-    val expected = ConfOps.merge(original, revised)
-    val obtained = ConfOps.merge(original, patch)
+    val expected = Conf.applyPatch(original, revised)
+    val obtained = Conf.applyPatch(original, patch)
     if (obtained != expected) {
       logger.elem(
         obtained,
