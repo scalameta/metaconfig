@@ -24,11 +24,10 @@ object TypesafeConfig2Class {
     val cache = mutable.Map.empty[Input, Array[Int]]
     def loop(value: ConfigValue): Conf = {
       val conf = value match {
-        case x: ConfigObject =>
-          Conf.Obj(
-            x.keySet().asScala.map(key => key -> loop(x.get(key))).toList)
-        case x: ConfigList =>
-          Conf.Lst(x.listIterator().asScala.map(loop).toList)
+        case obj: ConfigObject =>
+          Conf.Obj(obj.asScala.mapValues(loop).toList)
+        case lst: ConfigList =>
+          Conf.Lst(lst.listIterator().asScala.map(loop).toList)
         case _ =>
           value.unwrapped() match {
             case x: String => Conf.Str(x)

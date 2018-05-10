@@ -18,6 +18,11 @@ object ConfEncoder {
     override def write(value: A): Conf = f(value)
   }
 
+  implicit val ConfEncoder: ConfEncoder[Conf] =
+    new ConfEncoder[Conf] {
+      override def write(value: Conf): Conf = value
+    }
+
   implicit val BooleanEncoder: ConfEncoder[Boolean] =
     new ConfEncoder[Boolean] {
       override def write(value: Boolean): Conf = Conf.Bool(value)

@@ -27,7 +27,7 @@ class DeriveConfEncoderSuite extends FunSuite {
     Conf.Obj(
       "number" -> Conf.Num(3),
       "string" -> Conf.Str("foo"),
-      "lst" -> Conf.Lst(Conf.Str("foo"))
+      "lst" -> Conf.Lst(Conf.Str("lst"))
     )
   )
 

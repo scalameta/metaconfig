@@ -8,7 +8,6 @@ import org.scalacheck._
 import org.scalameta.logger
 
 class HoconProps extends Properties("Compliance") {
-
   private def config2map(config: Config): Conf = {
     import scala.collection.JavaConverters._
     def loop(obj: Any): Conf = obj match {
