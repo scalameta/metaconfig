@@ -26,6 +26,13 @@ lazy val `metaconfig-docs` = project
   )
   .dependsOn(`metaconfig-coreJVM`)
 
+lazy val `metaconfig-schema` = project
+  .settings(
+    allSettings,
+    libraryDependencies ++= Nil
+  )
+  .dependsOn(`metaconfig-coreJVM`)
+
 lazy val website = project
   .settings(
     allSettings,
