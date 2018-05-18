@@ -19,7 +19,7 @@ class SchemaSuite extends org.scalatest.FunSuite {
       title = "Simple title",
       description = "Simple description",
       url = None,
-      default = Simple("Default"))
+      default = Simple("Default Value"))
 
     val expected = Js.Obj(
       "$id" -> Js.Null,
@@ -30,7 +30,7 @@ class SchemaSuite extends org.scalatest.FunSuite {
         "value" -> Js.Obj(
           "title" -> Js.Str("value"),
           "description" -> "A simple description",
-          "default" -> Js.Null,
+          "default" -> Js.Str("Default Value"),
           "required" -> Js.False,
           "type" -> "string",
           "properties" -> Js.Obj()
@@ -64,7 +64,7 @@ class SchemaSuite extends org.scalatest.FunSuite {
         "value" -> Js.Obj(
           "title" -> Js.Str("value"),
           "description" -> Js.Null,
-          "default" -> Js.Null,
+          "default" -> Js.Num(42),
           "required" -> Js.False,
           "type" -> "int",
           "properties" -> Js.Obj()
@@ -79,7 +79,7 @@ class SchemaSuite extends org.scalatest.FunSuite {
             "value" -> Js.Obj(
               "title" -> Js.Str("value"),
               "description" -> Js.Null,
-              "default" -> Js.Null,
+              "default" -> Js.Str("Hest"),
               "required" -> Js.False,
               "type" -> "string",
               "properties" -> Js.Obj()
