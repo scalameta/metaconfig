@@ -66,7 +66,7 @@ class SchemaSuite extends org.scalatest.FunSuite {
           "description" -> Js.Null,
           "default" -> Js.Num(42),
           "required" -> Js.False,
-          "type" -> "int",
+          "type" -> "number",
           "properties" -> Js.Obj()
         ),
         "b" -> Js.Obj(

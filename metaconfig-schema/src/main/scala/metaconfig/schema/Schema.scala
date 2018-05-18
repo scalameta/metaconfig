@@ -75,8 +75,8 @@ object Schema {
   private def toSchemaType(tpe: String): Js.Str = tpe match {
     // https://tools.ietf.org/html/draft-handrews-json-schema-01#section-4.2.1
     case "Boolean" => "boolean"
-    case "Int" => "int"
-    case "Float" => "int"
+    case "Int" => "number"
+    case "Float" => "number"
     case "List" => "array"
     case "String" => "string"
     case _ => "object"
