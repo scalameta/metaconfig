@@ -1,45 +1,24 @@
 package metaconfig.internal
 
-import metaconfig.Conf
 import metaconfig.Input
 import org.scalatest.FunSuite
 import ujson._
 
 class JsonConfParserSuite extends FunSuite {
-  class ConfVisitor(input: Input) extends AstTransformer[Conf] {
-    override def transform[T](j: Conf, f: Visitor[_, T]): T = ???
 
-    override def visitArray(index: Int): ArrVisitor[Conf, Conf] = ???
-
-    override def visitObject(index: Int): ObjVisitor[Conf, Conf] = ???
-
-    override def visitNull(index: Int): Conf = ???
-
-    override def visitFalse(index: Int): Conf = ???
-
-    override def visitTrue(index: Int): Conf = ???
-
-    override def visitNum(
-        s: CharSequence,
-        decIndex: Int,
-        expIndex: Int,
-        index: Int): Conf = ???
-
-    override def visitString(s: CharSequence, index: Int): Conf = ???
-  }
-  def skip(original: String, expected: Js): Unit = {
+  def skip(original: String, expected: Js): Unit =
     ignore(original) {}
-  }
+
   def check(original: String, expected: Js): Unit = {
     test(original) {
       val transformable =
-        Transformable.fromTransformer(original, JsonConfParser)
+        Transformable.fromTransformer(Input.String(original), JsonConfParser)
       val js = transformable.transform(Js)
       assert(js == expected)
     }
   }
 
-  skip(
+  check(
     """{
       |  "a":1
       |}""".stripMargin,
@@ -47,9 +26,10 @@ class JsonConfParserSuite extends FunSuite {
   )
 
   // comments
-  skip(
+  check(
     """{
       |  // leading
+      |  // leading 2
       |  "a": 1, // trailing
       |  "b": // colon
       |    2, // trailing,
@@ -70,17 +50,26 @@ class JsonConfParserSuite extends FunSuite {
     """
       |{
       |  "b": [
-      |    1,
+      |    1, // comment
+      |    2 // comment
+      |    ,
       |
       |  ],
-      |  "a": 2,
+      |  "a": 2, // comment
       |
       |}
     """.stripMargin,
     Js.Obj(
-      "b" -> Js.Arr(Js.Num(1)),
+      "b" -> Js.Arr(Js.Num(1), Js.Num(2)),
       "a" -> Js.Num(2)
     )
+  )
+
+  check(
+    """
+      |{ "a": [1,], }
+    """.stripMargin,
+    Js.Obj("a" -> Js.Arr(1))
   )
 
 }

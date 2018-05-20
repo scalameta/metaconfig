@@ -26,10 +26,12 @@ lazy val `metaconfig-docs` = project
   )
   .dependsOn(`metaconfig-coreJVM`)
 
-lazy val `metaconfig-schema` = project
+lazy val `metaconfig-json` = project
   .settings(
     allSettings,
-    libraryDependencies ++= Nil
+    libraryDependencies ++= List(
+      "com.lihaoyi" %%% "ujson" % "0.6.5"
+    )
   )
   .dependsOn(`metaconfig-coreJVM`)
 
@@ -104,7 +106,6 @@ lazy val `metaconfig-core` = crossProject
     allSettings,
     // Position/Input
     libraryDependencies ++= List(
-      "com.lihaoyi" %%% "ujson" % "0.6.5",
       "com.lihaoyi" %%% "pprint" % "0.5.3",
       "org.typelevel" %%% "paiges-core" % "0.2.0",
       scalaOrganization.value % "scala-reflect" % scalaVersion.value % Provided
