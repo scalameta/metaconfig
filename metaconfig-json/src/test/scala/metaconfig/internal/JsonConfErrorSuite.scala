@@ -9,23 +9,16 @@ import ujson.Transformable
 class JsonConfErrorSuite extends FunSuite {
   def checkError(path: String, original: String, expected: String): Unit = {
     test(path) {
-      val e = intercept[ParsingFailedException] {
+      val e = intercept[Exception] {
         val transformable =
           Transformable.fromTransformer[Input](
             Input.VirtualFile(path, original),
             JsonConfParser)
         transformable.transform(Js)
       }
-      println(e.getMessage)
       assert(e.getMessage == expected)
     }
   }
-
-  checkError(
-    "eof",
-    """{ "a" """,
-    "exhausted input"
-  )
 
   checkError(
     "colon",
@@ -35,4 +28,24 @@ class JsonConfErrorSuite extends FunSuite {
        |      ^
        |""".stripMargin
   )
+
+  // TODO: improve error reporting for the cases below
+  checkError(
+    "obj",
+    """{ "a" """,
+    "exhausted input"
+  )
+
+  checkError(
+    "arr",
+    """[1, """,
+    "exhausted input"
+  )
+
+  checkError(
+    "]",
+    """]""",
+    "next on empty iterator"
+  )
+
 }
