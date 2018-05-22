@@ -58,3 +58,13 @@ object NoParam {
   implicit val surface: Surface[NoParam] = generic.deriveSurface[NoParam]
   implicit val encoder: ConfEncoder[NoParam] = generic.deriveEncoder
 }
+
+case class IsIterable(
+    a: Set[Int] = Set.empty,
+    b: Iterable[String] = Iterable.empty
+)
+object IsIterable {
+  implicit val surface = generic.deriveSurface[IsIterable]
+  implicit val decoder = generic.deriveDecoder[IsIterable](IsIterable())
+  implicit val encoder = generic.deriveEncoder[IsIterable]
+}

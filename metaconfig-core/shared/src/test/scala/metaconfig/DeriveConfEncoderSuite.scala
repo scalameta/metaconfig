@@ -31,4 +31,13 @@ class DeriveConfEncoderSuite extends FunSuite {
     )
   )
 
+  check(
+    "iterable",
+    IsIterable(Set(42)),
+    Conf.Obj(
+      "a" -> Conf.Lst(Conf.Num(42)),
+      "b" -> Conf.Lst()
+    )
+  )
+
 }

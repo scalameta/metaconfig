@@ -42,7 +42,16 @@ object ConfEncoder {
       override def write(value: String): Conf = Conf.Str(value)
     }
 
-  implicit def SeqEncoder[A, C[x] <: Seq[x]](
+  implicit def IterableEncoder[A, C[x] <: Iterable[x]](
+      implicit ev: ConfEncoder[A]): ConfEncoder[C[A]] =
+    new ConfEncoder[C[A]] {
+      override def write(value: C[A]): Conf = {
+        Conf.Lst(value.iterator.map(ev.write).toList)
+      }
+    }
+
+  @deprecated("Use IterableEncoder instead", "0.8.1")
+  protected[metaconfig] implicit def SeqEncoder[A, C[x] <: Seq[x]](
       implicit ev: ConfEncoder[A]): ConfEncoder[C[A]] =
     new ConfEncoder[C[A]] {
       override def write(value: C[A]): Conf = {
