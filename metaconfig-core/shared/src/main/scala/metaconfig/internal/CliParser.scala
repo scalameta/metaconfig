@@ -10,7 +10,10 @@ object CliParser {
 
   def parseArgs[T](args: List[String])(
       implicit settings: Settings[T]): Configured[Conf] = {
-    def loop(curr: Conf.Obj, xs: List[String], s: State): Configured[Conf.Obj] = {
+    def loop(
+        curr: Conf.Obj,
+        xs: List[String],
+        s: State): Configured[Conf.Obj] = {
       def add(key: String, value: Conf) = Conf.Obj((key, value) :: curr.values)
       (xs, s) match {
         case (Nil, NoFlag) => ok(curr)
