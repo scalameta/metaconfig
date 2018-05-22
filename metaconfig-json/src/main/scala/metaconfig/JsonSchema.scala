@@ -1,20 +1,34 @@
-package metaconfig.schema
+package metaconfig
 
 import metaconfig.generic.Setting
 import metaconfig.generic.Settings
 import ujson._
 
-object Schema {
+object JsonSchema {
 
-  def schema[T <: Product](
+  def generate[T: ConfEncoder](
       title: String,
       description: String,
       url: Option[String],
       default: T)(implicit settings: Settings[T]): Js.Obj = {
+    ConfEncoder[T].write(default) match {
+      case obj: Conf.Obj =>
+        this.generate[T](title, description, url, obj)
+      case els =>
+        throw new IllegalArgumentException(s"Expected Conf.Obj, got $els")
+    }
+  }
+
+  def generate[T](
+      title: String,
+      description: String,
+      url: Option[String],
+      default: Conf.Obj)(implicit settings: Settings[T]): Js.Obj = {
 
     val properties: List[(String, Js.Obj)] = settings.settings
-      .zip(default.productIterator.toIterable)
-      .map { case (s, v) => fromSetting(s, v) }
+      .zip(default.values)
+      .map { case (s, (_, v)) => fromSetting(s, v) }
+    pprint.log(properties)
 
     Js.Obj(
       "$id" -> url.map(Js.Str).getOrElse(Js.Null),
@@ -25,14 +39,14 @@ object Schema {
     )
   }
 
-  private def fromSetting(s: Setting, dv: Any) = dv match {
-    case p: Product => fromComplexSetting(s, p)
+  private def fromSetting(s: Setting, dv: Conf) = dv match {
+    case p: Conf.Obj => fromComplexSetting(s, p)
     case v => fromSimpleSetting(s, v)
   }
 
   private def fromSimpleSetting(
       setting: Setting,
-      defaultValue: Any): (String, Js.Obj) = {
+      defaultValue: Conf): (String, Js.Obj) = {
 
     setting.name -> Js.Obj(
       "title" -> Js.Str(setting.name),
@@ -46,30 +60,43 @@ object Schema {
 
   private def fromComplexSetting(
       setting: Setting,
-      defaultValue: Product): (String, Js.Obj) = {
+      defaultValue: Conf.Obj): (String, Js.Obj) = {
     val properties =
       setting.underlying
         .map(
           _.settings
-            .zip(defaultValue.productIterator.toIterable)
-            .map { case (s, v) => fromSetting(s, v) }
+            .zip(defaultValue.values)
+            .map { case (s, (_, v)) => fromSetting(s, v) }
         )
         .getOrElse(Nil)
+
+    pprint.log(properties)
 
     setting.name -> Js.Obj(
       "title" -> Js.Str(setting.name),
       "description" -> setting.description.map(Js.Str).getOrElse(Js.Null),
-      "default" -> Js.Null, // TODO
+      "default" -> toJsonValue(defaultValue),
       "required" -> Js.False, // TODO: How should we handle required
       "type" -> "object",
       "properties" -> Js.Obj(properties: _*)
     )
   }
 
-  private def toJsonValue(value: Any): Js.Value = value match {
-    case i: Int => Js.Num(i)
-    case s: String => Js.Str(s)
-    case _ => Js.Null
+  private def toJsonValue(value: Conf): Js.Value = value match {
+    case Conf.Obj(values) =>
+      Js.Obj(values.map {
+        case (k, v) => k -> toJsonValue(v)
+      }: _*)
+    case Conf.Lst(values) =>
+      Js.Arr(values.map(toJsonValue))
+    case Conf.Null() =>
+      Js.Null
+    case Conf.Str(value) =>
+      Js.Str(value)
+    case Conf.Num(value) =>
+      Js.Num(value.toDouble)
+    case Conf.Bool(value) =>
+      Js.Bool(value)
   }
 
   private def toSchemaType(tpe: String): Js.Str = tpe match {
