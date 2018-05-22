@@ -43,6 +43,7 @@ case class HasOption(b: Option[Int] = None)
 object HasOption {
   implicit val surface = generic.deriveSurface[HasOption]
   implicit val decoder = generic.deriveDecoder[HasOption](HasOption())
+  implicit val encoder = generic.deriveEncoder[HasOption]
 }
 
 case class Curry(a: Int)(b: String)

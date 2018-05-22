@@ -40,4 +40,18 @@ class DeriveConfEncoderSuite extends FunSuite {
     )
   )
 
+  check(
+    "option",
+    Option(32),
+    Conf.Num(32)
+  )
+
+  check(
+    "option2",
+    HasOption(None),
+    Conf.Obj(
+      "b" -> Conf.Null()
+    )
+  )
+
 }

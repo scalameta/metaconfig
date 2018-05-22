@@ -59,6 +59,15 @@ object ConfEncoder {
       }
     }
 
+  implicit def OptionEncoder[A](
+      implicit ev: ConfEncoder[A]): ConfEncoder[Option[A]] =
+    new ConfEncoder[Option[A]] {
+      override def write(value: Option[A]): Conf = {
+        if (value.isDefined) ev.write(value.get)
+        else Conf.Null()
+      }
+    }
+
   implicit def MapEncoder[A](
       implicit ev: ConfEncoder[A]): ConfEncoder[Map[String, A]] =
     new ConfEncoder[Map[String, A]] {
