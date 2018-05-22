@@ -27,7 +27,9 @@ class JsonSchemaSuite extends FunSuite with DiffAssertions {
 
   case class Simple(
       @Description("A simple description")
-      value: String
+      value: String,
+      @Description("A repeated field")
+      repeated: Seq[Int]
   )
   object Simple {
     implicit val encoder = generic.deriveEncoder[Simple]
@@ -36,7 +38,7 @@ class JsonSchemaSuite extends FunSuite with DiffAssertions {
 
   check(
     "Simple non-nested configs",
-    Simple("Default Value"),
+    Simple("Default Value", Seq(2)),
     """
       |{
       |  "$id": "url",
@@ -49,22 +51,35 @@ class JsonSchemaSuite extends FunSuite with DiffAssertions {
       |      "description": "A simple description",
       |      "default": "Default Value",
       |      "required": false,
-      |      "type": "string",
-      |      "properties": {
-      |
-      |      }
+      |      "type": "string"
+      |    },
+      |    "repeated": {
+      |      "title": "repeated",
+      |      "description": "A repeated field",
+      |      "default": [
+      |        2
+      |      ],
+      |      "required": false,
+      |      "type": "array"
       |    }
       |  }
       |}
     """.stripMargin
   )
 
-  case class B(value: String)
+  case class B(
+      @Description("My value field")
+      value: String
+  )
   object B {
     implicit val encoder = generic.deriveEncoder[B]
     implicit val surface = generic.deriveSurface[B]
   }
-  case class A(value: Int, b: B)
+  case class A(
+      value: Int,
+      @Description("Nested field")
+      b: B
+  )
   object A {
     implicit val encoder = generic.deriveEncoder[A]
     implicit val surface = generic.deriveSurface[A]
@@ -85,14 +100,11 @@ class JsonSchemaSuite extends FunSuite with DiffAssertions {
       |      "description": null,
       |      "default": 42,
       |      "required": false,
-      |      "type": "number",
-      |      "properties": {
-      |
-      |      }
+      |      "type": "number"
       |    },
       |    "b": {
       |      "title": "b",
-      |      "description": null,
+      |      "description": "Nested field",
       |      "default": {
       |        "value": "Hest"
       |      },
@@ -101,13 +113,10 @@ class JsonSchemaSuite extends FunSuite with DiffAssertions {
       |      "properties": {
       |        "value": {
       |          "title": "value",
-      |          "description": null,
+      |          "description": "My value field",
       |          "default": "Hest",
       |          "required": false,
-      |          "type": "string",
-      |          "properties": {
-      |
-      |          }
+      |          "type": "string"
       |        }
       |      }
       |    }
