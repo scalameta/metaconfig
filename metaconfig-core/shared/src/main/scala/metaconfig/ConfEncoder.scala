@@ -4,6 +4,11 @@ import scala.language.higherKinds
 
 trait ConfEncoder[A] { self =>
   def write(value: A): Conf
+  final def writeObject(value: A): Conf.Obj =
+    write(value) match {
+      case o: Conf.Obj => o
+      case els => ConfError.typeMismatch("Conf.Obj", els).notOk.get
+    }
 
   final def contramap[B](f: B => A): ConfEncoder[B] = new ConfEncoder[B] {
     override def write(value: B): Conf = self.write(f(value))

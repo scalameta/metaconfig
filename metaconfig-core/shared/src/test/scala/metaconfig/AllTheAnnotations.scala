@@ -7,7 +7,6 @@ import metaconfig.annotation.ExampleValue
 import metaconfig.annotation.ExtraName
 import metaconfig.annotation.SinceVersion
 import metaconfig.generic.Surface
-import org.scalacheck.Arbitrary
 
 case class AllTheAnnotations(
     @Description("descriptioon")
@@ -34,9 +33,10 @@ object AllTheAnnotations {
     generic.deriveEncoder[AllTheAnnotations]
 }
 
-case class OneParam(param: Int)
+case class OneParam(param: Int = 82)
 object OneParam {
   implicit val surface: Surface[OneParam] = generic.deriveSurface[OneParam]
+  implicit val codec = generic.deriveCodec[OneParam](OneParam())
 }
 
 case class HasOption(b: Option[Int] = None)
@@ -68,4 +68,16 @@ object IsIterable {
   implicit val surface = generic.deriveSurface[IsIterable]
   implicit val decoder = generic.deriveDecoder[IsIterable](IsIterable())
   implicit val encoder = generic.deriveEncoder[IsIterable]
+}
+
+case class Nested2(c: String = "nested2", b: OneParam = OneParam())
+object Nested2 {
+  implicit val surface = generic.deriveSurface[Nested2]
+  implicit val codec = generic.deriveCodec[Nested2](Nested2())
+}
+
+case class Nested(a: Int = 31, b: OneParam = OneParam(), c: Nested2 = Nested2())
+object Nested {
+  implicit val surface = generic.deriveSurface[Nested]
+  implicit val codec = generic.deriveCodec[Nested](Nested())
 }

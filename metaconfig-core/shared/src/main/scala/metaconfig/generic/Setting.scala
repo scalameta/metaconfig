@@ -5,6 +5,7 @@ import metaconfig.annotation._
 
 final class Setting(val field: Field) {
   def name: String = field.name
+  def withName(name: String): Setting = new Setting(field.withName(name))
   def tpe: String = field.tpe
   def annotations: List[StaticAnnotation] = field.annotations
   def underlying: Option[Settings[Nothing]] =

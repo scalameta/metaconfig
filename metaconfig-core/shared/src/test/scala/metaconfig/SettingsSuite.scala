@@ -65,4 +65,18 @@ class SettingsSuite extends FunSuite {
   test("annotations") {
     assert(s2.annotations.isEmpty)
   }
+
+  test("flat") {
+    val flat = Settings[Nested]
+      .flat(ConfEncoder[Nested].writeObject(Nested()))
+      .map { case (s, c) => s"${s.name} $c" }
+      .mkString("\n")
+    assert(
+      flat ==
+        """a 31
+          |b.param 82
+          |c.c "nested2"
+          |c.b.param 82""".stripMargin
+    )
+  }
 }

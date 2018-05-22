@@ -1,11 +1,14 @@
 package metaconfig.generic
 
+import metaconfig.Conf
 import metaconfig.ConfEncoder
 import metaconfig.annotation.DeprecatedName
 import metaconfig.internal.Cli
 
 final class Settings[T](val settings: List[Setting]) {
   def fields: List[Field] = settings.map(_.field)
+
+  @deprecated("Use flat(Conf) instead", "0.8.0")
   def flat(default: T)(implicit ev: T <:< Product): List[(Setting, Any)] = {
     settings
       .zip(default.productIterator.toIterable)
@@ -15,8 +18,21 @@ final class Settings[T](val settings: List[Setting]) {
         case (s, defaultValue) =>
           (s, defaultValue) :: Nil
       }
-
   }
+
+  def flat(default: Conf.Obj): List[(Setting, Conf)] = {
+    settings.zip(default.values).flatMap {
+      case (deepSetting, (_, conf: Conf.Obj)) =>
+        deepSetting.underlying.toList
+          .flatMap(_.withPrefix(deepSetting.name).flat(conf))
+      case (s, (_, defaultValue)) =>
+        (s, defaultValue) :: Nil
+    }
+  }
+
+  def withPrefix(prefix: String): Settings[T] =
+    new Settings(settings.map(s => s.withName(prefix + "." + s.name)))
+
   override def toString: String = s"Surface(settings=$settings)"
   object Deprecated {
     def unapply(key: String): Option[DeprecatedName] =
