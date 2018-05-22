@@ -4,7 +4,7 @@ import scala.language.higherKinds
 
 trait ConfEncoder[A] { self =>
   def write(value: A): Conf
-  final def writeObject(value: A): Conf.Obj =
+  final def writeObj(value: A): Conf.Obj =
     write(value) match {
       case o: Conf.Obj => o
       case els => ConfError.typeMismatch("Conf.Obj", els).notOk.get

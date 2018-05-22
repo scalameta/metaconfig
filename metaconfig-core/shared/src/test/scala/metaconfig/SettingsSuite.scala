@@ -68,7 +68,7 @@ class SettingsSuite extends FunSuite {
 
   test("flat") {
     val flat = Settings[Nested]
-      .flat(ConfEncoder[Nested].writeObject(Nested()))
+      .flat(ConfEncoder[Nested].writeObj(Nested()))
       .map { case (s, c) => s"${s.name} $c" }
       .mkString("\n")
     assert(
