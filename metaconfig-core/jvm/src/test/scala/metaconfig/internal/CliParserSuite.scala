@@ -35,7 +35,9 @@ case class Options(
     encoding: String = "UTF-8",
     configPath: String = Paths.get("fox.conf").toString,
     remainingArgs: List[String] = Nil,
-    site: Site = Site()
+    site: Site = Site(),
+    @Inline
+    inlined: Site = Site()
 )
 object Options {
   implicit val surface = generic.deriveSurface[Options]
@@ -146,6 +148,21 @@ class CliParserSuite extends BaseCliParserSuite {
         custom = Map(
           "key1" -> "value1",
           "key2" -> "value2"
+        ))
+    )
+  )
+
+  check(
+    "inline",
+    "--foo" :: "blah" ::
+      "--inlined.custom.explicit" :: "boom" ::
+      "--custom.bar" :: "buz" :: Nil,
+    Options(
+      inlined = Site(
+        foo = "blah",
+        custom = Map(
+          "bar" -> "buz",
+          "explicit" -> "boom"
         ))
     )
   )

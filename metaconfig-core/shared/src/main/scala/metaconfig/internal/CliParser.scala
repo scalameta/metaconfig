@@ -4,12 +4,23 @@ import metaconfig._
 import metaconfig.generic.Setting
 import metaconfig.generic.Settings
 import metaconfig.Configured.ok
-import metaconfig.annotation.Repeated
+import metaconfig.annotation.Inline
 
 object CliParser {
 
   def parseArgs[T](args: List[String])(
       implicit settings: Settings[T]): Configured[Conf] = {
+    val toInline: Map[String, Setting] =
+      settings.settings.iterator.flatMap { setting =>
+        if (setting.annotations.exists(_.isInstanceOf[Inline])) {
+          for {
+            underlying <- setting.underlying.toList
+            name <- underlying.names
+          } yield name -> setting
+        } else {
+          Nil
+        }
+      }.toMap
     def loop(
         curr: Conf.Obj,
         xs: List[String],
@@ -25,7 +36,11 @@ object CliParser {
               case Nil =>
                 ConfError.message(s"Flag '$head' must not be empty").notOk
               case flag :: flags =>
-                settings.get(flag, flags) match {
+                val (key, keys) = toInline.get(flag) match {
+                  case Some(setting) => setting.name -> (flag :: flags)
+                  case _ => flag -> flags
+                }
+                settings.get(key, keys) match {
                   case None =>
                     ConfError.invalidFields(camel :: Nil, settings.names).notOk
                   case Some(setting) =>
@@ -33,7 +48,8 @@ object CliParser {
                       val newCurr = add(camel, Conf.fromBoolean(true))
                       loop(newCurr, tail, NoFlag)
                     } else {
-                      loop(curr, tail, Flag(camel, setting))
+                      val prefix = toInline.get(flag).fold("")(_.name + ".")
+                      loop(curr, tail, Flag(prefix + camel, setting))
                     }
                 }
             }
