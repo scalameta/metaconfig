@@ -3,7 +3,6 @@ package metaconfig.internal
 import metaconfig.Input
 import org.scalatest.FunSuite
 import ujson.Js
-import ujson.ParsingFailedException
 import ujson.Transformable
 
 class JsonConfErrorSuite extends FunSuite {

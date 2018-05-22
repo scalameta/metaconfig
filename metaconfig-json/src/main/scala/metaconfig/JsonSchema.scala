@@ -28,7 +28,6 @@ object JsonSchema {
     val properties: List[(String, Js.Obj)] = settings.settings
       .zip(default.values)
       .map { case (s, (_, v)) => fromSetting(s, v) }
-    pprint.log(properties)
 
     Js.Obj(
       "$id" -> url.map(Js.Str).getOrElse(Js.Null),
@@ -69,8 +68,6 @@ object JsonSchema {
             .map { case (s, (_, v)) => fromSetting(s, v) }
         )
         .getOrElse(Nil)
-
-    pprint.log(properties)
 
     setting.name -> Js.Obj(
       "title" -> Js.Str(setting.name),
