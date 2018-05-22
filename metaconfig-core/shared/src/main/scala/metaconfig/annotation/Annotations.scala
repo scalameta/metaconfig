@@ -17,3 +17,4 @@ final case class Description(value: String) extends StaticAnnotation
 final case class SinceVersion(value: String) extends StaticAnnotation
 final case class Deprecated(message: String, since: String)
     extends StaticAnnotation
+final case class Repeated() extends StaticAnnotation

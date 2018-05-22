@@ -132,4 +132,18 @@ class CliParserSuite extends BaseCliParserSuite {
     "--site.custom.key" :: "value" :: Nil,
     Options(site = Site(custom = Map("key" -> "value")))
   )
+
+  check(
+    "map2",
+    "--site.custom.key1" :: "value1" ::
+      "--site.custom.key2" :: "value2" ::
+      Nil,
+    Options(
+      site = Site(
+        custom = Map(
+          "key1" -> "value1",
+          "key2" -> "value2"
+        ))
+    )
+  )
 }

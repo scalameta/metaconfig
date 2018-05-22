@@ -1,6 +1,8 @@
 package metaconfig
 
 import java.io.File
+import metaconfig.generic.Setting
+import metaconfig.generic.Settings
 import metaconfig.generic.Surface
 import org.scalatest.FunSuite
 
@@ -52,7 +54,8 @@ class DeriveSurfaceSuite extends FunSuite {
 
   case class TypeParam[T](value: T)
   object TypeParam {
-    implicit def surface[T: Surface] = generic.deriveSurface[TypeParam[T]]
+    implicit def surface[T]: Surface[TypeParam[T]] =
+      generic.deriveSurface[TypeParam[T]]
   }
   test("tparam") {
     implicit val is: Surface[Int] = new Surface[Int](Nil)
@@ -60,6 +63,27 @@ class DeriveSurfaceSuite extends FunSuite {
     val List(value :: Nil) = surface.fields
     assert(value.name == "value")
     assert(value.tpe == "T")
-
   }
+
+  case class AllRepeated[T](
+      notIterable: String,
+      a: Iterable[T],
+      b: List[Int],
+      c: Set[String]
+  )
+  object AllRepeated {
+    implicit def surface[T]: Surface[AllRepeated[T]] =
+      generic.deriveSurface[AllRepeated[T]]
+  }
+
+  test("@Repeated") {
+    val settings = Settings[AllRepeated[Int]]
+    assert(settings.settings.length == 4)
+    val notIterable :: tail = settings.settings
+    assert(!notIterable.isRepeated)
+    tail.foreach { setting =>
+      assert(setting.isRepeated, setting.name)
+    }
+  }
+
 }

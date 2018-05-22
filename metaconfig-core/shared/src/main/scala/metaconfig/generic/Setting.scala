@@ -36,6 +36,7 @@ final class Setting(val field: Field) {
   def deprecated: Option[Deprecated] = field.annotations.collectFirst {
     case value: Deprecated => value
   }
+  def isRepeated: Boolean = field.annotations.exists(_.isInstanceOf[Repeated])
   def isBoolean: Boolean = field.tpe == "Boolean"
   def isMap: Boolean = field.tpe.startsWith("Map")
   def alternativeNames: List[String] =
