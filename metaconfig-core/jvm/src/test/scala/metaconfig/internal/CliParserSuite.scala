@@ -13,7 +13,7 @@ case class Site(
 )
 object Site {
   implicit val surface = generic.deriveSurface[Site]
-  implicit val decoder = generic.deriveDecoder[Site](Site())
+  implicit val codec = generic.deriveCodec[Site](Site())
 }
 
 case class Options(
@@ -41,8 +41,8 @@ case class Options(
 )
 object Options {
   implicit val surface = generic.deriveSurface[Options]
-  implicit val decoder: ConfDecoder[Options] =
-    generic.deriveDecoder[Options](Options())
+  implicit val codec: ConfCodec[Options] =
+    generic.deriveCodec[Options](Options())
 }
 
 class BaseCliParserSuite extends FunSuite with DiffAssertions {

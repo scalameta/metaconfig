@@ -1,5 +1,6 @@
 package metaconfig.generic
 
+import metaconfig.ConfEncoder
 import metaconfig.annotation.DeprecatedName
 import metaconfig.internal.Cli
 
@@ -47,11 +48,15 @@ final class Settings[T](val settings: List[Setting]) {
       }
     }
   def unsafeGet(name: String): Setting = get(name).get
+  @deprecated("Use ConfEncoder[T].write instead", "0.8.1")
   def withDefault(default: T)(
       implicit ev: T <:< Product): List[(Setting, Any)] =
     settings.zip(default.productIterator.toList)
-  def toCliHelp(default: T)(implicit ev: T <:< Product): String =
-    Cli.help[T](default)(this, ev)
+
+  def toCliHelp(default: T)(implicit ev: ConfEncoder[T]): String =
+    toCliHelp(default, 80)
+  def toCliHelp(default: T, width: Int)(implicit ev: ConfEncoder[T]): String =
+    Cli.help[T](default)(ev, this).render(width)
 }
 
 object Settings {
