@@ -4,6 +4,11 @@ import scala.language.higherKinds
 
 trait ConfEncoder[A] { self =>
   def write(value: A): Conf
+  final def writeObj(value: A): Conf.Obj =
+    write(value) match {
+      case o: Conf.Obj => o
+      case els => ConfError.typeMismatch("Conf.Obj", els).notOk.get
+    }
 
   final def contramap[B](f: B => A): ConfEncoder[B] = new ConfEncoder[B] {
     override def write(value: B): Conf = self.write(f(value))
@@ -42,11 +47,29 @@ object ConfEncoder {
       override def write(value: String): Conf = Conf.Str(value)
     }
 
-  implicit def SeqEncoder[A, C[x] <: Seq[x]](
+  implicit def IterableEncoder[A, C[x] <: Iterable[x]](
       implicit ev: ConfEncoder[A]): ConfEncoder[C[A]] =
     new ConfEncoder[C[A]] {
       override def write(value: C[A]): Conf = {
         Conf.Lst(value.iterator.map(ev.write).toList)
+      }
+    }
+
+  @deprecated("Use IterableEncoder instead", "0.8.1")
+  protected[metaconfig] implicit def SeqEncoder[A, C[x] <: Seq[x]](
+      implicit ev: ConfEncoder[A]): ConfEncoder[C[A]] =
+    new ConfEncoder[C[A]] {
+      override def write(value: C[A]): Conf = {
+        Conf.Lst(value.iterator.map(ev.write).toList)
+      }
+    }
+
+  implicit def OptionEncoder[A](
+      implicit ev: ConfEncoder[A]): ConfEncoder[Option[A]] =
+    new ConfEncoder[Option[A]] {
+      override def write(value: Option[A]): Conf = {
+        if (value.isDefined) ev.write(value.get)
+        else Conf.Null()
       }
     }
 

@@ -10,7 +10,7 @@ class DeriveConfDecoderSuite extends FunSuite {
 
   def checkError(name: String, obj: Conf, expected: String): Unit = {
     test(name) {
-      ConfDecoder.decode[AllTheAnnotations](obj) match {
+      ConfDecoder[AllTheAnnotations].read(obj) match {
         case Configured.NotOk(err) =>
           assert(expected == err.toString)
         case Configured.Ok(obtained) =>
@@ -21,7 +21,7 @@ class DeriveConfDecoderSuite extends FunSuite {
 
   def checkOk(name: String, obj: Conf, expected: AllTheAnnotations): Unit = {
     test(name) {
-      ConfDecoder.decode[AllTheAnnotations](obj) match {
+      ConfDecoder[AllTheAnnotations].read(obj) match {
         case Configured.NotOk(err) =>
           fail(err.toString)
         case Configured.Ok(obtained) =>
@@ -78,6 +78,12 @@ class DeriveConfDecoderSuite extends FunSuite {
     Obj("deprecatedName2" -> Num(33)),
     AllTheAnnotations(33, "string", List())
   )
+
+  test("iterable") {
+    val obtained =
+      ConfDecoder[IsIterable].read(Obj("b" -> Conf.Lst(Conf.Str("33")))).get
+    assert(obtained == IsIterable(b = Iterable("33")))
+  }
 
   test("one param") {
     val decoder = generic.deriveDecoder[OneParam](OneParam(42))

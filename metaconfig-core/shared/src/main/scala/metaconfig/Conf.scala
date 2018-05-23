@@ -207,6 +207,8 @@ object ConfOps {
       case Conf.Bool(_) => conf
       case Conf.Str(str) =>
         str match {
+          // TODO: come up with something more elegant, this makes it impossible to
+          // use true/false/on/off/yes/no as string values
           case "true" | "on" | "yes" => Bool(true)
           case "false" | "off" | "no" => Bool(false)
           case Number(n) => Num(n)

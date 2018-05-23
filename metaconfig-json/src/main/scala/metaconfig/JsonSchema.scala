@@ -38,54 +38,41 @@ object JsonSchema {
     )
   }
 
-  private def fromSetting(s: Setting, dv: Conf) = dv match {
-    case p: Conf.Obj => fromComplexSetting(s, p)
-    case v => fromSimpleSetting(s, v)
-  }
-
-  private def fromSimpleSetting(
+  private def fromSetting(
       setting: Setting,
-      defaultValue: Conf): (String, Js.Obj) = {
-
-    setting.name -> Js.Obj(
+      defaultValue: Conf
+  ): (String, Js.Obj) = {
+    val defaultJsonValue = toJsonValue(defaultValue)
+    val obj = Js.Obj(
       "title" -> Js.Str(setting.name),
       "description" -> setting.description.map(Js.Str).getOrElse(Js.Null),
-      "default" -> toJsonValue(defaultValue),
+      "default" -> defaultJsonValue,
       "required" -> Js.False, // TODO: How should we handle required
-      "type" -> toSchemaType(setting.tpe),
-      "properties" -> Js.Obj()
+      "type" -> toSchemaType(defaultValue)
     )
+    defaultValue match {
+      case Conf.Obj(values) =>
+        val properties = setting.underlying
+          .map(
+            _.settings
+              .zip(values)
+              .map { case (s, (_, v)) => fromSetting(s, v) }
+          )
+          .getOrElse(Nil)
+        obj.obj.put("properties", properties)
+      case _ =>
+    }
+
+    setting.name -> obj
   }
 
-  private def fromComplexSetting(
-      setting: Setting,
-      defaultValue: Conf.Obj): (String, Js.Obj) = {
-    val properties =
-      setting.underlying
-        .map(
-          _.settings
-            .zip(defaultValue.values)
-            .map { case (s, (_, v)) => fromSetting(s, v) }
-        )
-        .getOrElse(Nil)
-
-    setting.name -> Js.Obj(
-      "title" -> Js.Str(setting.name),
-      "description" -> setting.description.map(Js.Str).getOrElse(Js.Null),
-      "default" -> toJsonValue(defaultValue),
-      "required" -> Js.False, // TODO: How should we handle required
-      "type" -> "object",
-      "properties" -> Js.Obj(properties: _*)
-    )
-  }
-
-  private def toJsonValue(value: Conf): Js.Value = value match {
+  private def toJsonValue(conf: Conf): Js.Value = conf match {
     case Conf.Obj(values) =>
       Js.Obj(values.map {
         case (k, v) => k -> toJsonValue(v)
       }: _*)
     case Conf.Lst(values) =>
-      Js.Arr(values.map(toJsonValue))
+      Js.Arr(values.map(toJsonValue): _*)
     case Conf.Null() =>
       Js.Null
     case Conf.Str(value) =>
@@ -96,14 +83,15 @@ object JsonSchema {
       Js.Bool(value)
   }
 
-  private def toSchemaType(tpe: String): Js.Str = tpe match {
-    // https://tools.ietf.org/html/draft-handrews-json-schema-01#section-4.2.1
-    case "Boolean" => "boolean"
-    case "Int" => "number"
-    case "Float" => "number"
-    case "List" => "array"
-    case "String" => "string"
-    case _ => "object"
-  }
+  private def toSchemaType(conf: Conf): Js.Str = Js.Str(
+    conf match {
+      // https://tools.ietf.org/html/draft-handrews-json-schema-01#section-4.2.1
+      case _: Conf.Bool => "boolean"
+      case _: Conf.Num => "number"
+      case _: Conf.Lst => "array"
+      case _: Conf.Str => "string"
+      case _ => "object"
+    }
+  )
 
 }

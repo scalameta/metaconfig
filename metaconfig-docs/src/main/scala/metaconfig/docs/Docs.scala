@@ -1,5 +1,6 @@
 package metaconfig.docs
 
+import metaconfig.ConfEncoder
 import scalatags.Text.all._
 import metaconfig.generic.Setting
 import metaconfig.generic.Settings
@@ -12,8 +13,10 @@ object Docs {
     td(defaultValue.toString)
   )
 
-  def html[T <: Product](default: T)(implicit settings: Settings[T]): String = {
-    val fields = settings.flat(default).map {
+  def html[T](default: T)(
+      implicit settings: Settings[T],
+      ev: ConfEncoder[T]): String = {
+    val fields = settings.flat(ConfEncoder[T].writeObj(default)).map {
       case (setting, defaultValue) =>
         htmlSetting(setting, defaultValue)
     }

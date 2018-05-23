@@ -13,7 +13,7 @@ case class Site(
 )
 object Site {
   implicit val surface = generic.deriveSurface[Site]
-  implicit val decoder = generic.deriveDecoder[Site](Site())
+  implicit val codec = generic.deriveCodec[Site](Site())
 }
 
 case class Options(
@@ -35,12 +35,14 @@ case class Options(
     encoding: String = "UTF-8",
     configPath: String = Paths.get("fox.conf").toString,
     remainingArgs: List[String] = Nil,
-    site: Site = Site()
+    site: Site = Site(),
+    @Inline
+    inlined: Site = Site()
 )
 object Options {
   implicit val surface = generic.deriveSurface[Options]
-  implicit val decoder: ConfDecoder[Options] =
-    generic.deriveDecoder[Options](Options())
+  implicit val codec: ConfCodec[Options] =
+    generic.deriveCodec[Options](Options())
 }
 
 class BaseCliParserSuite extends FunSuite with DiffAssertions {
@@ -54,7 +56,10 @@ class BaseCliParserSuite extends FunSuite with DiffAssertions {
       }
       .mkString("\n")
   }
-  def check(name: String, args: List[String], expectedOptions: Options): Unit = {
+  def check(
+      name: String,
+      args: List[String],
+      expectedOptions: Options): Unit = {
     test(name) {
       val conf = Conf.parseCliArgs[Options](args).get
       val obtainedOptions = ConfDecoder[Options].read(conf).get
@@ -131,5 +136,34 @@ class CliParserSuite extends BaseCliParserSuite {
     "map",
     "--site.custom.key" :: "value" :: Nil,
     Options(site = Site(custom = Map("key" -> "value")))
+  )
+
+  check(
+    "map2",
+    "--site.custom.key1" :: "value1" ::
+      "--site.custom.key2" :: "value2" ::
+      Nil,
+    Options(
+      site = Site(
+        custom = Map(
+          "key1" -> "value1",
+          "key2" -> "value2"
+        ))
+    )
+  )
+
+  check(
+    "inline",
+    "--foo" :: "blah" ::
+      "--inlined.custom.explicit" :: "boom" ::
+      "--custom.bar" :: "buz" :: Nil,
+    Options(
+      inlined = Site(
+        foo = "blah",
+        custom = Map(
+          "bar" -> "buz",
+          "explicit" -> "boom"
+        ))
+    )
   )
 }

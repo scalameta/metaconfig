@@ -134,10 +134,17 @@ class Macros(val c: blackbox.Context) {
     val argss = ctor.paramLists.map { params =>
       val fields = params.map { param =>
         val paramTpe = param.info.resultType
-        val annots = param.annotations.collect {
+        val baseAnnots = param.annotations.collect {
           case annot if annot.tree.tpe <:< typeOf[StaticAnnotation] =>
             annot.tree
         }
+        val isIterable = paramTpe <:< typeOf[Iterable[_]]
+        val finalAnnots =
+          if (isIterable) {
+            q"new _root_.metaconfig.annotation.Repeated" :: baseAnnots
+          } else {
+            baseAnnots
+          }
         val fieldsParamTpe = c.internal.typeRef(
           NoPrefix,
           weakTypeOf[Surface[_]].typeSymbol,
@@ -154,7 +161,7 @@ class Macros(val c: blackbox.Context) {
         val field = q"""new ${weakTypeOf[Field]}(
            ${param.name.decodedName.toString},
            ${paramTpe.toString},
-           _root_.scala.List.apply(..$annots),
+           _root_.scala.List.apply(..$finalAnnots),
            $underlying
          )"""
         field

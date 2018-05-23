@@ -12,6 +12,7 @@ class DocsSuite extends org.scalatest.FunSuite {
   )
   object Home {
     implicit val surface = generic.deriveSurface[Home]
+    implicit val codec = generic.deriveCodec[Home](Home())
   }
 
   case class User(
@@ -23,6 +24,7 @@ class DocsSuite extends org.scalatest.FunSuite {
   )
   object User {
     implicit val surface = generic.deriveSurface[User]
+    implicit val codec = generic.deriveCodec[User](User())
   }
 
   test("html") {

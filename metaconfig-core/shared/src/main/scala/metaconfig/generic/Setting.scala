@@ -5,6 +5,7 @@ import metaconfig.annotation._
 
 final class Setting(val field: Field) {
   def name: String = field.name
+  def withName(name: String): Setting = new Setting(field.withName(name))
   def tpe: String = field.tpe
   def annotations: List[StaticAnnotation] = field.annotations
   def underlying: Option[Settings[Nothing]] =
@@ -36,6 +37,8 @@ final class Setting(val field: Field) {
   def deprecated: Option[Deprecated] = field.annotations.collectFirst {
     case value: Deprecated => value
   }
+  def isRepeated: Boolean =
+    !isMap && field.annotations.exists(_.isInstanceOf[Repeated])
   def isBoolean: Boolean = field.tpe == "Boolean"
   def isMap: Boolean = field.tpe.startsWith("Map")
   def alternativeNames: List[String] =
