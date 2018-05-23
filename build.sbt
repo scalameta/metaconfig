@@ -61,6 +61,7 @@ lazy val website = project
   )
   .dependsOn(
     `metaconfig-docs`,
+    `metaconfig-json`,
     `metaconfig-typesafe-config`
   )
 

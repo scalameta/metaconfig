@@ -2,6 +2,7 @@ package metaconfig
 
 import metaconfig.generic.Setting
 import metaconfig.generic.Settings
+import metaconfig.internal.JsonConverter
 import ujson._
 
 object JsonSchema {
@@ -42,7 +43,7 @@ object JsonSchema {
       setting: Setting,
       defaultValue: Conf
   ): (String, Js.Obj) = {
-    val defaultJsonValue = toJsonValue(defaultValue)
+    val defaultJsonValue = JsonConverter.toJson(defaultValue)
     val obj = Js.Obj(
       "title" -> Js.Str(setting.name),
       "description" -> setting.description.map(Js.Str).getOrElse(Js.Null),
@@ -64,23 +65,6 @@ object JsonSchema {
     }
 
     setting.name -> obj
-  }
-
-  private def toJsonValue(conf: Conf): Js.Value = conf match {
-    case Conf.Obj(values) =>
-      Js.Obj(values.map {
-        case (k, v) => k -> toJsonValue(v)
-      }: _*)
-    case Conf.Lst(values) =>
-      Js.Arr(values.map(toJsonValue): _*)
-    case Conf.Null() =>
-      Js.Null
-    case Conf.Str(value) =>
-      Js.Str(value)
-    case Conf.Num(value) =>
-      Js.Num(value.toDouble)
-    case Conf.Bool(value) =>
-      Js.Bool(value)
   }
 
   private def toSchemaType(conf: Conf): Js.Str = Js.Str(

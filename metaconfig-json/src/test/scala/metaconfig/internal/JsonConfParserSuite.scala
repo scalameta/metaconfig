@@ -11,9 +11,7 @@ class JsonConfParserSuite extends FunSuite {
 
   def check(original: String, expected: Js): Unit = {
     test(original) {
-      val transformable =
-        Transformable.fromTransformer(Input.String(original), JsonConfParser)
-      val js = transformable.transform(Js)
+      val js = JsonConverter.fromInput(Input.String(original))
       assert(js == expected)
     }
   }
