@@ -24,10 +24,10 @@ There are alternatives to metaconfig that you might want to give a try first
 ## Getting started
 
 ```scala
-libraryDependencies += "com.geirsson" %% "metaconfig-core" % "0.7.0"
+libraryDependencies += "com.geirsson" %% "metaconfig-core" % "0.8.0"
 
 // Use https://github.com/lightbend/config to parse HOCON
-libraryDependencies += "com.geirsson" %% "metaconfig-typesafe-config" % "0.7.0"
+libraryDependencies += "com.geirsson" %% "metaconfig-typesafe-config" % "0.8.0"
 ```
 
 Use this import to access the metaconfig API
@@ -56,9 +56,12 @@ scope.
   * [generic.deriveDecoder](#genericderivedecoder)
     * [Limitations](#limitations)
   * [@DeprecatedName](#deprecatedname)
-  * [Docs](#docs)
   * [Conf.parseCliArgs](#confparsecliargs)
   * [Settings.toCliHelp](#settingstoclihelp)
+  * [@Inline](#inline)
+  * [Docs](#docs)
+  * [JSON](#json)
+  * [JSON Schema](#json-schema)
 
 <!-- /TOC -->
 
@@ -253,7 +256,7 @@ scala> val fileDecoder = ConfDecoder.stringConfDecoder.flatMap { string =>
      |   if (file.exists()) Configured.ok(file)
      |   else ConfError.fileDoesNotExist(file).notOk
      | }
-fileDecoder: metaconfig.ConfDecoder[java.io.File] = metaconfig.ConfDecoder$$anon$1@27b523af
+fileDecoder: metaconfig.ConfDecoder[java.io.File] = metaconfig.ConfDecoder$$anon$1@2a4cb2d6
 
 scala> fileDecoder.read(Conf.fromString(".scalafmt.conf"))
 res11: metaconfig.Configured[java.io.File] = Ok(.scalafmt.conf)
@@ -270,7 +273,7 @@ automatically derive a `ConfEncoder[T]` instance for any case class with
 
 ```scala
 scala> implicit val encoder = generic.deriveEncoder[User]
-encoder: metaconfig.ConfEncoder[User] = $anon$1@1beadf8b
+encoder: metaconfig.ConfEncoder[User] = $anon$1@5a52df51
 
 scala> ConfEncoder[User].write(User("John", 42))
 res13: metaconfig.Conf = {"name": "John", "age": 42}
@@ -525,72 +528,6 @@ scala> decoder.read(Conf.Obj("gooodName" -> Conf.fromBoolean(false)))
 res33: metaconfig.Configured[EvolvingConfig] = NotOk(Invalid field: gooodName. Expected one of isGoodName)
 ```
 
-## Docs
-
-To generate documentation for you configuration, add a dependency to the
-following module
-
-```scala
-libraryDependencies += "com.geirsson" %% "metaconfig-docs" % "0.7.0"
-```
-
-First define your configuration
-
-```scala
-case class Home(
-    @Description("Address description")
-    address: String = "Lakelands 2",
-    @Description("Country description")
-    country: String = "Iceland"
-)
-implicit val homeSurface = generic.deriveSurface[Home]
-
-case class User(
-    @Description("Name description")
-    name: String = "John",
-    @Description("Age description")
-    age: Int = 42,
-    home: Home = Home()
-)
-implicit val userSurface = generic.deriveSurface[User]
-```
-
-To generate html documentation, pass in a default value
-
-```scala
-scala> docs.Docs.html(User())
-res35: String = <table><thead><tr><th>Name</th><th>Type</th><th>Description</th><th>Default value</th></tr></thead><tbody><tr><td><code>name</code></td><td><code>String</code></td><td>Name description</td><td>John</td></tr><tr><td><code>age</code></td><td><code>Int</code></td><td>Age description</td><td>42</td></tr><tr><td><code>home.address</code></td><td><code>String</code></td><td>Address description</td><td>Lakelands 2</td></tr><tr><td><code>home.country</code></td><td><code>String</code></td><td>Country description</td><td>Iceland</td></tr></tbody></table>
-```
-
-The output will look like this when rendered in a markdown or html document
-
-
-<table><thead><tr><th>Name</th><th>Type</th><th>Description</th><th>Default value</th></tr></thead><tbody><tr><td><code>name</code></td><td><code>String</code></td><td>Name description</td><td>John</td></tr><tr><td><code>age</code></td><td><code>Int</code></td><td>Age description</td><td>42</td></tr><tr><td><code>home.address</code></td><td><code>String</code></td><td>Address description</td><td>Lakelands 2</td></tr><tr><td><code>home.country</code></td><td><code>String</code></td><td>Country description</td><td>Iceland</td></tr></tbody></table>
-
-
-The `Docs.html` method does nothing magical, it's possible to implement custom
-renderings by inspecting `Settings[T]` directly.
-
-```scala
-scala> Settings[User].settings
-res37: List[metaconfig.generic.Setting] = List(Setting(Field(name="name",tpe="String",annotations=List(@Description(Name description)),underlying=List())), Setting(Field(name="age",tpe="Int",annotations=List(@Description(Age description)),underlying=List())), Setting(Field(name="home",tpe="Home",annotations=List(),underlying=List(List(Field(name="address",tpe="String",annotations=List(@Description(Address description)),underlying=List()), Field(name="country",tpe="String",annotations=List(@Description(Country description)),underlying=List()))))))
-
-scala> val flat = Settings[User].flat(User())
-flat: List[(metaconfig.generic.Setting, Any)] = List((Setting(Field(name="name",tpe="String",annotations=List(@Description(Name description)),underlying=List())),John), (Setting(Field(name="age",tpe="Int",annotations=List(@Description(Age description)),underlying=List())),42), (Setting(Field(name="home.address",tpe="String",annotations=List(@Description(Address description)),underlying=List())),Lakelands 2), (Setting(Field(name="home.country",tpe="String",annotations=List(@Description(Country description)),underlying=List())),Iceland))
-
-scala> flat.map { case (setting, defaultValue) =>
-     |   s"Setting ${setting.name} of type ${setting.tpe} has default value $defaultValue"
-     | }.mkString("\n==============\n")
-res38: String =
-Setting name of type String has default value John
-==============
-Setting age of type Int has default value 42
-==============
-Setting home.address of type String has default value Lakelands 2
-==============
-Setting home.country of type String has default value Iceland
-```
-
 ## Conf.parseCliArgs
 
 Metaconfig can parse command line arguments into a `Conf`.
@@ -607,7 +544,7 @@ case class App(
   files: List[String] = Nil
 )
 implicit val surface = generic.deriveSurface[App]
-implicit val decoder = generic.deriveDecoder[App](App())
+implicit val codec = generic.deriveCodec[App](App())
 ```
 
 ```scala
@@ -623,7 +560,7 @@ Decode the cli args into `App` like normal
 
 ```scala
 scala> val app = decoder.read(conf.get)
-app: metaconfig.Configured[App] = Ok(App(/tmp,true,List(input.txt)))
+app: metaconfig.Configured[EvolvingConfig] = NotOk(Invalid fields: remainingArgs, target, verbose. Expected one of isGoodName)
 ```
 
 ## Settings.toCliHelp
@@ -632,8 +569,243 @@ Generate a --help message with a `Settings[T]`.
 
 ```scala
 scala> Settings[App].toCliHelp(default = App())
+res34: String =
+--target: String = "out"   The directory to output files
+--verbose: Boolean = false Print out debugging diagnostics
+--files: List[String] = [] The input files for app
+```
+
+## @Inline
+
+If you have multiple cli apps that all share a base set of fields you can use
+`@Inline`.
+
+```scala
+case class Common(
+  @Description("The working directory")
+  cwd: String = "",
+  @Description("The output directory")
+  out: String = ""
+)
+implicit val surface = generic.deriveSurface[Common]
+implicit val codec = generic.deriveCodec[Common](Common())
+
+case class AgeApp(
+  @Description("The user's age")
+  age: Int = 0,
+  @Inline
+  common: Common = Common()
+)
+implicit val ageSurface = generic.deriveSurface[AgeApp]
+implicit val ageCodec = generic.deriveCodec[AgeApp](AgeApp())
+
+case class NameApp(
+  @Description("The user's name")
+  name: String = "John",
+  @Inline
+  common: Common = Common()
+)
+implicit val nameSurface = generic.deriveSurface[NameApp]
+implicit val nameCodec = generic.deriveCodec[NameApp](NameApp())
+```
+
+Observe that `NameApp` and `AgeApp` both have an `@Inline common: Common` field.
+It is not necessary to prefix cli args with the name of `@Inline` fields. In the
+example above, it's possible to pass in `--out target` instead of
+`--common.out target` to override the common output directory.
+
+```scala
+scala> Conf.parseCliArgs[NameApp](List("--out", "/tmp", "--cwd", "working-dir"))
+res37: metaconfig.Configured[metaconfig.Conf] = Ok({"common": {"cwd": "working-dir", "out": "/tmp"}})
+
+scala> val conf = Conf.parseCliArgs[AgeApp](List("--out", "target", "--cwd", "working-dir"))
+conf: metaconfig.Configured[metaconfig.Conf] = Ok({"common": {"cwd": "working-dir", "out": "target"}})
+
+scala> conf.get.as[AgeApp].get
+res38: AgeApp = AgeApp(0,Common(working-dir,target))
+```
+
+The generated --help message does not display `@Inline` fields. Instead, the
+nested fields inside the type of the `@Inline` field are shown in the --help
+message.
+
+```scala
+scala> Settings[NameApp].toCliHelp(default = NameApp())
 res39: String =
---target: String = out        The directory to output files
---verbose: Boolean = false    Print out debugging diagnostics
---files: List[String] = List()The input files for app
+--name: String = "John" The user's name
+--cwd: String = ""      The working directory
+--out: String = ""      The output directory
+```
+
+## Docs
+
+To generate documentation for you configuration, add a dependency to the
+following module
+
+```scala
+libraryDependencies += "com.geirsson" %% "metaconfig-docs" % "0.8.0"
+```
+
+First define your configuration
+
+```scala
+import metaconfig._
+import metaconfig.annotation._
+import metaconfig.generic._
+
+case class Home(
+    @Description("Address description")
+    address: String = "Lakelands 2",
+    @Description("Country description")
+    country: String = "Iceland"
+)
+implicit val homeSurface = generic.deriveSurface[Home]
+implicit val homeEncoder = generic.deriveEncoder[Home]
+
+case class User(
+    @Description("Name description")
+    name: String = "John",
+    @Description("Age description")
+    age: Int = 42,
+    home: Home = Home()
+)
+implicit val userSurface = generic.deriveSurface[User]
+implicit val userEncoder = generic.deriveEncoder[User]
+```
+
+To generate html documentation, pass in a default value
+
+```scala
+scala> docs.Docs.html(User())
+res2: String = <table><thead><tr><th>Name</th><th>Type</th><th>Description</th><th>Default value</th></tr></thead><tbody><tr><td><code>name</code></td><td><code>String</code></td><td>Name description</td><td>&quot;John&quot;</td></tr><tr><td><code>age</code></td><td><code>Int</code></td><td>Age description</td><td>42</td></tr><tr><td><code>home.address</code></td><td><code>String</code></td><td>Address description</td><td>&quot;Lakelands 2&quot;</td></tr><tr><td><code>home.country</code></td><td><code>String</code></td><td>Country description</td><td>&quot;Iceland&quot;</td></tr></tbody></table>
+```
+
+The output will look like this when rendered in a markdown or html document
+
+
+<table><thead><tr><th>Name</th><th>Type</th><th>Description</th><th>Default value</th></tr></thead><tbody><tr><td><code>name</code></td><td><code>String</code></td><td>Name description</td><td>&quot;John&quot;</td></tr><tr><td><code>age</code></td><td><code>Int</code></td><td>Age description</td><td>42</td></tr><tr><td><code>home.address</code></td><td><code>String</code></td><td>Address description</td><td>&quot;Lakelands 2&quot;</td></tr><tr><td><code>home.country</code></td><td><code>String</code></td><td>Country description</td><td>&quot;Iceland&quot;</td></tr></tbody></table>
+
+
+The `Docs.html` method does nothing magical, it's possible to implement custom
+renderings by inspecting `Settings[T]` directly.
+
+```scala
+scala> Settings[User].settings
+res4: List[metaconfig.generic.Setting] = List(Setting(Field(name="name",tpe="String",annotations=List(@Description(Name description)),underlying=List())), Setting(Field(name="age",tpe="Int",annotations=List(@Description(Age description)),underlying=List())), Setting(Field(name="home",tpe="Home",annotations=List(),underlying=List(List(Field(name="address",tpe="String",annotations=List(@Description(Address description)),underlying=List()), Field(name="country",tpe="String",annotations=List(@Description(Country description)),underlying=List()))))))
+
+scala> val flat = Settings[User].flat(User())
+warning: there was one deprecation warning; re-run with -deprecation for details
+flat: List[(metaconfig.generic.Setting, Any)] = List((Setting(Field(name="name",tpe="String",annotations=List(@Description(Name description)),underlying=List())),John), (Setting(Field(name="age",tpe="Int",annotations=List(@Description(Age description)),underlying=List())),42), (Setting(Field(name="home.address",tpe="String",annotations=List(@Description(Address description)),underlying=List())),Lakelands 2), (Setting(Field(name="home.country",tpe="String",annotations=List(@Description(Country description)),underlying=List())),Iceland))
+
+scala> flat.map { case (setting, defaultValue) =>
+     |   s"Setting ${setting.name} of type ${setting.tpe} has default value $defaultValue"
+     | }.mkString("\n==============\n")
+res5: String =
+Setting name of type String has default value John
+==============
+Setting age of type Int has default value 42
+==============
+Setting home.address of type String has default value Lakelands 2
+==============
+Setting home.country of type String has default value Iceland
+```
+
+## JSON
+
+To parse JSON instead of HOCON use the `metaconfig-json` module.
+
+```scala
+// JVM-only
+libraryDependencies += "com.geirsson" %% "metaconfig-json" % "0.8.0"
+```
+
+To parse JSON into `metaconfig.Conf`
+
+```scala
+scala> import metaconfig.json.parser
+import metaconfig.json.parser
+
+scala> import metaconfig._
+import metaconfig._
+```
+
+```scala
+scala> Conf.parseString("""
+     | {
+     |   "a": 1,
+     |   "b": [
+     |     2,
+     |     3,
+     |     true,
+     |     null
+     |   ]
+     | }
+     | """)
+res6: metaconfig.Configured[metaconfig.Conf] = Ok({"a": 1.0, "b": [2.0, 3.0, true, null]})
+```
+
+The JSON parser supports comments and trailing commas
+
+```scala
+scala> Conf.parseString("""
+     | {
+     |   // NOTE: don't set this to false!
+     |   "important": true,
+     |   "dependencies": [
+     |     "a",
+     |     "b", // TODO: get rid of this dependency at some point
+     |   ],
+     | }
+     | """)
+res7: metaconfig.Configured[metaconfig.Conf] = Ok({"important": true, "dependencies": ["a", "b"]})
+```
+
+## JSON Schema
+
+It's possible to automatically generate a JSON schema
+
+```scala
+scala> val js = metaconfig.JsonSchema.generate(
+     |   title = "My User App",
+     |   description = "My User APP description",
+     |   url = Some("http://my.user.app/schema.json"),
+     |   default = User()
+     | )
+js: ujson.Js.Obj = {"$id":"http://my.user.app/schema.json","title":"My User App","description":"My User APP description","type":"object","properties":{"name":{"title":"name","description":"Name description","default":"John","required":false,"type":"string"},"age":{"title":"age","description":"Age description","default":42,"required":false,"type":"number"},"home":{"title":"home","description":null,"default":{"address":"Lakelands 2","country":"Iceland"},"required":false,"type":"object","properties":{"address":{"title":"address","description":"Address description","default":"Lakelands 2","required":false,"type":"string"},"country":{"title":"country","description":"Country description","default":"Iceland","required":false,"type":"string"}}}}}
+
+scala> ujson.write(js, indent = 2)
+res8: String =
+{
+  "$id": "http://my.user.app/schema.json",
+  "title": "My User App",
+  "description": "My User APP description",
+  "type": "object",
+  "properties": {
+    "name": {
+      "title": "name",
+      "description": "Name description",
+      "default": "John",
+      "required": false,
+      "type": "string"
+    },
+    "age": {
+      "title": "age",
+      "description": "Age description",
+      "default": 42,
+      "required": false,
+      "type": "number"
+    },
+    "home": {
+      "title": "home",
+      "description": null,
+      "default": {
+        "address": "Lakelands 2",
+        "country": "Iceland"
+      },
+      "required": false,
+      "type": "object",
+      "properties": {
+        "address": {
+          "title": "address",
+          "description": "Address descripti...
 ```
