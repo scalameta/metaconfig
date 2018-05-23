@@ -56,9 +56,12 @@ scope.
   * [generic.deriveDecoder](#genericderivedecoder)
     * [Limitations](#limitations)
   * [@DeprecatedName](#deprecatedname)
-  * [Docs](#docs)
   * [Conf.parseCliArgs](#confparsecliargs)
   * [Settings.toCliHelp](#settingstoclihelp)
+  * [@Inline](#inline)
+  * [Docs](#docs)
+  * [JSON](#json)
+  * [JSON Schema](#json-schema)
 
 <!-- /TOC -->
 
@@ -409,6 +412,100 @@ decoder.read(Conf.Obj("isGoodName" -> Conf.fromBoolean(false)))
 decoder.read(Conf.Obj("gooodName" -> Conf.fromBoolean(false)))
 ```
 
+## Conf.parseCliArgs
+
+Metaconfig can parse command line arguments into a `Conf`.
+
+```tut:silent
+case class App(
+  @Description("The directory to output files")
+  target: String = "out",
+  @Description("Print out debugging diagnostics")
+  @ExtraName("v")
+  verbose: Boolean = false,
+  @Description("The input files for app")
+  @ExtraName("remainingArgs")
+  files: List[String] = Nil
+)
+implicit val surface = generic.deriveSurface[App]
+implicit val codec = generic.deriveCodec[App](App())
+```
+
+```tut
+val conf = Conf.parseCliArgs[App](List(
+  "--verbose",
+  "--target", "/tmp",
+  "input.txt"
+))
+```
+
+Decode the cli args into `App` like normal
+
+```tut
+val app = decoder.read(conf.get)
+```
+
+## Settings.toCliHelp
+
+Generate a --help message with a `Settings[T]`.
+
+```tut
+Settings[App].toCliHelp(default = App())
+```
+
+## @Inline
+
+If you have multiple cli apps that all share a base set of fields you can use
+`@Inline`.
+
+```tut:silent
+case class Common(
+  @Description("The working directory")
+  cwd: String = "",
+  @Description("The output directory")
+  out: String = ""
+)
+implicit val surface = generic.deriveSurface[Common]
+implicit val codec = generic.deriveCodec[Common](Common())
+
+case class AgeApp(
+  @Description("The user's age")
+  age: Int = 0,
+  @Inline
+  common: Common = Common()
+)
+implicit val ageSurface = generic.deriveSurface[AgeApp]
+implicit val ageCodec = generic.deriveCodec[AgeApp](AgeApp())
+
+case class NameApp(
+  @Description("The user's name")
+  name: String = "John",
+  @Inline
+  common: Common = Common()
+)
+implicit val nameSurface = generic.deriveSurface[NameApp]
+implicit val nameCodec = generic.deriveCodec[NameApp](NameApp())
+```
+
+Observe that `NameApp` and `AgeApp` both have an `@Inline common: Common` field.
+It is not necessary to prefix cli args with the name of `@Inline` fields. In the
+example above, it's possible to pass in `--out target` instead of
+`--common.out target` to override the common output directory.
+
+```tut
+Conf.parseCliArgs[NameApp](List("--out", "/tmp", "--cwd", "working-dir"))
+val conf = Conf.parseCliArgs[AgeApp](List("--out", "target", "--cwd", "working-dir"))
+conf.get.as[AgeApp].get
+```
+
+The generated --help message does not display `@Inline` fields. Instead, the
+nested fields inside the type of the `@Inline` field are shown in the --help
+message.
+
+```tut
+Settings[NameApp].toCliHelp(default = NameApp())
+```
+
 ## Docs
 
 To generate documentation for you configuration, add a dependency to the
@@ -420,7 +517,11 @@ libraryDependencies += "com.geirsson" %% "metaconfig-docs" % "@VERSION@"
 
 First define your configuration
 
-```tut:silent
+```tut:silent:reset
+import metaconfig._
+import metaconfig.annotation._
+import metaconfig.generic._
+
 case class Home(
     @Description("Address description")
     address: String = "Lakelands 2",
@@ -428,6 +529,7 @@ case class Home(
     country: String = "Iceland"
 )
 implicit val homeSurface = generic.deriveSurface[Home]
+implicit val homeEncoder = generic.deriveEncoder[Home]
 
 case class User(
     @Description("Name description")
@@ -437,6 +539,7 @@ case class User(
     home: Home = Home()
 )
 implicit val userSurface = generic.deriveSurface[User]
+implicit val userEncoder = generic.deriveEncoder[User]
 ```
 
 To generate html documentation, pass in a default value
@@ -462,43 +565,61 @@ flat.map { case (setting, defaultValue) =>
 }.mkString("\n==============\n")
 ```
 
-## Conf.parseCliArgs
+## JSON
 
-Metaconfig can parse command line arguments into a `Conf`.
+To parse JSON instead of HOCON use the `metaconfig-json` module.
 
-```tut:silent
-case class App(
-  @Description("The directory to output files")
-  target: String = "out",
-  @Description("Print out debugging diagnostics")
-  @ExtraName("v")
-  verbose: Boolean = false,
-  @Description("The input files for app")
-  @ExtraName("remainingArgs")
-  files: List[String] = Nil
+```scala
+// JVM-only
+libraryDependencies += "com.geirsson" %% "metaconfig-json" % "@VERSION@"
+```
+
+To parse JSON into `metaconfig.Conf`
+
+```tut
+import metaconfig.json.parser
+import metaconfig._
+```
+
+```tut
+Conf.parseString("""
+{
+  "a": 1,
+  "b": [
+    2,
+    3,
+    true,
+    null
+  ]
+}
+""")
+```
+
+The JSON parser supports comments and trailing commas
+
+```tut
+Conf.parseString("""
+{
+  // NOTE: don't set this to false!
+  "important": true,
+  "dependencies": [
+    "a",
+    "b", // TODO: get rid of this dependency at some point
+  ],
+}
+""")
+```
+
+## JSON Schema
+
+It's possible to automatically generate a JSON schema
+
+```tut
+val js = metaconfig.JsonSchema.generate(
+  title = "My User App",
+  description = "My User APP description",
+  url = Some("http://my.user.app/schema.json"),
+  default = User()
 )
-implicit val surface = generic.deriveSurface[App]
-implicit val decoder = generic.deriveDecoder[App](App())
-```
-
-```tut
-val conf = Conf.parseCliArgs[App](List(
-  "--verbose",
-  "--target", "/tmp",
-  "input.txt"
-))
-```
-
-Decode the cli args into `App` like normal
-
-```tut
-val app = decoder.read(conf.get)
-```
-
-## Settings.toCliHelp
-
-Generate a --help message with a `Settings[T]`.
-
-```tut
-Settings[App].toCliHelp(default = App())
+ujson.write(js, indent = 2)
 ```

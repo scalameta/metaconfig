@@ -1,7 +1,9 @@
 # Contributing
 
-Please refer to the [Scalameta](https://github.com/scalameta/scalameta/blob/master/CONTRIBUTING.md)
-contributing guidelines to learn more about how to report tickets and open pull requests.
+Please refer to the
+[Scalameta](https://github.com/scalameta/scalameta/blob/master/CONTRIBUTING.md)
+contributing guidelines to learn more about how to report tickets and open pull
+requests.
 
 ## Website
 
@@ -12,19 +14,27 @@ To install GitBook
 npm install -g gitbook-cli
 ```
 
-Then inside sbt
+A the base directory of this repo
 
 ```
+gitbook install
+```
+
+Open an sbt shell session and run `website/makeSite`
+
+```
+sbt
 > website/makeSite
 ```
-This will generate a static GitBook site in the directory `website/target/site`.
 
-After running `website/makeSite`, preview the website locally with
+This will generate a static GitBook site in the directory `website/target/site`.
+To preview the website locally
 
 ```
 cd website/target/site
 gitbook serve
+open http://localhost:4000
 ```
-And open [localhost:4000](http://localhost:4000).
 
-
+Re-run `makeSite` for every edit in `docs/README.md`. Generating the website can
+take ~10 seconds since the code examples are type-checked with tut.

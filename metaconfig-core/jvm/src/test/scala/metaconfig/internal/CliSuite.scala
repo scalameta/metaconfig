@@ -11,8 +11,8 @@ class CliSuite extends FunSuite with DiffAssertions {
     println(obtained)
     val expected =
       """
-        |--in: String = "docs"                                          The input directory to generate the fox site.
-        |--out: String = "target/fox"                                   The output directory to generate the fox site.
+        |--in: String = "docs"                                           The input directory to generate the fox site.
+        |--out: String = "target/fox"                                    The output directory to generate the fox site.
         |--cwd: String = "/tmp"
         |--repo-name: String = "olafurpg/fox"
         |--repo-url: String = "https://github.com/olafurpg/fox"

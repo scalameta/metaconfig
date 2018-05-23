@@ -13,7 +13,7 @@ object Cli {
   def help[T: ConfEncoder](default: T)(implicit settings: Settings[T]): Doc = {
     def toHelp(setting: Setting, value: Conf) = {
       val name = Case.camelToKebab(setting.name)
-      val key = s"--$name: ${setting.tpe} = $value"
+      val key = s"--$name: ${setting.tpe} = $value "
       key -> paragraph(setting.description.getOrElse(""))
     }
 

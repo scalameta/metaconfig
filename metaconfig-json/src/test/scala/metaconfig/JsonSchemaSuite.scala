@@ -20,7 +20,6 @@ class JsonSchemaSuite extends FunSuite with DiffAssertions {
         default
       )
       val obtained = ujson.write(schema, indent = 2)
-      println(obtained)
       assertNoDiff(obtained, expected)
     }
   }
