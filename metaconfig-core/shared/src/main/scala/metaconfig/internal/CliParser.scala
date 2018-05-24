@@ -30,7 +30,12 @@ object CliParser {
         case (Nil, NoFlag) => ok(curr)
         case (Nil, Flag(flag, _)) => ok(add(flag, Conf.fromBoolean(true)))
         case (head :: tail, NoFlag) =>
-          if (head.startsWith("-")) {
+          val equal = head.indexOf('=')
+          if (equal >= 0) { // split "--key=value" into ["--key", "value"]
+            val key = head.substring(0, equal)
+            val value = head.substring(equal + 1)
+            loop(curr, key :: value :: tail, NoFlag)
+          } else if (head.startsWith("-")) {
             val camel = Case.kebabToCamel(dash.replaceFirstIn(head, ""))
             camel.split("\\.").toList match {
               case Nil =>
