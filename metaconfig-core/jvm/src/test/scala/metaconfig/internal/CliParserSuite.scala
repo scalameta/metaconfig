@@ -166,4 +166,11 @@ class CliParserSuite extends BaseCliParserSuite {
         ))
     )
   )
+
+  check(
+    "=",
+    "--title=buzz" :: Nil,
+    Options(title = "buzz")
+  )
+
 }
