@@ -169,10 +169,10 @@ should get helpful error messages when they mistype a setting name.</p>
 <li><a href="https://github.com/pureconfig/pureconfig" target="_blank">https://github.com/pureconfig/pureconfig</a></li>
 </ul>
 <h2 id="getting-started"><a name="getting-started" class="plugin-anchor" href="#getting-started"><i class="fa fa-link" aria-hidden="true"></i></a>Getting started</h2>
-<pre><code class="lang-scala">libraryDependencies += <span class="hljs-string">&quot;com.geirsson&quot;</span> %% <span class="hljs-string">&quot;metaconfig-core&quot;</span> % <span class="hljs-string">&quot;0.8.0&quot;</span>
+<pre><code class="lang-scala">libraryDependencies += <span class="hljs-string">&quot;com.geirsson&quot;</span> %% <span class="hljs-string">&quot;metaconfig-core&quot;</span> % <span class="hljs-string">&quot;0.8.1&quot;</span>
 
 <span class="hljs-comment">// Use https://github.com/lightbend/config to parse HOCON</span>
-libraryDependencies += <span class="hljs-string">&quot;com.geirsson&quot;</span> %% <span class="hljs-string">&quot;metaconfig-typesafe-config&quot;</span> % <span class="hljs-string">&quot;0.8.0&quot;</span>
+libraryDependencies += <span class="hljs-string">&quot;com.geirsson&quot;</span> %% <span class="hljs-string">&quot;metaconfig-typesafe-config&quot;</span> % <span class="hljs-string">&quot;0.8.1&quot;</span>
 </code></pre>
 <p>Use this import to access the metaconfig API</p>
 <pre><code class="lang-scala"><span class="hljs-keyword">import</span> metaconfig._
@@ -358,7 +358,7 @@ NotOk(2 errors
      |   <span class="hljs-keyword">if</span> (file.exists()) <span class="hljs-type">Configured</span>.ok(file)
      |   <span class="hljs-keyword">else</span> <span class="hljs-type">ConfError</span>.fileDoesNotExist(file).notOk
      | }
-fileDecoder: metaconfig.<span class="hljs-type">ConfDecoder</span>[java.io.<span class="hljs-type">File</span>] = metaconfig.<span class="hljs-type">ConfDecoder</span>$$anon$<span class="hljs-number">1</span>@<span class="hljs-number">2</span>a4cb2d6
+fileDecoder: metaconfig.<span class="hljs-type">ConfDecoder</span>[java.io.<span class="hljs-type">File</span>] = metaconfig.<span class="hljs-type">ConfDecoder</span>$$anon$<span class="hljs-number">1</span>@<span class="hljs-number">9</span>fb2ef
 
 scala&gt; fileDecoder.read(<span class="hljs-type">Conf</span>.fromString(<span class="hljs-string">&quot;.scalafmt.conf&quot;</span>))
 res11: metaconfig.<span class="hljs-type">Configured</span>[java.io.<span class="hljs-type">File</span>] = <span class="hljs-type">Ok</span>(.scalafmt.conf)
@@ -371,7 +371,7 @@ res12: metaconfig.<span class="hljs-type">Configured</span>[java.io.<span class=
 automatically derive a <code>ConfEncoder[T]</code> instance for any case class with
 <code>generic.deriveEncoder</code>.</p>
 <pre><code class="lang-scala">scala&gt; <span class="hljs-keyword">implicit</span> <span class="hljs-keyword">val</span> encoder = generic.deriveEncoder[<span class="hljs-type">User</span>]
-encoder: metaconfig.<span class="hljs-type">ConfEncoder</span>[<span class="hljs-type">User</span>] = $anon$<span class="hljs-number">1</span>@<span class="hljs-number">5</span>a52df51
+encoder: metaconfig.<span class="hljs-type">ConfEncoder</span>[<span class="hljs-type">User</span>] = $anon$<span class="hljs-number">1</span>@<span class="hljs-number">7</span>b826771
 
 scala&gt; <span class="hljs-type">ConfEncoder</span>[<span class="hljs-type">User</span>].write(<span class="hljs-type">User</span>(<span class="hljs-string">&quot;John&quot;</span>, <span class="hljs-number">42</span>))
 res13: metaconfig.<span class="hljs-type">Conf</span> = {<span class="hljs-string">&quot;name&quot;</span>: <span class="hljs-string">&quot;John&quot;</span>, <span class="hljs-string">&quot;age&quot;</span>: <span class="hljs-number">42</span>}
@@ -654,7 +654,7 @@ res39: <span class="hljs-type">String</span> =
 <h2 id="docs"><a name="docs" class="plugin-anchor" href="#docs"><i class="fa fa-link" aria-hidden="true"></i></a>Docs</h2>
 <p>To generate documentation for you configuration, add a dependency to the
 following module</p>
-<pre><code class="lang-scala">libraryDependencies += <span class="hljs-string">&quot;com.geirsson&quot;</span> %% <span class="hljs-string">&quot;metaconfig-docs&quot;</span> % <span class="hljs-string">&quot;0.8.0&quot;</span>
+<pre><code class="lang-scala">libraryDependencies += <span class="hljs-string">&quot;com.geirsson&quot;</span> %% <span class="hljs-string">&quot;metaconfig-docs&quot;</span> % <span class="hljs-string">&quot;0.8.1&quot;</span>
 </code></pre>
 <p>First define your configuration</p>
 <pre><code class="lang-scala"><span class="hljs-keyword">import</span> metaconfig._
@@ -712,7 +712,7 @@ res5: <span class="hljs-type">String</span> =
 <h2 id="json"><a name="json" class="plugin-anchor" href="#json"><i class="fa fa-link" aria-hidden="true"></i></a>JSON</h2>
 <p>To parse JSON instead of HOCON use the <code>metaconfig-json</code> module.</p>
 <pre><code class="lang-scala"><span class="hljs-comment">// JVM-only</span>
-libraryDependencies += <span class="hljs-string">&quot;com.geirsson&quot;</span> %% <span class="hljs-string">&quot;metaconfig-json&quot;</span> % <span class="hljs-string">&quot;0.8.0&quot;</span>
+libraryDependencies += <span class="hljs-string">&quot;com.geirsson&quot;</span> %% <span class="hljs-string">&quot;metaconfig-json&quot;</span> % <span class="hljs-string">&quot;0.8.1&quot;</span>
 </code></pre>
 <p>To parse JSON into <code>metaconfig.Conf</code></p>
 <pre><code class="lang-scala">scala&gt; <span class="hljs-keyword">import</span> metaconfig.json.parser
@@ -828,7 +828,7 @@ res8: String =
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Introduction","level":"1.1","depth":1,"dir":"ltr"},"config":{"plugins":["editlink","github","anchors"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"github":{"url":"https://github.com/olafurpg/metaconfig/"},"editlink":{"label":"Edit This Page","multilingual":false,"base":"https://github.com/olafurpg/metaconfig/tree/master/docs"},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"highlight":{},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false},"anchors":{}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"Metaconfig","gitbook":"3.2.x","description":"Parse hocon configuration into Scala case class"},"file":{"path":"README.md","mtime":"2018-05-23T08:39:47.758Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2018-05-23T08:39:49.350Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Introduction","level":"1.1","depth":1,"dir":"ltr"},"config":{"plugins":["editlink","github","anchors"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"github":{"url":"https://github.com/olafurpg/metaconfig/"},"editlink":{"label":"Edit This Page","multilingual":false,"base":"https://github.com/olafurpg/metaconfig/tree/master/docs"},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"highlight":{},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false},"anchors":{}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"Metaconfig","gitbook":"3.2.x","description":"Parse hocon configuration into Scala case class"},"file":{"path":"README.md","mtime":"2018-05-25T11:12:39.146Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2018-05-25T11:12:41.191Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>

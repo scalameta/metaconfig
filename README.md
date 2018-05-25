@@ -24,10 +24,10 @@ There are alternatives to metaconfig that you might want to give a try first
 ## Getting started
 
 ```scala
-libraryDependencies += "com.geirsson" %% "metaconfig-core" % "0.8.0"
+libraryDependencies += "com.geirsson" %% "metaconfig-core" % "0.8.1"
 
 // Use https://github.com/lightbend/config to parse HOCON
-libraryDependencies += "com.geirsson" %% "metaconfig-typesafe-config" % "0.8.0"
+libraryDependencies += "com.geirsson" %% "metaconfig-typesafe-config" % "0.8.1"
 ```
 
 Use this import to access the metaconfig API
@@ -256,7 +256,7 @@ scala> val fileDecoder = ConfDecoder.stringConfDecoder.flatMap { string =>
      |   if (file.exists()) Configured.ok(file)
      |   else ConfError.fileDoesNotExist(file).notOk
      | }
-fileDecoder: metaconfig.ConfDecoder[java.io.File] = metaconfig.ConfDecoder$$anon$1@2a4cb2d6
+fileDecoder: metaconfig.ConfDecoder[java.io.File] = metaconfig.ConfDecoder$$anon$1@9fb2ef
 
 scala> fileDecoder.read(Conf.fromString(".scalafmt.conf"))
 res11: metaconfig.Configured[java.io.File] = Ok(.scalafmt.conf)
@@ -273,7 +273,7 @@ automatically derive a `ConfEncoder[T]` instance for any case class with
 
 ```scala
 scala> implicit val encoder = generic.deriveEncoder[User]
-encoder: metaconfig.ConfEncoder[User] = $anon$1@5a52df51
+encoder: metaconfig.ConfEncoder[User] = $anon$1@7b826771
 
 scala> ConfEncoder[User].write(User("John", 42))
 res13: metaconfig.Conf = {"name": "John", "age": 42}
@@ -643,7 +643,7 @@ To generate documentation for you configuration, add a dependency to the
 following module
 
 ```scala
-libraryDependencies += "com.geirsson" %% "metaconfig-docs" % "0.8.0"
+libraryDependencies += "com.geirsson" %% "metaconfig-docs" % "0.8.1"
 ```
 
 First define your configuration
@@ -716,7 +716,7 @@ To parse JSON instead of HOCON use the `metaconfig-json` module.
 
 ```scala
 // JVM-only
-libraryDependencies += "com.geirsson" %% "metaconfig-json" % "0.8.0"
+libraryDependencies += "com.geirsson" %% "metaconfig-json" % "0.8.1"
 ```
 
 To parse JSON into `metaconfig.Conf`
