@@ -34,7 +34,7 @@ sealed abstract class Configured[+A] extends Product with Serializable {
   def isNotOk: Boolean = !isOk
 }
 object Configured {
-  // TODO(olafur) start using cats or scalaz...
+  @deprecated("No longer supported", "0.8.1")
   def traverse[T](cs: List[Configured[T]]): Configured[List[T]] = {
     cs.foldLeft(ok(List.empty[T])) {
       case (res, configured) =>

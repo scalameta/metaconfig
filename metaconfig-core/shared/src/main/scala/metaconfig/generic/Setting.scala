@@ -41,6 +41,7 @@ final class Setting(val field: Field) {
     !isMap && field.annotations.exists(_.isInstanceOf[Repeated])
   def isBoolean: Boolean = field.tpe == "Boolean"
   def isMap: Boolean = field.tpe.startsWith("Map")
+  def isConf: Boolean = field.tpe == "metaconfig.Conf"
   def alternativeNames: List[String] =
     extraNames ::: deprecatedNames.map(_.name)
   def allNames: List[String] = name :: alternativeNames

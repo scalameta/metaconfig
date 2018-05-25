@@ -35,6 +35,7 @@ case class Options(
     encoding: String = "UTF-8",
     configPath: String = Paths.get("fox.conf").toString,
     remainingArgs: List[String] = Nil,
+    conf: Conf = Conf.Obj(),
     site: Site = Site(),
     @Inline
     inlined: Site = Site()
@@ -171,6 +172,12 @@ class CliParserSuite extends BaseCliParserSuite {
     "=",
     "--title=buzz" :: Nil,
     Options(title = "buzz")
+  )
+
+  check(
+    "conf",
+    "--conf.foo" :: "qux" :: Nil,
+    Options(conf = Conf.Obj("foo" -> Conf.Str("qux")))
   )
 
 }
