@@ -25,6 +25,7 @@ class CliSuite extends FunSuite with DiffAssertions {
         |--encoding: String = "UTF-8"
         |--config-path: String = "fox.conf"
         |--remaining-args: List[String] = []
+        |--conf: metaconfig.Conf = {}
         |--site: metaconfig.internal.Site = {"foo": "foo", "custom": {}}
         |--foo: String = "foo"
         |--custom: Map[String,String] = {}
