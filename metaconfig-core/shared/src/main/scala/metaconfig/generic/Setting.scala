@@ -38,10 +38,15 @@ final class Setting(val field: Field) {
     case value: Deprecated => value
   }
   def isRepeated: Boolean =
-    !isMap && field.annotations.exists(_.isInstanceOf[Repeated])
+    field.annotations.exists(_.isInstanceOf[Repeated])
+  def isDynamic: Boolean =
+    annotations.exists(_.isInstanceOf[Dynamic])
+  def isHidden: Boolean =
+    annotations.exists(_.isInstanceOf[Hidden])
   def isBoolean: Boolean = field.tpe == "Boolean"
+  @deprecated("Use isDynamic instead", "0.8.2")
   def isMap: Boolean = field.tpe.startsWith("Map")
-  def isConf: Boolean = field.tpe == "metaconfig.Conf"
+  def isConf: Boolean = field.tpe.startsWith("metaconfig.Conf")
   def alternativeNames: List[String] =
     extraNames ::: deprecatedNames.map(_.name)
   def allNames: List[String] = name :: alternativeNames

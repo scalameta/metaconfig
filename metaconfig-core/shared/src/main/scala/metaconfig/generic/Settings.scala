@@ -53,15 +53,17 @@ final class Settings[T](val settings: List[Setting]) {
 
   def get(name: String, rest: List[String]): Option[Setting] =
     get(name).flatMap { setting =>
-      rest match {
-        case Nil => Some(setting)
-        // TODO: come up with annotation to represent "dynamic" fields that permit any key.
-        case _ :: Nil if setting.isMap || setting.isConf => Some(setting)
-        case head :: tail =>
-          for {
-            underlying <- setting.underlying
-            next <- underlying.get(head, tail)
-          } yield next
+      if (setting.isDynamic) {
+        Some(setting)
+      } else {
+        rest match {
+          case Nil => Some(setting)
+          case head :: tail =>
+            for {
+              underlying <- setting.underlying
+              next <- underlying.get(head, tail)
+            } yield next
+        }
       }
     }
   def unsafeGet(name: String): Setting = get(name).get

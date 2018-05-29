@@ -19,3 +19,5 @@ final case class Deprecated(message: String, since: String)
     extends StaticAnnotation
 final case class Repeated() extends StaticAnnotation
 final case class Inline() extends StaticAnnotation
+final case class Dynamic() extends StaticAnnotation
+final case class Hidden() extends StaticAnnotation

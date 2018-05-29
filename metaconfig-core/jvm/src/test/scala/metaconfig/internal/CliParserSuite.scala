@@ -38,7 +38,9 @@ case class Options(
     conf: Conf = Conf.Obj(),
     site: Site = Site(),
     @Inline
-    inlined: Site = Site()
+    inlined: Site = Site(),
+    @Hidden // should not appear in --help
+    hidden: Int = 87
 )
 object Options {
   implicit val surface = generic.deriveSurface[Options]
@@ -178,6 +180,12 @@ class CliParserSuite extends BaseCliParserSuite {
     "conf",
     "--conf.foo" :: "qux" :: Nil,
     Options(conf = Conf.Obj("foo" -> Conf.Str("qux")))
+  )
+
+  check(
+    "conf2",
+    "--conf.foo.bar" :: "qux" :: Nil,
+    Options(conf = Conf.Obj("foo" -> Conf.Obj("bar" -> Conf.Str("qux"))))
   )
 
 }
