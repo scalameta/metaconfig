@@ -38,7 +38,9 @@ case class Options(
     conf: Conf = Conf.Obj(),
     site: Site = Site(),
     @Inline
-    inlined: Site = Site()
+    inlined: Site = Site(),
+    @Hidden // should not appear in --help
+    hidden: Int = 87
 )
 object Options {
   implicit val surface = generic.deriveSurface[Options]

@@ -24,7 +24,9 @@ object Cli {
 
     val keyValues = settings.settings.zip(defaultConf).flatMap {
       case (setting, value) =>
-        if (setting.annotations.exists(_.isInstanceOf[Inline])) {
+        if (setting.isHidden) {
+          Nil
+        } else if (setting.annotations.exists(_.isInstanceOf[Inline])) {
           for {
             underlying <- setting.underlying.toList
             (field, (_, fieldDefault)) <- underlying.settings.zip(

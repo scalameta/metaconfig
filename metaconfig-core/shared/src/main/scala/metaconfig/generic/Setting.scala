@@ -41,6 +41,8 @@ final class Setting(val field: Field) {
     field.annotations.exists(_.isInstanceOf[Repeated])
   def isDynamic: Boolean =
     annotations.exists(_.isInstanceOf[Dynamic])
+  def isHidden: Boolean =
+    annotations.exists(_.isInstanceOf[Hidden])
   def isBoolean: Boolean = field.tpe == "Boolean"
   @deprecated("Use isDynamic instead", "0.8.2")
   def isMap: Boolean = field.tpe.startsWith("Map")
