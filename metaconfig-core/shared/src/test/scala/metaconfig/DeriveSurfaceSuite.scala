@@ -1,7 +1,6 @@
 package metaconfig
 
 import java.io.File
-import metaconfig.generic.Setting
 import metaconfig.generic.Settings
 import metaconfig.generic.Surface
 import org.scalatest.FunSuite
@@ -13,7 +12,7 @@ class DeriveSurfaceSuite extends FunSuite {
     val surface = generic.deriveSurface[WithFile]
     val obtained = surface.toString
     val expected =
-      """Surface(List(List(Field(name="file",tpe="java.io.File",annotations=List(),underlying=List()))))"""
+      """Surface(List(List(Field(name="file",tpe="File",annotations=List(),underlying=List()))))"""
     assert(obtained == expected)
   }
 
@@ -86,4 +85,22 @@ class DeriveSurfaceSuite extends FunSuite {
     }
   }
 
+  case class CustomTypePrinting(a: Int, b: Option[Int], c: List[String])
+  test("tprint") {
+    import pprint.TPrint
+    implicit val intPrint = TPrint.literal[Int]("number")
+    implicit def optionPrint[T](implicit ev: TPrint[T]): TPrint[Option[T]] =
+      TPrint.make { implicit colors =>
+        "(" + ev.render + ")"
+      }
+    implicit def iterablePrint[C[x] <: Iterable[x], T](implicit ev: TPrint[T]): TPrint[C[T]] =
+      TPrint.make { implicit colors =>
+        "[" + ev.render + " ...]"
+      }
+    implicit val surface = generic.deriveSurface[CustomTypePrinting]
+    val a :: b  :: c :: Nil = Settings[CustomTypePrinting].settings
+    assert(a.tpe == "number")
+    assert(b.tpe == "(number)")
+    assert(c.tpe == "[String ...]")
+  }
 }

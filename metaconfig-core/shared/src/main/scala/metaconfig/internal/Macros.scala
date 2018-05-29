@@ -153,8 +153,14 @@ class Macros(val c: blackbox.Context) {
           } else {
             Nil
           }
+        val flag =
+          if (paramTpe <:< typeOf[Boolean]) {
+            q"new _root_.metaconfig.annotation.Flag" :: Nil
+          } else {
+            Nil
+          }
 
-        val finalAnnots = repeated ::: dynamic ::: baseAnnots
+        val finalAnnots = repeated ::: dynamic ::: flag ::: baseAnnots
         val fieldsParamTpe = c.internal.typeRef(
           NoPrefix,
           weakTypeOf[Surface[_]].typeSymbol,
@@ -167,10 +173,16 @@ class Macros(val c: blackbox.Context) {
           } else {
             q"$underlyingInferred.fields"
           }
+        val tprint = c.internal.typeRef(
+          NoPrefix,
+          weakTypeOf[pprint.TPrint[_]].typeSymbol,
+          paramTpe :: Nil
+        )
+        val tpeString = c.inferImplicitValue(tprint)
 
         val field = q"""new ${weakTypeOf[Field]}(
            ${param.name.decodedName.toString},
-           ${paramTpe.toString},
+           $tpeString.render,
            _root_.scala.List.apply(..$finalAnnots),
            $underlying
          )"""
