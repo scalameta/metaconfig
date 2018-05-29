@@ -43,10 +43,12 @@ final class Setting(val field: Field) {
     annotations.exists(_.isInstanceOf[Dynamic])
   def isHidden: Boolean =
     annotations.exists(_.isInstanceOf[Hidden])
-  def isBoolean: Boolean = field.tpe == "Boolean"
+  def isBoolean: Boolean =
+    annotations.exists(_.isInstanceOf[Flag])
   @deprecated("Use isDynamic instead", "0.8.2")
   def isMap: Boolean = field.tpe.startsWith("Map")
-  def isConf: Boolean = field.tpe.startsWith("metaconfig.Conf")
+  @deprecated("Use isDynamic instead", "0.8.2")
+  def isConf: Boolean = field.tpe.contains("Conf")
   def alternativeNames: List[String] =
     extraNames ::: deprecatedNames.map(_.name)
   def allNames: List[String] = name :: alternativeNames
