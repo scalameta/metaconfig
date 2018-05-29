@@ -138,13 +138,23 @@ class Macros(val c: blackbox.Context) {
           case annot if annot.tree.tpe <:< typeOf[StaticAnnotation] =>
             annot.tree
         }
-        val isIterable = paramTpe <:< typeOf[Iterable[_]]
-        val finalAnnots =
+        val isMap = paramTpe <:< typeOf[Map[_, _]]
+        val isConf = paramTpe <:< typeOf[Conf]
+        val isIterable = paramTpe <:< typeOf[Iterable[_]] && !isMap
+        val repeated =
           if (isIterable) {
-            q"new _root_.metaconfig.annotation.Repeated" :: baseAnnots
+            q"new _root_.metaconfig.annotation.Repeated" :: Nil
           } else {
-            baseAnnots
+            Nil
           }
+        val dynamic =
+          if (isMap || isConf) {
+            q"new _root_.metaconfig.annotation.Dynamic" :: Nil
+          } else {
+            Nil
+          }
+
+        val finalAnnots = repeated ::: dynamic ::: baseAnnots
         val fieldsParamTpe = c.internal.typeRef(
           NoPrefix,
           weakTypeOf[Surface[_]].typeSymbol,

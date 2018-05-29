@@ -180,4 +180,10 @@ class CliParserSuite extends BaseCliParserSuite {
     Options(conf = Conf.Obj("foo" -> Conf.Str("qux")))
   )
 
+  check(
+    "conf2",
+    "--conf.foo.bar" :: "qux" :: Nil,
+    Options(conf = Conf.Obj("foo" -> Conf.Obj("bar" -> Conf.Str("qux"))))
+  )
+
 }
