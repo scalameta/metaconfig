@@ -100,6 +100,12 @@ class CliParserSuite extends BaseCliParserSuite {
   )
 
   check(
+    "repeated",
+    List("--classpath", "a", "--classpath", "b"),
+    Options().copy(classpath = List("a", "b"))
+  )
+
+  check(
     "kebab",
     "--base-url" :: "base-url" :: Nil,
     Options(baseUrl = "base-url")

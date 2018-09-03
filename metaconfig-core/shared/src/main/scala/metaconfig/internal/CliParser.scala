@@ -25,7 +25,13 @@ object CliParser {
         curr: Conf.Obj,
         xs: List[String],
         s: State): Configured[Conf.Obj] = {
-      def add(key: String, value: Conf) = Conf.Obj((key, value) :: curr.values)
+      def add(key: String, value: Conf): Conf.Obj = {
+        val values = curr.values.filterNot {
+          case (k, _) => k == key
+        }
+        Conf.Obj((key, value) :: values)
+      }
+
       (xs, s) match {
         case (Nil, NoFlag) => ok(curr)
         case (Nil, Flag(flag, _)) => ok(add(flag, Conf.fromBoolean(true)))
