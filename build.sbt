@@ -31,7 +31,7 @@ lazy val `metaconfig-json` = project
     allSettings,
     libraryDependencies ++= List(
       "com.lihaoyi" %%% "ujson" % "0.6.5",
-      "org.scalameta" %% "testkit" % "3.7.3" % Test
+      "org.scalameta" %% "testkit" % "4.0.0-M11" % Test
     )
   )
   .dependsOn(`metaconfig-coreJVM`)
