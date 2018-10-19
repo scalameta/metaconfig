@@ -17,7 +17,8 @@ sealed abstract class Position { pos =>
 
   /** Returns a formatted string of this position including filename/line/caret. */
   final def pretty(severity: String, message: String): String = {
-    val content = lineContent.lines
+    // Predef.augmentString = work around scala/bug#11125 on JDK 11
+    val content = augmentString(lineContent).lines
     val sb = new StringBuilder()
     sb.append(lineInput(severity, message))
       .append("\n")

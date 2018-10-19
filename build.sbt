@@ -1,6 +1,6 @@
 import java.util.Date
 
-lazy val ScalaVersions = Seq("2.11.11", "2.12.2")
+lazy val ScalaVersions = Seq("2.11.12", "2.12.7")
 
 organization in ThisBuild := "com.geirsson"
 version in ThisBuild ~= { old =>
@@ -71,7 +71,7 @@ lazy val baseSettings = Seq(
   testOptions.in(Test) +=
     Tests.Argument(TestFrameworks.ScalaCheck, "-verbosity", "2"),
   libraryDependencies ++= List(
-    "org.scalatest" %%% "scalatest" % "3.0.2" % Test,
+    "org.scalatest" %%% "scalatest" % "3.0.5" % Test,
     "org.scalacheck" %% "scalacheck" % "1.14.0" % Test,
     "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.6" % Test
   )
