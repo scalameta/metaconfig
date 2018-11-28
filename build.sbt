@@ -72,10 +72,12 @@ lazy val baseSettings = Seq(
 
 lazy val publishSettings = Seq(
   publishTo := Some(
-    "releases" at "https://oss.sonatype.org/service/local/staging/deploy/maven2"),
+    "releases" at "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+  ),
   publishArtifact in Test := false,
   licenses := Seq(
-    "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+    "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")
+  ),
   homepage := Some(url("https://github.com/olafurpg/metaconfig")),
   autoAPIMappings := true,
   apiURL := Some(url("https://github.com/olafurpg/metaconfig")),
@@ -168,7 +170,8 @@ inScope(Global)(
         "Sonatype Nexus Repository Manager",
         "oss.sonatype.org",
         username,
-        password)).toSeq,
+        password
+      )).toSeq,
     PgpKeys.pgpPassphrase := sys.env.get("PGP_PASSPHRASE").map(_.toCharArray())
   )
 )

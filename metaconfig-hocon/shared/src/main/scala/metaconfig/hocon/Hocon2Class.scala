@@ -20,7 +20,8 @@ object Hocon2Class {
   def gimmeClass[T](
       configStr: Input,
       reader: metaconfig.ConfDecoder[T],
-      path: Option[String] = None): metaconfig.Configured[T] = {
+      path: Option[String] = None
+  ): metaconfig.Configured[T] = {
     gimmeConfig(configStr).andThen { config =>
       reader.read(config.normalize)
     }

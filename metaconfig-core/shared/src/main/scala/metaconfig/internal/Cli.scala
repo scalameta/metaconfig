@@ -29,8 +29,8 @@ object Cli {
         } else if (setting.annotations.exists(_.isInstanceOf[Inline])) {
           for {
             underlying <- setting.underlying.toList
-            (field, (_, fieldDefault)) <- underlying.settings.zip(
-              value.asInstanceOf[Conf.Obj].values)
+            (field, (_, fieldDefault)) <- underlying.settings
+              .zip(value.asInstanceOf[Conf.Obj].values)
           } yield toHelp(field, fieldDefault)
         } else {
           toHelp(setting, value) :: Nil

@@ -105,7 +105,8 @@ object ConfError {
   def deprecated(
       name: String,
       message: String,
-      sinceVersion: String): ConfError =
+      sinceVersion: String
+  ): ConfError =
     deprecated(DeprecatedName(name, message, sinceVersion))
   def deprecated(deprecation: DeprecatedName): ConfError =
     new ConfError(deprecation.toString) {
@@ -134,13 +135,15 @@ object ConfError {
   def typeMismatch(
       expected: String,
       obtained: Conf,
-      path: String): ConfError = {
+      path: String
+  ): ConfError = {
     typeMismatch(expected, s"${obtained.kind} (value: $obtained)", path)
   }
   def typeMismatch(
       expected: String,
       obtained: String,
-      path: String): ConfError = {
+      path: String
+  ): ConfError = {
     val pathSuffix = if (path.isEmpty) "" else s" at '$path'"
     new ConfError(
       s"""Type mismatch$pathSuffix;
@@ -168,11 +171,13 @@ object ConfError {
   // TOOD(olafur) levenshtein
   def invalidFields(
       invalid: Iterable[String],
-      valid: Iterable[String]): ConfError = {
+      valid: Iterable[String]
+  ): ConfError = {
     val plural = if (invalid.size > 1) "s" else ""
     new ConfError(
       s"Invalid field$plural: ${invalid.mkString(", ")}. " +
-        s"Expected one of ${valid.mkString(", ")}") {}
+        s"Expected one of ${valid.mkString(", ")}"
+    ) {}
   }
 
   def fromResults(results: Seq[Configured[_]]): Option[ConfError] =

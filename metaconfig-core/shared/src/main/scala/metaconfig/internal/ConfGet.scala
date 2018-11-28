@@ -20,7 +20,8 @@ object ConfGet {
     }
 
   def getOrElse[T](conf: Conf, default: T, path: String, extraNames: String*)(
-      implicit ev: ConfDecoder[T]): Configured[T] = {
+      implicit ev: ConfDecoder[T]
+  ): Configured[T] = {
     getKey(conf, path +: extraNames) match {
       case Some(value) => ev.read(value)
       case None => Configured.Ok(default)
@@ -28,7 +29,8 @@ object ConfGet {
   }
 
   def get[T](conf: Conf, path: String, extraNames: String*)(
-      implicit ev: ConfDecoder[T]): Configured[T] = {
+      implicit ev: ConfDecoder[T]
+  ): Configured[T] = {
     getKey(conf, path +: extraNames) match {
       case Some(value) => ev.read(value)
       case None =>

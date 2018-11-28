@@ -93,12 +93,14 @@ class DeriveSurfaceSuite extends FunSuite {
       TPrint.make { implicit colors =>
         "(" + ev.render + ")"
       }
-    implicit def iterablePrint[C[x] <: Iterable[x], T](implicit ev: TPrint[T]): TPrint[C[T]] =
+    implicit def iterablePrint[C[x] <: Iterable[x], T](
+        implicit ev: TPrint[T]
+    ): TPrint[C[T]] =
       TPrint.make { implicit colors =>
         "[" + ev.render + " ...]"
       }
     implicit val surface = generic.deriveSurface[CustomTypePrinting]
-    val a :: b  :: c :: Nil = Settings[CustomTypePrinting].settings
+    val a :: b :: c :: Nil = Settings[CustomTypePrinting].settings
     assert(a.tpe == "number")
     assert(b.tpe == "(number)")
     assert(c.tpe == "[String ...]")

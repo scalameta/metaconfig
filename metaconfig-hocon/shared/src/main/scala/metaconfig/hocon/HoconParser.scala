@@ -72,12 +72,14 @@ object HoconParser {
       .rep(min = 1)
       .! // .log() // .log() // .log() // .log() // .log() // .log() // .log() // .log()
       .rep(min = 1, sep = CharsWhile(_.isSpaceChar))
-      .!)
+      .!
+  )
   val string = P(nlspace) ~
     P(
       quotedString |
         unquotedString |
-        CharsWhile(_.isSpaceChar).!) // bit of an hack: this would parse whitespace to the end of line
+        CharsWhile(_.isSpaceChar).!
+    ) // bit of an hack: this would parse whitespace to the end of line
       .rep(min = 1)
       .map(_.mkString.trim) // so we will trim the remaining right-side
       .map(Conf.Str)
@@ -97,10 +99,12 @@ object HoconParser {
   val pair: P[(String, Conf)] = P(
     string.map(_.value) ~/ space ~
       ((keyValueSeparator ~/ jsonExpr)
-        | (repeatedObj ~ space)))
+        | (repeatedObj ~ space))
+  )
 
   val array: P[Seq[Conf]] = P(
-    "[" ~/ jsonExpr.rep(sep = itemSeparator) ~ nlspace ~ "]")
+    "[" ~/ jsonExpr.rep(sep = itemSeparator) ~ nlspace ~ "]"
+  )
 
   val repeatedLst: P[Conf.Lst] =
     array
@@ -108,7 +112,8 @@ object HoconParser {
       .map((arrays: Seq[Seq[Conf]]) => Conf.Lst(arrays.flatten.toList))
 
   val jsonExpr: P[Conf] = P(
-    space ~ (repeatedObj | repeatedLst | string) ~ space) // .log()
+    space ~ (repeatedObj | repeatedLst | string) ~ space
+  ) // .log()
 
   val root: Parser[Obj, Char, String] =
     P((&(space ~ "{") ~/ obj) | objBody ~ End).map(x => Conf.Obj(x.toList))

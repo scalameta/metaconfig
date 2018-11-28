@@ -37,7 +37,8 @@ class SettingsSuite extends FunSuite {
       s1.deprecatedNames ==
         List(
           DeprecatedName("deprecatedName", "Use x instead", "2.0"),
-          DeprecatedName("deprecatedName2", "Use y instead", "3.0"))
+          DeprecatedName("deprecatedName2", "Use y instead", "3.0")
+        )
     )
   }
 

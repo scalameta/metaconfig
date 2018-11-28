@@ -14,9 +14,11 @@ import metaconfig.Configured.Ok
 object CanBuildFromDecoder {
   def map[A](
       implicit ev: ConfDecoder[A],
-      classTag: ClassTag[A]): ConfDecoder[Map[String, A]] =
+      classTag: ClassTag[A]
+  ): ConfDecoder[Map[String, A]] =
     ConfDecoder.instanceExpect[Map[String, A]](
-      s"Map[String, ${classTag.runtimeClass.getName}]") {
+      s"Map[String, ${classTag.runtimeClass.getName}]"
+    ) {
       case Conf.Obj(values) =>
         val results = values.map {
           case (key, value) => ev.read(value).map(key -> _)
@@ -30,7 +32,8 @@ object CanBuildFromDecoder {
   def list[C[_], A](
       implicit ev: ConfDecoder[A],
       cbf: CanBuildFrom[Nothing, A, C[A]],
-      classTag: ClassTag[A]): ConfDecoder[C[A]] =
+      classTag: ClassTag[A]
+  ): ConfDecoder[C[A]] =
     new ConfDecoder[C[A]] {
       override def read(conf: Conf): Configured[C[A]] = conf match {
         case Conf.Lst(values) =>

@@ -48,7 +48,8 @@ object ConfEncoder {
     }
 
   implicit def IterableEncoder[A, C[x] <: Iterable[x]](
-      implicit ev: ConfEncoder[A]): ConfEncoder[C[A]] =
+      implicit ev: ConfEncoder[A]
+  ): ConfEncoder[C[A]] =
     new ConfEncoder[C[A]] {
       override def write(value: C[A]): Conf = {
         Conf.Lst(value.iterator.map(ev.write).toList)
@@ -57,7 +58,8 @@ object ConfEncoder {
 
   @deprecated("Use IterableEncoder instead", "0.8.1")
   protected[metaconfig] implicit def SeqEncoder[A, C[x] <: Seq[x]](
-      implicit ev: ConfEncoder[A]): ConfEncoder[C[A]] =
+      implicit ev: ConfEncoder[A]
+  ): ConfEncoder[C[A]] =
     new ConfEncoder[C[A]] {
       override def write(value: C[A]): Conf = {
         Conf.Lst(value.iterator.map(ev.write).toList)
@@ -65,7 +67,8 @@ object ConfEncoder {
     }
 
   implicit def OptionEncoder[A](
-      implicit ev: ConfEncoder[A]): ConfEncoder[Option[A]] =
+      implicit ev: ConfEncoder[A]
+  ): ConfEncoder[Option[A]] =
     new ConfEncoder[Option[A]] {
       override def write(value: Option[A]): Conf = {
         if (value.isDefined) ev.write(value.get)
@@ -74,7 +77,8 @@ object ConfEncoder {
     }
 
   implicit def MapEncoder[A](
-      implicit ev: ConfEncoder[A]): ConfEncoder[Map[String, A]] =
+      implicit ev: ConfEncoder[A]
+  ): ConfEncoder[Map[String, A]] =
     new ConfEncoder[Map[String, A]] {
       override def write(value: Map[String, A]): Conf = {
         Conf.Obj(value.mapValues(ev.write).toList)
