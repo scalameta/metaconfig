@@ -29,8 +29,9 @@ lazy val testSettings = List(
   testOptions.in(Test) +=
     Tests.Argument(TestFrameworks.ScalaCheck, "-verbosity", "2"),
   libraryDependencies ++= List(
-    "org.scalatest" %%% "scalatest" % "3.0.5" % Test,
-    "org.scalacheck" %%% "scalacheck" % "1.14.0" % Test,
+    "org.scalameta" %% "testkit" % "4.1.0" % Test,
+    "org.scalatest" %%% "scalatest" % "3.2.0-SNAP10" % Test,
+    "org.scalacheck" %% "scalacheck" % "1.13.5" % Test,
     "com.github.alexarchambault" %%% "scalacheck-shapeless_1.13" % "1.1.6" % Test
   )
 )
@@ -52,8 +53,7 @@ lazy val json = project
     testSettings,
     moduleName := "metaconfig-json",
     libraryDependencies ++= List(
-      "com.lihaoyi" %%% "ujson" % "0.6.5",
-      "org.scalameta" %% "testkit" % "4.0.0-M11" % Test
+      "com.lihaoyi" %%% "ujson" % "0.6.5"
     )
   )
   .dependsOn(coreJVM)
@@ -109,8 +109,7 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
         organization.value % s"${moduleName.value}_$binaryVersion" % previousArtifactVersion
       )
     },
-    mimaBinaryIssueFilters ++= Mima.ignoredABIProblems,
-    libraryDependencies += "org.scalameta" %% "testkit" % "3.7.3" % Test
+    mimaBinaryIssueFilters ++= Mima.ignoredABIProblems
   )
 lazy val coreJVM = core.jvm
 lazy val coreJS = core.js

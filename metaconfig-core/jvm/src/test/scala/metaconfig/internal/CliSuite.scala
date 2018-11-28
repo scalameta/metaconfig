@@ -6,9 +6,11 @@ import org.scalatest.FunSuite
 
 class CliSuite extends FunSuite with DiffAssertions {
   test("help") {
-    val obtained =
-      Settings[Options].toCliHelp(default = Options(cwd = "/tmp"), width = 120)
-    println(obtained)
+    val obtained = Settings[Options]
+      .toCliHelp(default = Options(cwd = "/tmp"), width = 120)
+      .linesIterator
+      .map(_.trim)
+      .mkString("\n")
     val expected =
       """
         |--in: String = "docs"                                  The input directory to generate the fox site.
