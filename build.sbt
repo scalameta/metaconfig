@@ -1,12 +1,11 @@
 import java.util.Date
 import sbtcrossproject.{crossProject, CrossType}
-lazy val ScalaVersions = Seq("2.11.12", "2.12.7")
-def customVersion = sys.props.get("metaconfig.version")
+lazy val ScalaVersions = Seq("2.12.7", "2.11.12")
 inThisBuild(
   List(
     organization := "com.geirsson",
     version ~= { old =>
-      customVersion.getOrElse(old).replace('+', '-')
+      old.replace('+', '-')
     },
     licenses := Seq(
       "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")
@@ -40,7 +39,7 @@ skip.in(publish) := true
 
 lazy val docs = project
   .settings(
-    skip.in(publish) := true,
+    moduleName := "metaconfig-docs",
     libraryDependencies ++= List(
       "com.lihaoyi" %% "scalatags" % "0.6.7"
     )
