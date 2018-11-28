@@ -62,7 +62,8 @@ class BaseCliParserSuite extends FunSuite with DiffAssertions {
   def check(
       name: String,
       args: List[String],
-      expectedOptions: Options): Unit = {
+      expectedOptions: Options
+  ): Unit = {
     test(name) {
       val conf = Conf.parseCliArgs[Options](args).get
       val obtainedOptions = ConfDecoder[Options].read(conf).get
@@ -157,7 +158,8 @@ class CliParserSuite extends BaseCliParserSuite {
         custom = Map(
           "key1" -> "value1",
           "key2" -> "value2"
-        ))
+        )
+      )
     )
   )
 
@@ -172,7 +174,8 @@ class CliParserSuite extends BaseCliParserSuite {
         custom = Map(
           "bar" -> "buz",
           "explicit" -> "boom"
-        ))
+        )
+      )
     )
   )
 
@@ -192,6 +195,23 @@ class CliParserSuite extends BaseCliParserSuite {
     "conf2",
     "--conf.foo.bar" :: "qux" :: Nil,
     Options(conf = Conf.Obj("foo" -> Conf.Obj("bar" -> Conf.Str("qux"))))
+  )
+
+  check(
+    "version",
+    "--conf.VERSION" :: "1.0" :: Nil,
+    Options(conf = Conf.Obj("VERSION" -> Conf.Str("1.0")))
+  )
+
+  check(
+    "true",
+    "--conf.x.y" :: "true" :: "--conf.z" :: "1.0" :: Nil,
+    Options(
+      conf = Conf.Obj(
+        "x" -> Conf.Obj("y" -> Conf.Str("true")),
+        "z" -> Conf.Str("1.0")
+      )
+    )
   )
 
 }

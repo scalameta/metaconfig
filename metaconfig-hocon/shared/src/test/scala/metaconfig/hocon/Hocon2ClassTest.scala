@@ -31,14 +31,14 @@ class Hocon2ClassTest extends FunSuite {
       |a = 2
       |a.b = 3
     """.stripMargin,
-    Obj("a" -> Obj("b" -> Num(3)))
+    Obj("a" -> Obj("b" -> Str("3")))
   )
   check(
     """
       |a = [1]
       |a = [2]
     """.stripMargin,
-    Obj("a" -> Lst(Num(2)))
+    Obj("a" -> Lst(Str("2")))
   )
 
   test("field 'a' is overwritten") {
