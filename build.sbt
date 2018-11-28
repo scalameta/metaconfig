@@ -1,4 +1,5 @@
 import java.util.Date
+import sbtcrossproject.{crossProject, CrossType}
 
 lazy val ScalaVersions = Seq("2.11.12", "2.12.7")
 
@@ -8,14 +9,6 @@ version in ThisBuild ~= { old =>
 }
 allSettings
 noPublish
-
-commands += Command.command("release") { s =>
-  "clean" ::
-    "sonatypeOpen metaconfig-release" ::
-    "very publishSigned" ::
-    "sonatypeReleaseAll" ::
-    s
-}
 
 lazy val `metaconfig-docs` = project
   .settings(
@@ -103,7 +96,7 @@ lazy val publishSettings = Seq(
 
 lazy val allSettings = baseSettings ++ publishSettings
 
-lazy val `metaconfig-core` = crossProject
+lazy val `metaconfig-core` = crossProject(JVMPlatform, JSPlatform)
   .settings(
     allSettings,
     // Position/Input
@@ -141,7 +134,7 @@ lazy val `metaconfig-typesafe-config` = project
   )
   .dependsOn(`metaconfig-coreJVM` % "test->test;compile->compile")
 
-lazy val `metaconfig-hocon` = crossProject
+lazy val `metaconfig-hocon` = crossProject(JVMPlatform, JSPlatform)
   .settings(
     allSettings,
     libraryDependencies ++= Seq(
