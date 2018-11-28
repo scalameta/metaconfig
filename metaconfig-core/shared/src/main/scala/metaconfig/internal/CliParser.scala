@@ -8,8 +8,9 @@ import metaconfig.annotation.Inline
 
 object CliParser {
 
-  def parseArgs[T](args: List[String])(
-      implicit settings: Settings[T]): Configured[Conf] = {
+  def parseArgs[T](
+      args: List[String]
+  )(implicit settings: Settings[T]): Configured[Conf] = {
     val toInline: Map[String, Setting] =
       settings.settings.iterator.flatMap { setting =>
         if (setting.annotations.exists(_.isInstanceOf[Inline])) {
@@ -24,7 +25,8 @@ object CliParser {
     def loop(
         curr: Conf.Obj,
         xs: List[String],
-        s: State): Configured[Conf.Obj] = {
+        s: State
+    ): Configured[Conf.Obj] = {
       def add(key: String, value: Conf): Conf.Obj = {
         val values = curr.values.filterNot {
           case (k, _) => k == key
@@ -68,7 +70,7 @@ object CliParser {
             ok(add("remainingArgs", Conf.fromList(xs.map(Conf.fromString))))
           }
         case (head :: tail, Flag(flag, setting)) =>
-          val value = Conf.fromNumberOrString(head)
+          val value = Conf.fromString(head)
           val newCurr =
             if (setting.isRepeated) {
               curr.map.get(flag) match {

@@ -24,13 +24,16 @@ sealed abstract class Conf extends Product with Serializable {
   def as[T](implicit ev: ConfDecoder[T]): Configured[T] =
     ev.read(this)
   def getSettingOrElse[T](setting: Setting, default: T)(
-      implicit ev: ConfDecoder[T]): Configured[T] =
+      implicit ev: ConfDecoder[T]
+  ): Configured[T] =
     ConfGet.getOrElse(this, default, setting.name, setting.alternativeNames: _*)
   def get[T](path: String, extraNames: String*)(
-      implicit ev: ConfDecoder[T]): Configured[T] =
+      implicit ev: ConfDecoder[T]
+  ): Configured[T] =
     ConfGet.get(this, path, extraNames: _*)
-  def getOrElse[T](path: String, extraNames: String*)(default: T)(
-      implicit ev: ConfDecoder[T]): Configured[T] =
+  def getOrElse[T](path: String, extraNames: String*)(
+      default: T
+  )(implicit ev: ConfDecoder[T]): Configured[T] =
     ConfGet.getOrElse(this, default, path, extraNames: _*)
 }
 
@@ -44,20 +47,25 @@ object Conf {
     Try(fromBigDecimal(BigDecimal(str.toDouble))).getOrElse(fromString(str))
   def fromString(str: String): Conf = Conf.Str(str)
 
-  def parseCliArgs[T](args: List[String])(
-      implicit settings: Settings[T]): Configured[Conf] =
+  def parseCliArgs[T](
+      args: List[String]
+  )(implicit settings: Settings[T]): Configured[Conf] =
     CliParser.parseArgs[T](args)
-  def parseFile(file: File)(
-      implicit parser: MetaconfigParser): Configured[Conf] =
+  def parseFile(
+      file: File
+  )(implicit parser: MetaconfigParser): Configured[Conf] =
     parseInput(Input.File(file))
-  def parseString(string: String)(
-      implicit parser: MetaconfigParser): Configured[Conf] =
+  def parseString(
+      string: String
+  )(implicit parser: MetaconfigParser): Configured[Conf] =
     parseInput(Input.String(string))
   def parseString(filename: String, string: String)(
-      implicit parser: MetaconfigParser): Configured[Conf] =
+      implicit parser: MetaconfigParser
+  ): Configured[Conf] =
     parseInput(Input.VirtualFile(filename, string))
-  def parseInput(input: Input)(
-      implicit parser: MetaconfigParser): Configured[Conf] =
+  def parseInput(
+      input: Input
+  )(implicit parser: MetaconfigParser): Configured[Conf] =
     parser.fromInput(input)
 
   /** Pretty-print this value as a HOCON string. */
@@ -95,7 +103,8 @@ object Conf {
         case (k, v) => k -> f(v)
       })
     def getOption[T](path: String, extraNames: String*)(
-        implicit ev: ConfDecoder[T]): Configured[Option[T]] =
+        implicit ev: ConfDecoder[T]
+    ): Configured[Option[T]] =
       ConfGet
         .getKey(this, path +: extraNames)
         .map(
@@ -170,7 +179,8 @@ object ConfOps {
       num: Num => Num = identity,
       bool: Bool => Bool = identity,
       lst: Lst => Lst = identity,
-      obj: Obj => Obj = identity): Conf = conf match {
+      obj: Obj => Obj = identity
+  ): Conf = conf match {
     case x @ Str(_) => str(x)
     case x @ Bool(_) => bool(x)
     case x @ Num(_) => num(x)
@@ -205,15 +215,7 @@ object ConfOps {
     def expandKeys(conf: Conf): Conf = conf match {
       case Conf.Num(_) => conf
       case Conf.Bool(_) => conf
-      case Conf.Str(str) =>
-        str match {
-          // TODO: come up with something more elegant, this makes it impossible to
-          // use true/false/on/off/yes/no as string values
-          case "true" | "on" | "yes" => Bool(true)
-          case "false" | "off" | "no" => Bool(false)
-          case Number(n) => Num(n)
-          case _ => conf
-        }
+      case Conf.Str(_) => conf
       case Conf.Null() => conf
       case Conf.Lst(values) => Conf.Lst(values.map(normalize))
       case Conf.Obj(values) =>
