@@ -72,7 +72,6 @@ lazy val website = project
     siteSourceDirectory := target.in(GitBook).value,
     makeSite := makeSite.dependsOn(tut, compile.in(Compile)).value,
     ghpagesPushSite := ghpagesPushSite.dependsOn(makeSite).value,
-    publish := ghpagesPushSite.value,
     git.remoteRepo := "git@github.com:olafurpg/metaconfig.git"
   )
   .enablePlugins(
