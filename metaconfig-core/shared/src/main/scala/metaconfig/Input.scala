@@ -76,8 +76,8 @@ object Input {
 
   final case class VirtualFile(
       override val path: Predef.String,
-      override val text: Predef.String)
-      extends Input(path, text) {
+      override val text: Predef.String
+  ) extends Input(path, text) {
     override def toString = s"""Input.VirtualFile("$path", "...")"""
   }
 

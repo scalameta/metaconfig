@@ -1,4 +1,5 @@
 import java.util.Date
+import sbtcrossproject.{crossProject, CrossType}
 
 lazy val ScalaVersions = Seq("2.11.12", "2.12.7")
 
@@ -8,14 +9,6 @@ version in ThisBuild ~= { old =>
 }
 allSettings
 noPublish
-
-commands += Command.command("release") { s =>
-  "clean" ::
-    "sonatypeOpen metaconfig-release" ::
-    "very publishSigned" ::
-    "sonatypeReleaseAll" ::
-    s
-}
 
 lazy val `metaconfig-docs` = project
   .settings(
@@ -79,10 +72,12 @@ lazy val baseSettings = Seq(
 
 lazy val publishSettings = Seq(
   publishTo := Some(
-    "releases" at "https://oss.sonatype.org/service/local/staging/deploy/maven2"),
+    "releases" at "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+  ),
   publishArtifact in Test := false,
   licenses := Seq(
-    "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+    "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")
+  ),
   homepage := Some(url("https://github.com/olafurpg/metaconfig")),
   autoAPIMappings := true,
   apiURL := Some(url("https://github.com/olafurpg/metaconfig")),
@@ -103,7 +98,7 @@ lazy val publishSettings = Seq(
 
 lazy val allSettings = baseSettings ++ publishSettings
 
-lazy val `metaconfig-core` = crossProject
+lazy val `metaconfig-core` = crossProject(JVMPlatform, JSPlatform)
   .settings(
     allSettings,
     // Position/Input
@@ -141,7 +136,7 @@ lazy val `metaconfig-typesafe-config` = project
   )
   .dependsOn(`metaconfig-coreJVM` % "test->test;compile->compile")
 
-lazy val `metaconfig-hocon` = crossProject
+lazy val `metaconfig-hocon` = crossProject(JVMPlatform, JSPlatform)
   .settings(
     allSettings,
     libraryDependencies ++= Seq(
@@ -175,7 +170,8 @@ inScope(Global)(
         "Sonatype Nexus Repository Manager",
         "oss.sonatype.org",
         username,
-        password)).toSeq,
+        password
+      )).toSeq,
     PgpKeys.pgpPassphrase := sys.env.get("PGP_PASSPHRASE").map(_.toCharArray())
   )
 )

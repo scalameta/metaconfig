@@ -1,10 +1,22 @@
 language: scala
 jdk:
   - oraclejdk8
-  - openjdk11
 sbt_args: "-J-Xmx2G"
-script:
-  - sbt +test
+stages:
+  - name: test
+  - name: release
+    if: (branch = master AND type = push) OR (tag IS present)
+jobs:
+  include:
+    - env: TEST="scalafmt"
+      script: ./scalafmt --test
+    - env: TEST="+test"
+      script: sbt +test
+    - jdk: openjdk11
+      env: TEST="+test"
+      script: sbt +test
+    - stage: release
+      script: sbt ci-release
 
 # Taken from https://github.com/typelevel/cats/blob/master/.travis.yml
 cache:
@@ -15,6 +27,7 @@ cache:
   - $HOME/.sbt/launchers
   - $HOME/.ivy2/cache
   - $HOME/.coursier
+  - $HOME/.cache
   - $HOME/.nvm
 
 before_cache:
@@ -23,5 +36,3 @@ before_cache:
   - find $HOME/.sbt -name "*.lock" -type f -delete
   - find $HOME/.ivy2/cache -name "ivydata-*.properties" -type f -delete
 
-after_success:
-- "./bin/ci-publish.sh"

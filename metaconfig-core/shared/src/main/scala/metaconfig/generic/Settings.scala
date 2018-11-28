@@ -68,8 +68,9 @@ final class Settings[T](val settings: List[Setting]) {
     }
   def unsafeGet(name: String): Setting = get(name).get
   @deprecated("Use ConfEncoder[T].write instead", "0.8.1")
-  def withDefault(default: T)(
-      implicit ev: T <:< Product): List[(Setting, Any)] =
+  def withDefault(
+      default: T
+  )(implicit ev: T <:< Product): List[(Setting, Any)] =
     settings.zip(default.productIterator.toList)
 
   def toCliHelp(default: T)(implicit ev: ConfEncoder[T]): String =

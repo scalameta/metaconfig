@@ -7,8 +7,9 @@ import metaconfig.Configured
 import metaconfig.generic.Settings
 
 object NoTyposDecoder {
-  def apply[A](underlying: ConfDecoder[A])(
-      implicit ev: Settings[A]): ConfDecoder[A] =
+  def apply[A](
+      underlying: ConfDecoder[A]
+  )(implicit ev: Settings[A]): ConfDecoder[A] =
     new ConfDecoder[A] {
       override def read(conf: Conf): Configured[A] = conf match {
         case Conf.Obj(values) =>

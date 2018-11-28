@@ -48,7 +48,8 @@ object Configured {
     ConfError.message(message).notOk
   def exception(
       exception: Throwable,
-      stackSize: Int = 10): Configured[Nothing] =
+      stackSize: Int = 10
+  ): Configured[Nothing] =
     ConfError.exception(exception, stackSize).notOk
   def typeMismatch(expected: String, obtained: Conf): Configured[Nothing] =
     ConfError.typeMismatch(expected, obtained).notOk

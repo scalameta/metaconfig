@@ -11,7 +11,8 @@ object JsonSchema {
       title: String,
       description: String,
       url: Option[String],
-      default: T)(implicit settings: Settings[T]): Js.Obj = {
+      default: T
+  )(implicit settings: Settings[T]): Js.Obj = {
     ConfEncoder[T].write(default) match {
       case obj: Conf.Obj =>
         this.generate[T](title, description, url, obj)
@@ -24,7 +25,8 @@ object JsonSchema {
       title: String,
       description: String,
       url: Option[String],
-      default: Conf.Obj)(implicit settings: Settings[T]): Js.Obj = {
+      default: Conf.Obj
+  )(implicit settings: Settings[T]): Js.Obj = {
 
     val properties: List[(String, Js.Obj)] = settings.settings
       .zip(default.values)

@@ -12,7 +12,8 @@ class JsonConfErrorSuite extends FunSuite {
         val transformable =
           Transformable.fromTransformer[Input](
             Input.VirtualFile(path, original),
-            JsonConfParser)
+            JsonConfParser
+          )
         transformable.transform(Js)
       }
       assert(e.getMessage == expected)

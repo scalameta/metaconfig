@@ -14,7 +14,8 @@ object TypesafeConfig2Class {
       Configured.NotOk(ConfError.fileDoesNotExist(file.getAbsolutePath))
     else if (file.isDirectory)
       Configured.NotOk(
-        ConfError.message(s"File ${file.getAbsolutePath} is a directory"))
+        ConfError.message(s"File ${file.getAbsolutePath} is a directory")
+      )
     else gimmeSafeConf(() => ConfigFactory.parseFile(file))
   }
   def gimmeConf(config: Config): Configured[Conf] =
@@ -38,7 +39,8 @@ object TypesafeConfig2Class {
             case null => Conf.Null()
             case x =>
               throw new IllegalArgumentException(
-                s"Unexpected config value $value with unwrapped value $x")
+                s"Unexpected config value $value with unwrapped value $x"
+              )
           }
       }
       getPositionOpt(value.origin(), cache).fold(conf)(conf.withPos)
@@ -48,18 +50,21 @@ object TypesafeConfig2Class {
     } catch {
       case e: ConfigException.Parse =>
         Configured.NotOk(
-          ConfError.parseError(getPosition(e.origin(), cache), e.getMessage))
+          ConfError.parseError(getPosition(e.origin(), cache), e.getMessage)
+        )
     }
   }
 
   private def getPosition(
       originOrNull: ConfigOrigin,
-      cache: mutable.Map[Input, Array[Int]]): Position =
+      cache: mutable.Map[Input, Array[Int]]
+  ): Position =
     getPositionOpt(originOrNull, cache).getOrElse(Position.None)
 
   private def getPositionOpt(
       originOrNull: ConfigOrigin,
-      cache: mutable.Map[Input, Array[Int]]): Option[Position] =
+      cache: mutable.Map[Input, Array[Int]]
+  ): Option[Position] =
     for {
       origin <- Option(originOrNull)
       url <- Option(origin.url())
@@ -68,7 +73,8 @@ object TypesafeConfig2Class {
       input = Input.File(new java.io.File(url.toURI))
       offsetByLine = cache.getOrElseUpdate(
         input,
-        ConfGet.getOffsetByLine(input.chars))
+        ConfGet.getOffsetByLine(input.chars)
+      )
       if line < offsetByLine.length
       start = offsetByLine(line)
     } yield Position.Range(input, start, start)

@@ -118,7 +118,8 @@ class DeriveConfDecoderSuite extends FunSuite {
   }
 
   def checkOption(conf: Conf, expected: HasOption)(
-      implicit decoder: ConfDecoder[HasOption]): Unit = {
+      implicit decoder: ConfDecoder[HasOption]
+  ): Unit = {
     test("option-" + conf.toString) {
       val obtained = decoder.read(conf).get
       assert(obtained == expected)
@@ -127,6 +128,7 @@ class DeriveConfDecoderSuite extends FunSuite {
   checkOption(Obj("b" -> Num(2)), HasOption(Some(2)))
   checkOption(Obj("a" -> Num(2)), HasOption(None))
   checkOption(Obj("b" -> Null()), HasOption(None))(
-    generic.deriveDecoder[HasOption](HasOption(Some(2))))
+    generic.deriveDecoder[HasOption](HasOption(Some(2)))
+  )
 
 }

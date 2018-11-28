@@ -13,9 +13,9 @@ object Docs {
     td(defaultValue.toString)
   )
 
-  def html[T](default: T)(
-      implicit settings: Settings[T],
-      ev: ConfEncoder[T]): String = {
+  def html[T](
+      default: T
+  )(implicit settings: Settings[T], ev: ConfEncoder[T]): String = {
     val fields = settings.flat(ConfEncoder[T].writeObj(default)).map {
       case (setting, defaultValue) =>
         htmlSetting(setting, defaultValue)
