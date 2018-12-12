@@ -30,7 +30,7 @@ object TypesafeConfig2Class {
         case lst: ConfigList =>
           Conf.Lst(lst.listIterator().asScala.map(loop).toList)
         case _ =>
-          value.unwrapped() match {
+          value.unwrapped match {
             case x: String => Conf.Str(x)
             case x: java.lang.Integer => Conf.Num(BigDecimal(x))
             case x: java.lang.Long => Conf.Num(BigDecimal(x))
@@ -43,14 +43,14 @@ object TypesafeConfig2Class {
               )
           }
       }
-      getPositionOpt(value.origin(), cache).fold(conf)(conf.withPos)
+      getPositionOpt(value.origin, cache).fold(conf)(conf.withPos)
     }
     try {
-      Configured.Ok(loop(config().resolve().root()))
+      Configured.Ok(loop(config().resolve().root))
     } catch {
       case e: ConfigException.Parse =>
         Configured.NotOk(
-          ConfError.parseError(getPosition(e.origin(), cache), e.getMessage)
+          ConfError.parseError(getPosition(e.origin, cache), e.getMessage)
         )
     }
   }
@@ -67,8 +67,8 @@ object TypesafeConfig2Class {
   ): Option[Position] =
     for {
       origin <- Option(originOrNull)
-      url <- Option(origin.url())
-      linePlus1 <- Option(origin.lineNumber())
+      url <- Option(origin.url)
+      linePlus1 <- Option(origin.lineNumber)
       line = linePlus1 - 1
       input = Input.File(new java.io.File(url.toURI))
       offsetByLine = cache.getOrElseUpdate(

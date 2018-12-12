@@ -21,7 +21,8 @@ inThisBuild(
       url("https://geirsson.com")
     ),
     scalaVersion := ScalaVersions.head,
-    crossScalaVersions := ScalaVersions
+    crossScalaVersions := ScalaVersions,
+    resolvers += Resolver.sonatypeRepo("snapshots")
   )
 )
 
@@ -115,7 +116,7 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
 lazy val coreJVM = core.jvm
 lazy val coreJS = core.js
 
-lazy val typesafeConfig = "com.typesafe" % "config" % "1.2.1"
+lazy val typesafeConfig = "org.ekrich" %% "sconfig" % "0.7.0-SNAPSHOT"
 
 lazy val typesafe = project
   .in(file("metaconfig-typesafe-config"))
