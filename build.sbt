@@ -84,7 +84,8 @@ lazy val website = project
   .dependsOn(
     docs,
     json,
-    typesafe
+    typesafe,
+    sconfig
   )
 
 lazy val core = crossProject(JVMPlatform, JSPlatform)
@@ -116,7 +117,7 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
 lazy val coreJVM = core.jvm
 lazy val coreJS = core.js
 
-lazy val typesafeConfig = "org.ekrich" %% "sconfig" % "0.7.0-SNAPSHOT"
+lazy val typesafeConfig = "com.typesafe" % "config" % "1.2.1"
 
 lazy val typesafe = project
   .in(file("metaconfig-typesafe-config"))
@@ -125,6 +126,18 @@ lazy val typesafe = project
     moduleName := "metaconfig-typesafe-config",
     description := "Integration for HOCON using typesafehub/config.",
     libraryDependencies += typesafeConfig
+  )
+  .dependsOn(coreJVM % "test->test;compile->compile")
+
+lazy val sconfigLib = "org.ekrich" %% "sconfig" % "0.7.0"
+
+lazy val sconfig = project
+  .in(file("metaconfig-sconfig"))
+  .settings(
+    testSettings,
+    moduleName := "metaconfig-sconfig",
+    description := "Integration for HOCON using ekrich/sconfig.",
+    libraryDependencies += sconfigLib
   )
   .dependsOn(coreJVM % "test->test;compile->compile")
 
