@@ -21,7 +21,8 @@ inThisBuild(
       url("https://geirsson.com")
     ),
     scalaVersion := ScalaVersions.head,
-    crossScalaVersions := ScalaVersions
+    crossScalaVersions := ScalaVersions,
+    resolvers += Resolver.sonatypeRepo("snapshots")
   )
 )
 
@@ -83,7 +84,8 @@ lazy val website = project
   .dependsOn(
     docs,
     json,
-    typesafe
+    typesafe,
+    sconfig
   )
 
 lazy val core = crossProject(JVMPlatform, JSPlatform)
@@ -124,6 +126,18 @@ lazy val typesafe = project
     moduleName := "metaconfig-typesafe-config",
     description := "Integration for HOCON using typesafehub/config.",
     libraryDependencies += typesafeConfig
+  )
+  .dependsOn(coreJVM % "test->test;compile->compile")
+
+lazy val sconfigLib = "org.ekrich" %% "sconfig" % "0.7.0"
+
+lazy val sconfig = project
+  .in(file("metaconfig-sconfig"))
+  .settings(
+    testSettings,
+    moduleName := "metaconfig-sconfig",
+    description := "Integration for HOCON using ekrich/sconfig.",
+    libraryDependencies += sconfigLib
   )
   .dependsOn(coreJVM % "test->test;compile->compile")
 

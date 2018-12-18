@@ -1,12 +1,12 @@
 package metaconfig
-package typesafeconfig
+package sconfig
 
-import com.typesafe.config._
+import org.ekrich.config._
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import metaconfig.internal.ConfGet
 
-object TypesafeConfig2Class {
+object SConfig2Class {
   def gimmeConfFromString(string: String): Configured[Conf] =
     gimmeSafeConf(() => ConfigFactory.parseString(string))
   def gimmeConfFromFile(file: java.io.File): Configured[Conf] = {
