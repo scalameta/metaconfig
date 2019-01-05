@@ -81,17 +81,21 @@ object Input {
     override def toString = s"""Input.VirtualFile("$path", "...")"""
   }
 
-  final case class File(file: Path, charset: Charset)
+  final case class File(file: Path, charset: Charset, contents: Predef.String)
       extends Input(
         file.toString,
-        new Predef.String(Files.readAllBytes(file), charset.name)
+        contents
       )
   object File {
     def apply(file: java.io.File): Input = {
-      Input.File(file.toPath, StandardCharsets.UTF_8)
+      Input.File(file.toPath)
     }
     def apply(path: Path): Input = {
-      Input.File(path, StandardCharsets.UTF_8)
+      Input.File(
+        path,
+        StandardCharsets.UTF_8,
+        new Predef.String(Files.readAllBytes(path), StandardCharsets.UTF_8)
+      )
     }
   }
 
