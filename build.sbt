@@ -1,6 +1,10 @@
 import java.util.Date
-import sbtcrossproject.{crossProject, CrossType}
-lazy val ScalaVersions = Seq("2.11.12", "2.12.7")
+//import sbtcrossproject.{crossProject, CrossType}
+// shadow sbt-scalajs' crossProject and CrossType until Scala.js 1.0.0 is released
+import sbtcrossproject.CrossPlugin.autoImport.crossProject
+val scala211      = "2.11.12"
+val scala212      = "2.12.8"
+lazy val ScalaVersions = List(scala211, scala212)
 def customVersion = sys.props.get("metaconfig.version")
 inThisBuild(
   List(
@@ -30,9 +34,10 @@ lazy val testSettings = List(
   testOptions.in(Test) +=
     Tests.Argument(TestFrameworks.ScalaCheck, "-verbosity", "2"),
   libraryDependencies ++= List(
-    "org.scalatest" %%% "scalatest" % "3.0.5" % Test,
-    "org.scalacheck" %%% "scalacheck" % "1.14.0" % Test,
-    "com.github.alexarchambault" %%% "scalacheck-shapeless_1.13" % "1.1.6" % Test
+    "org.scalatest" %%% "scalatest" % "3.2.0-SNAP10" % Test,
+    //"org.scalacheck" %%% "scalacheck" % "1.14.0" % Test,
+    "com.github.lolgab" %%% "scalacheck" % "1.14.1" % Test, // scala native but no js
+    "com.github.alexarchambault" %%% "scalacheck-shapeless_1.14" % "1.2.0" % Test
   )
 )
 
@@ -85,21 +90,21 @@ lazy val website = project
     docs,
     json,
     typesafe,
-    sconfig
+    sconfigJVM
   )
 
-lazy val core = crossProject(JVMPlatform, JSPlatform)
+lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .in(file("metaconfig-core"))
   .settings(
-    testSettings,
     moduleName := "metaconfig-core",
     libraryDependencies ++= List(
       "com.lihaoyi" %%% "pprint" % "0.5.3",
-      "org.typelevel" %%% "paiges-core" % "0.2.0",
+      "org.typelevel" %%% "paiges-core" % "0.2.1",
       scalaOrganization.value % "scala-reflect" % scalaVersion.value % Provided
     )
   )
   .jvmSettings(
+    testSettings,
     mimaPreviousArtifacts := {
       // TODO(olafur) enable mima check in CI after 0.6.0 release.
       val previousArtifactVersion = "0.6.0"
@@ -113,9 +118,14 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
     },
     mimaBinaryIssueFilters ++= Mima.ignoredABIProblems,
     libraryDependencies += "org.scalameta" %% "testkit" % "3.7.3" % Test
+  ).nativeSettings(
+    nativeLinkStubs := true,
+    scalaVersion := scala211,
+    crossScalaVersions := List(scala211)
   )
 lazy val coreJVM = core.jvm
 lazy val coreJS = core.js
+lazy val coreNative = core.native
 
 lazy val typesafeConfig = "com.typesafe" % "config" % "1.2.1"
 
@@ -129,17 +139,18 @@ lazy val typesafe = project
   )
   .dependsOn(coreJVM % "test->test;compile->compile")
 
-lazy val sconfigLib = "org.ekrich" %% "sconfig" % "0.7.0"
+lazy val sconfigLib = "org.ekrich" %% "sconfig" % "0.8.0-SNAPSHOT"
 
-lazy val sconfig = project
+lazy val sconfig = crossProject(JVMPlatform, NativePlatform)
   .in(file("metaconfig-sconfig"))
   .settings(
     testSettings,
     moduleName := "metaconfig-sconfig",
     description := "Integration for HOCON using ekrich/sconfig.",
     libraryDependencies += sconfigLib
-  )
-  .dependsOn(coreJVM % "test->test;compile->compile")
+  ).dependsOn(core  % "test->test;compile->compile")
+lazy val sconfigJVM = sconfig.jvm
+lazy val sconfigNative = sconfig.native
 
 lazy val hocon = crossProject(JVMPlatform, JSPlatform)
   .in(file("metaconfig-hocon"))
