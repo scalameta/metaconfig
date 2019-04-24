@@ -1,6 +1,8 @@
 import java.util.Date
-import sbtcrossproject.{crossProject, CrossType}
-lazy val ScalaVersions = Seq("2.12.7", "2.11.12")
+import sbtcrossproject.CrossPlugin.autoImport.crossProject
+val scala211 = "2.11.12"
+val scala212 = "2.12.8"
+val ScalaVersions = List(scala211, scala212)
 inThisBuild(
   List(
     organization := "com.geirsson",
@@ -28,11 +30,26 @@ inThisBuild(
 lazy val testSettings = List(
   testOptions.in(Test) +=
     Tests.Argument(TestFrameworks.ScalaCheck, "-verbosity", "2"),
-  libraryDependencies ++= List(
-    "org.scalatest" %%% "scalatest" % "3.0.5" % Test,
-    "org.scalacheck" %%% "scalacheck" % "1.14.0" % Test,
-    "com.github.alexarchambault" %%% "scalacheck-shapeless_1.13" % "1.1.6" % Test
-  )
+  libraryDependencies ++= {
+    if (SettingKey[Boolean]("nativeLinkStubs").?.value.contains(true))
+      List(
+        "org.scalatest" %%% "scalatest" % "3.2.0-SNAP10" % Test,
+        "com.github.lolgab" %%% "scalacheck" % "1.14.1" % Test
+      )
+    else
+      List(
+        "org.scalatest" %%% "scalatest" % "3.0.5" % Test,
+        "org.scalacheck" %%% "scalacheck" % "1.14.0" % Test,
+        "com.github.alexarchambault" %%% "scalacheck-shapeless_1.13" % "1.1.6" % Test
+      )
+  }
+)
+
+lazy val nativeSettings = List(
+  nativeLinkStubs := true,
+  scalaVersion := scala211,
+  crossScalaVersions := List(scala211),
+  test.in(Test) := {}
 )
 
 skip.in(publish) := true
@@ -60,6 +77,7 @@ lazy val json = project
 
 lazy val website = project
   .settings(
+    crossScalaVersions := List(scala212),
     skip.in(publish) := true,
     tutNameFilter := "README.md".r,
     tutSourceDirectory := baseDirectory.in(ThisBuild).value / "docs",
@@ -83,21 +101,21 @@ lazy val website = project
   .dependsOn(
     docs,
     json,
-    typesafe,
-    sconfig
+    typesafe
   )
 
-lazy val core = crossProject(JVMPlatform, JSPlatform)
+lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .in(file("metaconfig-core"))
   .settings(
     testSettings,
     moduleName := "metaconfig-core",
     libraryDependencies ++= List(
       "com.lihaoyi" %%% "pprint" % "0.5.3",
-      "org.typelevel" %%% "paiges-core" % "0.2.0",
+      "org.typelevel" %%% "paiges-core" % "0.2.2",
       scalaOrganization.value % "scala-reflect" % scalaVersion.value % Provided
     )
   )
+  .nativeSettings(nativeSettings)
   .jvmSettings(
     mimaPreviousArtifacts := {
       // TODO(olafur) enable mima check in CI after 0.6.0 release.
@@ -115,6 +133,7 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
   )
 lazy val coreJVM = core.jvm
 lazy val coreJS = core.js
+lazy val coreNative = core.native
 
 lazy val typesafeConfig = "com.typesafe" % "config" % "1.2.1"
 
@@ -128,17 +147,20 @@ lazy val typesafe = project
   )
   .dependsOn(coreJVM % "test->test;compile->compile")
 
-lazy val sconfigLib = "org.ekrich" %% "sconfig" % "0.7.0"
-
-lazy val sconfig = project
+lazy val sconfig = crossProject(JVMPlatform, NativePlatform)
   .in(file("metaconfig-sconfig"))
   .settings(
     testSettings,
     moduleName := "metaconfig-sconfig",
     description := "Integration for HOCON using ekrich/sconfig.",
-    libraryDependencies += sconfigLib
+    libraryDependencies ++= List(
+      "org.ekrich" %%% "sconfig" % "0.8.0"
+    )
   )
-  .dependsOn(coreJVM % "test->test;compile->compile")
+  .nativeSettings(nativeSettings)
+  .dependsOn(core % "test->test;compile->compile")
+lazy val sconfigJVM = sconfig.native
+lazy val sconfigNative = sconfig.native
 
 lazy val hocon = crossProject(JVMPlatform, JSPlatform)
   .in(file("metaconfig-hocon"))
