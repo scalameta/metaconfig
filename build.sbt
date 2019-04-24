@@ -159,7 +159,7 @@ lazy val sconfig = crossProject(JVMPlatform, NativePlatform)
   )
   .nativeSettings(nativeSettings)
   .dependsOn(core % "test->test;compile->compile")
-lazy val sconfigJVM = sconfig.native
+lazy val sconfigJVM = sconfig.jvm
 lazy val sconfigNative = sconfig.native
 
 lazy val hocon = crossProject(JVMPlatform, JSPlatform)
