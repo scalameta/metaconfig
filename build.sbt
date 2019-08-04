@@ -166,22 +166,3 @@ lazy val sconfig = crossProject(JVMPlatform, NativePlatform)
   .dependsOn(core % "test->test;compile->compile")
 lazy val sconfigJVM = sconfig.jvm
 lazy val sconfigNative = sconfig.native
-
-lazy val hocon = crossProject(JVMPlatform, JSPlatform)
-  .in(file("metaconfig-hocon"))
-  .settings(
-    testSettings,
-    moduleName := "metaconfig-hocon",
-    libraryDependencies ++= Seq(
-      "com.lihaoyi" %%% "fastparse" % "0.4.3"
-    ),
-    description := "EXPERIMENTAL Integration for HOCON using custom parser. On JVM, use metaconfig-typesafe-config."
-  )
-  .jvmSettings(
-    libraryDependencies ++= Seq(
-      typesafeConfig % Test
-    )
-  )
-  .dependsOn(core % "test->test;compile->compile")
-lazy val hoconJVM = hocon.jvm
-lazy val hoconJS = hocon.js
