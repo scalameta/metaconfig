@@ -116,7 +116,8 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     moduleName := "metaconfig-core",
     libraryDependencies ++= List(
       "org.typelevel" %%% "paiges-core" % "0.2.4",
-      scalaOrganization.value % "scala-reflect" % scalaVersion.value % Provided
+      "org.scala-lang.modules" %% "scala-collection-compat" % "2.1.1",
+      scalaOrganization.value % "scala-reflect" % scalaVersion.value % Provided,
     ) :+ (CrossVersion.partialVersion(scalaVersion.value) match {
       case Some((2, 11 | 12)) => "com.lihaoyi" %%% "pprint" % "0.5.3"
       case _ => "com.lihaoyi" %%% "pprint" % "0.5.5"
