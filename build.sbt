@@ -58,11 +58,11 @@ skip.in(publish) := true
 lazy val docs = project
   .settings(
     moduleName := "metaconfig-docs",
-    libraryDependencies += (
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, 11 | 12)) => "com.lihaoyi" %% "scalatags" % "0.6.7"
-        case _ => "com.lihaoyi" %% "scalatags" % "0.7.0"
-      })
+    libraryDependencies += (CrossVersion
+      .partialVersion(scalaVersion.value) match {
+      case Some((2, 11 | 12)) => "com.lihaoyi" %% "scalatags" % "0.6.7"
+      case _ => "com.lihaoyi" %% "scalatags" % "0.7.0"
+    })
   )
   .dependsOn(coreJVM)
 
@@ -117,7 +117,7 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     libraryDependencies ++= List(
       "org.typelevel" %%% "paiges-core" % "0.2.4",
       "org.scala-lang.modules" %% "scala-collection-compat" % "2.1.1",
-      scalaOrganization.value % "scala-reflect" % scalaVersion.value % Provided,
+      scalaOrganization.value % "scala-reflect" % scalaVersion.value % Provided
     ) :+ (CrossVersion.partialVersion(scalaVersion.value) match {
       case Some((2, 11 | 12)) => "com.lihaoyi" %%% "pprint" % "0.5.3"
       case _ => "com.lihaoyi" %%% "pprint" % "0.5.5"

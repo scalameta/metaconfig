@@ -77,7 +77,12 @@ final class JsonConfParser[J](input: Input)
     }
   }
 
-  def checkpoint(state: Int, i: Int, stack: List[ObjArrVisitor[_, J]], path: List[Any]): Unit =
+  def checkpoint(
+      state: Int,
+      i: Int,
+      stack: List[ObjArrVisitor[_, J]],
+      path: List[Any]
+  ): Unit =
     ()
 
   def at(i: Int): Char = {
