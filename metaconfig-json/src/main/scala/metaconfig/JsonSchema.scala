@@ -37,7 +37,7 @@ object JsonSchema {
       "title" -> Js.Str(title),
       "description" -> Js.Str(description),
       "type" -> "object",
-      "properties" -> Js.Obj(properties: _*)
+      "properties" -> properties
     )
   }
 
