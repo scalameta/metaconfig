@@ -76,7 +76,7 @@ final class Settings[T](val settings: List[Setting]) {
   def toCliHelp(default: T)(implicit ev: ConfEncoder[T]): String =
     toCliHelp(default, 80)
   def toCliHelp(default: T, width: Int)(implicit ev: ConfEncoder[T]): String =
-    Cli.help[T](default)(ev, this).render(width)
+    Cli.help[T](default)(ev, this).renderTrim(width)
 }
 
 object Settings {

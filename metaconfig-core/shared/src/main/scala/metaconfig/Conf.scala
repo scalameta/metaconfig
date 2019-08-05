@@ -70,7 +70,7 @@ object Conf {
 
   /** Pretty-print this value as a HOCON string. */
   def printHocon[T: ConfEncoder](value: T): String = {
-    HoconPrinter.toHocon(value).render(100)
+    HoconPrinter.toHocon(value).renderTrim(100)
   }
 
   /** Produce a minimal Conf that when merged with original yields revised. **/
