@@ -55,16 +55,16 @@ lazy val nativeSettings = List(
 
 skip.in(publish) := true
 
-lazy val docs = project
-  .settings(
-    moduleName := "metaconfig-docs",
-    libraryDependencies += (CrossVersion
-      .partialVersion(scalaVersion.value) match {
-      case Some((2, 11 | 12)) => "com.lihaoyi" %% "scalatags" % "0.6.7"
-      case _ => "com.lihaoyi" %% "scalatags" % "0.7.0"
-    })
-  )
-  .dependsOn(coreJVM)
+// lazy val docs = project
+//   .settings(
+//     moduleName := "metaconfig-docs",
+//     libraryDependencies += (CrossVersion
+//       .partialVersion(scalaVersion.value) match {
+//       case Some((2, 11 | 12)) => "com.lihaoyi" %% "scalatags" % "0.6.7"
+//       case _ => "com.lihaoyi" %% "scalatags" % "0.7.0"
+//     })
+//   )
+//   .dependsOn(coreJVM)
 
 lazy val json = project
   .in(file("metaconfig-json"))
@@ -80,34 +80,34 @@ lazy val json = project
   )
   .dependsOn(coreJVM)
 
-lazy val website = project
-  .settings(
-    crossScalaVersions := List(scala212),
-    skip.in(publish) := true,
-    tutNameFilter := "README.md".r,
-    tutSourceDirectory := baseDirectory.in(ThisBuild).value / "docs",
-    sourceDirectory.in(Preprocess) := tutTargetDirectory.value,
-    sourceDirectory.in(GitBook) := target.in(Preprocess).value,
-    preprocessVars in Preprocess := Map(
-      "VERSION" -> version.value.replaceAll("-.*", ""),
-      "DATE" -> new Date().toString
-    ),
-    siteSourceDirectory := target.in(GitBook).value,
-    makeSite := makeSite.dependsOn(tut, compile.in(Compile)).value,
-    ghpagesPushSite := ghpagesPushSite.dependsOn(makeSite).value,
-    git.remoteRepo := "git@github.com:olafurpg/metaconfig.git"
-  )
-  .enablePlugins(
-    GhpagesPlugin,
-    PreprocessPlugin,
-    GitBookPlugin,
-    TutPlugin
-  )
-  .dependsOn(
-    docs,
-    json,
-    typesafe
-  )
+// lazy val website = project
+//   .settings(
+//     crossScalaVersions := List(scala212),
+//     skip.in(publish) := true,
+//     tutNameFilter := "README.md".r,
+//     tutSourceDirectory := baseDirectory.in(ThisBuild).value / "docs",
+//     sourceDirectory.in(Preprocess) := tutTargetDirectory.value,
+//     sourceDirectory.in(GitBook) := target.in(Preprocess).value,
+//     preprocessVars in Preprocess := Map(
+//       "VERSION" -> version.value.replaceAll("-.*", ""),
+//       "DATE" -> new Date().toString
+//     ),
+//     siteSourceDirectory := target.in(GitBook).value,
+//     makeSite := makeSite.dependsOn(tut, compile.in(Compile)).value,
+//     ghpagesPushSite := ghpagesPushSite.dependsOn(makeSite).value,
+//     git.remoteRepo := "git@github.com:olafurpg/metaconfig.git"
+//   )
+//   .enablePlugins(
+//     GhpagesPlugin,
+//     PreprocessPlugin,
+//     GitBookPlugin,
+//     TutPlugin
+//   )
+//   .dependsOn(
+//     docs,
+//     json,
+//     typesafe
+//   )
 
 lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .in(file("metaconfig-core"))
