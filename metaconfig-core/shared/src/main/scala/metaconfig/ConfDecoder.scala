@@ -7,7 +7,7 @@ import scala.reflect.ClassTag
 import metaconfig.Configured._
 import metaconfig.Extractors.Number
 import metaconfig.generic.Settings
-import metaconfig.internal.FactoryDecoder
+import metaconfig.internal.CanBuildFromDecoder
 import metaconfig.internal.NoTyposDecoder
 
 trait ConfDecoder[A] { self =>
@@ -109,14 +109,14 @@ object ConfDecoder {
       implicit ev: ConfDecoder[A],
       classTag: ClassTag[A]
   ): ConfDecoder[Map[String, A]] =
-    FactoryDecoder.map[A]
+    CanBuildFromDecoder.map[A]
 
   implicit def canBuildFromConfDecoder[C[_], A](
       implicit ev: ConfDecoder[A],
       factory: Factory[A, C[A]],
       classTag: ClassTag[A]
   ): ConfDecoder[C[A]] =
-    FactoryDecoder.list[C, A]
+    CanBuildFromDecoder.list[C, A]
 
   def orElse[A](a: ConfDecoder[A], b: ConfDecoder[A]): ConfDecoder[A] =
     new ConfDecoder[A] {

@@ -55,17 +55,6 @@ lazy val nativeSettings = List(
 
 skip.in(publish) := true
 
-// lazy val docs = project
-//   .settings(
-//     moduleName := "metaconfig-docs",
-//     libraryDependencies += (CrossVersion
-//       .partialVersion(scalaVersion.value) match {
-//       case Some((2, 11 | 12)) => "com.lihaoyi" %% "scalatags" % "0.6.7"
-//       case _ => "com.lihaoyi" %% "scalatags" % "0.7.0"
-//     })
-//   )
-//   .dependsOn(coreJVM)
-
 lazy val json = project
   .in(file("metaconfig-json"))
   .settings(
@@ -80,36 +69,7 @@ lazy val json = project
   )
   .dependsOn(coreJVM)
 
-// lazy val website = project
-//   .settings(
-//     crossScalaVersions := List(scala212),
-//     skip.in(publish) := true,
-//     tutNameFilter := "README.md".r,
-//     tutSourceDirectory := baseDirectory.in(ThisBuild).value / "docs",
-//     sourceDirectory.in(Preprocess) := tutTargetDirectory.value,
-//     sourceDirectory.in(GitBook) := target.in(Preprocess).value,
-//     preprocessVars in Preprocess := Map(
-//       "VERSION" -> version.value.replaceAll("-.*", ""),
-//       "DATE" -> new Date().toString
-//     ),
-//     siteSourceDirectory := target.in(GitBook).value,
-//     makeSite := makeSite.dependsOn(tut, compile.in(Compile)).value,
-//     ghpagesPushSite := ghpagesPushSite.dependsOn(makeSite).value,
-//     git.remoteRepo := "git@github.com:olafurpg/metaconfig.git"
-//   )
-//   .enablePlugins(
-//     GhpagesPlugin,
-//     PreprocessPlugin,
-//     GitBookPlugin,
-//     TutPlugin
-//   )
-//   .dependsOn(
-//     docs,
-//     json,
-//     typesafe
-//   )
-
-lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
+lazy val core = crossProject(JVMPlatform, JSPlatform)
   .in(file("metaconfig-core"))
   .settings(
     testSettings,
@@ -123,11 +83,10 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
       case _ => "com.lihaoyi" %%% "pprint" % "0.5.5"
     })
   )
-  .nativeSettings(nativeSettings)
+  // .nativeSettings(nativeSettings)
   .jvmSettings(
     mimaPreviousArtifacts := {
-      // TODO(olafur) enable mima check in CI after 0.6.0 release.
-      val previousArtifactVersion = "0.6.0"
+      val previousArtifactVersion = "0.9.0"
       val binaryVersion =
         if (crossVersion.value.isInstanceOf[CrossVersion.Full])
           scalaVersion.value
@@ -141,7 +100,7 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   )
 lazy val coreJVM = core.jvm
 lazy val coreJS = core.js
-lazy val coreNative = core.native
+// lazy val coreNative = core.native
 
 lazy val typesafeConfig = "com.typesafe" % "config" % "1.2.1"
 
@@ -155,7 +114,7 @@ lazy val typesafe = project
   )
   .dependsOn(coreJVM % "test->test;compile->compile")
 
-lazy val sconfig = crossProject(JVMPlatform, NativePlatform)
+lazy val sconfig = crossProject(JVMPlatform)
   .in(file("metaconfig-sconfig"))
   .settings(
     testSettings,
@@ -165,7 +124,7 @@ lazy val sconfig = crossProject(JVMPlatform, NativePlatform)
       "org.ekrich" %%% "sconfig" % "1.0.0"
     )
   )
-  .nativeSettings(nativeSettings)
+  // .nativeSettings(nativeSettings)
   .dependsOn(core % "test->test;compile->compile")
 lazy val sconfigJVM = sconfig.jvm
-lazy val sconfigNative = sconfig.native
+// lazy val sconfigNative = sconfig.native

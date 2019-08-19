@@ -11,7 +11,7 @@ import metaconfig.Configured
 import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok
 
-object FactoryDecoder {
+object CanBuildFromDecoder {
   def map[A](
       implicit ev: ConfDecoder[A],
       classTag: ClassTag[A]
