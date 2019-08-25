@@ -6,6 +6,7 @@ val scala213 = "2.13.0"
 val ScalaVersions = List(scala211, scala212, scala213)
 inThisBuild(
   List(
+    scalaVersion := scala212,
     organization := "com.geirsson",
     version ~= { old =>
       old.replace('+', '-')

@@ -13,7 +13,7 @@ jobs:
     - env: TEST="+test"
       script: sbt +test
     - env: TEST="mima"
-      script: sbt +2.12.8 mimaReportBinaryIssues
+      script: sbt ++2.12.8 mimaReportBinaryIssues
     - jdk: openjdk11
       env: TEST="+test"
       script: sbt +test
