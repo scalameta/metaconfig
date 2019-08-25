@@ -92,10 +92,10 @@ Conf.parseFile(new java.io.File(".scalafmt.conf"))
 ```
 
 Note. The example above is JVM-only. For a Scala.js alternative, depend on the
-`metaconfig-hocon` module and replace `metaconfig.typesafeconfig` with
+`metaconfig-sconfig` module and replace `metaconfig.typesafeconfig` with
 
 ```scala
-import metaconfig.hocon._
+import metaconfig.sconfig._
 ```
 
 ## Conf.printHocon

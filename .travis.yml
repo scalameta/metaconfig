@@ -1,6 +1,6 @@
 language: scala
 jdk:
-  - oraclejdk8
+  - openjdk8
 sbt_args: "-J-Xmx2G"
 stages:
   - name: test
@@ -12,6 +12,8 @@ jobs:
       script: ./scalafmt --test
     - env: TEST="+test"
       script: sbt +test
+    - env: TEST="mima"
+      script: sbt ++2.12.8 mimaReportBinaryIssues
     - jdk: openjdk11
       env: TEST="+test"
       script: sbt +test

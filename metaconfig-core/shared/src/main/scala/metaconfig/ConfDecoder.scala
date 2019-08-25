@@ -2,7 +2,7 @@ package metaconfig
 
 import scala.language.experimental.macros
 import scala.language.higherKinds
-import scala.collection.generic.CanBuildFrom
+import scala.collection.compat._
 import scala.reflect.ClassTag
 import metaconfig.Configured._
 import metaconfig.Extractors.Number
@@ -113,7 +113,7 @@ object ConfDecoder {
 
   implicit def canBuildFromConfDecoder[C[_], A](
       implicit ev: ConfDecoder[A],
-      cbf: CanBuildFrom[Nothing, A, C[A]],
+      factory: Factory[A, C[A]],
       classTag: ClassTag[A]
   ): ConfDecoder[C[A]] =
     CanBuildFromDecoder.list[C, A]

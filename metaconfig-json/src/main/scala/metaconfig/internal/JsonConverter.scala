@@ -2,15 +2,13 @@ package metaconfig.internal
 
 import metaconfig.Conf
 import metaconfig.Input
-import ujson.Js
-import ujson.Transformable
+import ujson._
 
 object JsonConverter {
 
   def fromInput(input: Input): Js = {
-    val transformable =
-      Transformable.fromTransformer(input, JsonConfParser)
-    val js = transformable.transform(Js)
+    val readable = Readable.fromTransformer(input, JsonConfParser)
+    val js = readable.transform(Js)
     js
   }
 
@@ -31,11 +29,10 @@ object JsonConverter {
       Conf.Null()
   }
 
+  import Js.Obj._
   def toJson(conf: Conf): Js.Value = conf match {
     case Conf.Obj(values) =>
-      Js.Obj(values.map {
-        case (k, v) => k -> toJson(v)
-      }: _*)
+      values.map { case (k, v) => k -> toJson(v) }
     case Conf.Lst(values) =>
       Js.Arr(values.map(toJson): _*)
     case Conf.Null() =>

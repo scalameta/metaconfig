@@ -2,7 +2,7 @@ package metaconfig.internal
 
 import scala.language.higherKinds
 
-import scala.collection.generic.CanBuildFrom
+import scala.collection.compat._
 import scala.reflect.ClassTag
 import metaconfig.Conf
 import metaconfig.ConfDecoder
@@ -31,13 +31,13 @@ object CanBuildFromDecoder {
     }
   def list[C[_], A](
       implicit ev: ConfDecoder[A],
-      cbf: CanBuildFrom[Nothing, A, C[A]],
+      factory: Factory[A, C[A]],
       classTag: ClassTag[A]
   ): ConfDecoder[C[A]] =
     new ConfDecoder[C[A]] {
       override def read(conf: Conf): Configured[C[A]] = conf match {
         case Conf.Lst(values) =>
-          val successB = cbf()
+          val successB = factory.newBuilder
           val errorB = List.newBuilder[ConfError]
           successB.sizeHint(values.length)
           values.foreach { value =>

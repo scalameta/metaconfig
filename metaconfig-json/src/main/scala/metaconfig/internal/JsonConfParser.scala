@@ -4,6 +4,7 @@ import java.nio.CharBuffer
 import metaconfig.Input
 import metaconfig.Position
 import ujson._
+import upickle.core.{Visitor, ObjArrVisitor}
 
 final class JsonConfParser[J](input: Input)
     extends SyncParser[J]
@@ -76,7 +77,12 @@ final class JsonConfParser[J](input: Input)
     }
   }
 
-  def checkpoint(state: Int, i: Int, stack: List[ObjArrVisitor[_, J]]): Unit =
+  def checkpoint(
+      state: Int,
+      i: Int,
+      stack: List[ObjArrVisitor[_, J]],
+      path: List[Any]
+  ): Unit =
     ()
 
   def at(i: Int): Char = {
