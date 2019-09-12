@@ -3,7 +3,7 @@ import sbtcrossproject.CrossPlugin.autoImport.crossProject
 val scala211 = "2.11.12"
 val scala212 = "2.12.8"
 val scala213 = "2.13.0"
-val ScalaVersions = List(scala211, scala212, scala213)
+val ScalaVersions = List(scala212, scala211, scala213)
 inThisBuild(
   List(
     scalaVersion := scala212,
@@ -129,3 +129,16 @@ lazy val sconfig = crossProject(JVMPlatform)
   .dependsOn(core % "test->test;compile->compile")
 lazy val sconfigJVM = sconfig.jvm
 // lazy val sconfigNative = sconfig.native
+
+val scalatagsVersion = Def.setting {
+  if (scalaVersion.value.startsWith("2.11")) "0.6.7"
+  else "0.7.0"
+}
+lazy val docs = project
+  .settings(
+    moduleName := "metaconfig-docs",
+    libraryDependencies ++= List(
+      "com.lihaoyi" %% "scalatags" % scalatagsVersion.value
+    )
+  )
+  .dependsOn(coreJVM)
