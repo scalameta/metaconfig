@@ -1,8 +1,8 @@
 import java.util.Date
 import sbtcrossproject.CrossPlugin.autoImport.crossProject
 val scala211 = "2.11.12"
-val scala212 = "2.12.8"
-val scala213 = "2.13.0"
+val scala212 = "2.12.10"
+val scala213 = "2.13.1"
 val ScalaVersions = List(scala212, scala211, scala213)
 inThisBuild(
   List(
@@ -86,17 +86,6 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
   )
   // .nativeSettings(nativeSettings)
   .jvmSettings(
-    mimaPreviousArtifacts := {
-      val previousArtifactVersion = "0.9.0"
-      val binaryVersion =
-        if (crossVersion.value.isInstanceOf[CrossVersion.Full])
-          scalaVersion.value
-        else scalaBinaryVersion.value
-      Set(
-        organization.value % s"${moduleName.value}_$binaryVersion" % previousArtifactVersion
-      )
-    },
-    mimaBinaryIssueFilters ++= Mima.ignoredABIProblems,
     libraryDependencies += "org.scalameta" %% "testkit" % "4.1.12" % Test
   )
 lazy val coreJVM = core.jvm
