@@ -1,7 +1,5 @@
 package metaconfig
 
-import org.scalatest.FunSuite
-
 case class Foo(a: Option[String])
 object Foo {
   implicit val reader: ConfDecoder[Foo] =
@@ -11,20 +9,20 @@ object Foo {
     }
 }
 
-class ConfOptionTest extends FunSuite {
+class ConfOptionTest extends munit.FunSuite {
   import Conf._
 
   test("simple") {
     val conf = Obj("a" -> Str("b"))
     val obtained = conf.as[Foo].get
     val expected = Foo(Some("b"))
-    assert(obtained == expected)
+    assertEquals(obtained, expected)
   }
 
   test("missing") {
     val conf = Obj()
     val obtained = conf.as[Foo].get
     val expected = Foo(None)
-    assert(obtained == expected)
+    assertEquals(obtained, expected)
   }
 }

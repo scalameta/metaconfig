@@ -1,8 +1,6 @@
 package metaconfig
 
-import org.scalatest.FunSuite
-
-class ConfDynamicTest extends FunSuite {
+class ConfDynamicTest extends munit.FunSuite {
 
   val conf = Conf.Obj(
     "x" -> Conf.Obj("c" -> Conf.Obj("d" -> Conf.Num(2))),

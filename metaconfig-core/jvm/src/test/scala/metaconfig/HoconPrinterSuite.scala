@@ -1,11 +1,12 @@
 package metaconfig
 
-import org.scalatest.FunSuite
-import scala.meta.testkit.DiffAssertions
+import munit.FunSuite
 
-class HoconPrinterSuite extends FunSuite with DiffAssertions {
+class HoconPrinterSuite extends FunSuite {
 
-  def check(original: Conf, expected: String): Unit = {
+  def check(original: Conf, expected: String)(
+      implicit loc: munit.Location
+  ): Unit = {
     test(original.toString()) {
       val obtained = Conf.printHocon(original)
       assertNoDiff(obtained, expected)

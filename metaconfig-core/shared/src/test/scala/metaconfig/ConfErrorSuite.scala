@@ -1,15 +1,14 @@
 package metaconfig
 
-import org.scalatest.FunSuite
 import ConfError._
 import metaconfig.Conf._
 
-class ConfErrorSuite extends FunSuite {
+class ConfErrorSuite extends munit.FunSuite {
 
   def check(name: String, error: => ConfError, expected: => String): Unit = {
     test(name) {
       val obtained = error.toString.trim
-      assert(obtained === expected.trim)
+      assertEquals(obtained, expected.trim)
     }
   }
 

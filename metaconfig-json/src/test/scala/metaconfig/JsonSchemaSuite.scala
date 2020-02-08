@@ -2,10 +2,9 @@ package metaconfig
 
 import metaconfig.annotation._
 import metaconfig.generic.Settings
-import org.scalatest.FunSuite
 import scala.meta.testkit.DiffAssertions
 
-class JsonSchemaSuite extends FunSuite with DiffAssertions {
+class JsonSchemaSuite extends munit.FunSuite {
 
   def check[T: ConfEncoder: Settings](
       name: String,

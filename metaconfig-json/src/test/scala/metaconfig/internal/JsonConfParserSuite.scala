@@ -1,18 +1,14 @@
 package metaconfig.internal
 
 import metaconfig.Input
-import org.scalatest.FunSuite
 import ujson._
 
-class JsonConfParserSuite extends FunSuite {
-
-  def skip(original: String, expected: Js): Unit =
-    ignore(original) {}
+class JsonConfParserSuite extends munit.FunSuite {
 
   def check(original: String, expected: Js): Unit = {
     test(original) {
       val js = JsonConverter.fromInput(Input.String(original))
-      assert(js == expected)
+      assertEquals(js, expected)
     }
   }
 

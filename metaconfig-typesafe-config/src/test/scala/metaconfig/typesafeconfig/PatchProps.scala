@@ -6,7 +6,6 @@ import metaconfig.ConfShow
 import org.scalacheck.Prop.forAll
 import org.scalacheck.Properties
 import org.scalameta.logger
-import org.scalatest.FunSuite
 import scala.meta.testkit.DiffAssertions
 import metaconfig.Generators.argConfShow
 
@@ -37,9 +36,9 @@ class PatchProps extends Properties("Patch") {
   }
 
 }
-class PatchPropsSuite extends FunSuite with DiffAssertions {
+class PatchPropsSuite extends munit.FunSuite {
   def check(a: String, b: String): Unit = {
-    test(a) { assert(PatchProps.checkPatch(a, b)) }
+    test(a) { assert(PatchProps.checkPatch(clue(a), clue(b))) }
   }
 
   check(

@@ -9,6 +9,8 @@ import metaconfig.internal.CliParser
 import metaconfig.internal.ConfGet
 import metaconfig.internal.ConfPatch
 import metaconfig.internal.HoconPrinter
+import org.typelevel.paiges.Doc
+import metaconfig.generic.Surface
 
 sealed abstract class Conf extends Product with Serializable {
   def dynamic: ConfDynamic = ConfDynamic(Configured.Ok(this))

@@ -1,10 +1,9 @@
 package metaconfig.internal
 
 import metaconfig.Input
-import org.scalatest.FunSuite
 import ujson._
 
-class JsonConfErrorSuite extends FunSuite {
+class JsonConfErrorSuite extends munit.FunSuite {
   def checkError(path: String, original: String, expected: String): Unit = {
     test(path) {
       val e = intercept[Exception] {
@@ -15,7 +14,7 @@ class JsonConfErrorSuite extends FunSuite {
           )
         readable.transform(Js)
       }
-      assert(e.getMessage == expected)
+      assertNoDiff(e.getMessage, expected)
     }
   }
 

@@ -3,7 +3,7 @@ package metaconfig.docs
 import metaconfig._
 import metaconfig.annotation._
 
-class DocsSuite extends org.scalatest.FunSuite {
+class DocsSuite extends munit.FunSuite {
 
   case class Home(
       address: String = "blah",
@@ -29,14 +29,14 @@ class DocsSuite extends org.scalatest.FunSuite {
 
   test("html") {
     val docs = Docs.html(User())
-    assert(docs.contains("table"))
-    assert(docs.contains("th"))
-    assert(docs.contains("code"))
-    assert(docs.contains("country"))
-    assert(docs.contains("Iceland"))
-    assert(docs.contains("home.address"))
-    assert(docs.contains("home.country"))
-    assert(docs.contains("Default value"))
+    assert(clue(docs).contains("table"))
+    assert(clue(docs).contains("th"))
+    assert(clue(docs).contains("code"))
+    assert(clue(docs).contains("country"))
+    assert(clue(docs).contains("Iceland"))
+    assert(clue(docs).contains("home.address"))
+    assert(clue(docs).contains("home.country"))
+    assert(clue(docs).contains("Default value"))
   }
 
 }

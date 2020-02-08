@@ -1,11 +1,10 @@
 package metaconfig.internal
 
 import java.nio.file.Paths
-import scala.meta.testkit.DiffAssertions
-import org.scalatest.FunSuite
 import metaconfig.annotation._
 import metaconfig._
 import metaconfig.generic.Settings
+import java.io.File
 
 case class Site(
     foo: String = "foo",
@@ -31,8 +30,10 @@ case class Options(
     googleAnalytics: List[String] = Nil,
     classpath: List[String] = Nil,
     cleanTarget: Boolean = false,
+    @Description("")
     baseUrl: String = "",
     encoding: String = "UTF-8",
+    @Section("Advanced")
     configPath: String = Paths.get("fox.conf").toString,
     remainingArgs: List[String] = Nil,
     conf: Conf = Conf.Obj(),
@@ -48,7 +49,7 @@ object Options {
     generic.deriveCodec[Options](Options())
 }
 
-class BaseCliParserSuite extends FunSuite with DiffAssertions {
+class BaseCliParserSuite extends munit.FunSuite {
   val settings = Settings[Options]
   def toString(options: Options): String = {
     settings.settings

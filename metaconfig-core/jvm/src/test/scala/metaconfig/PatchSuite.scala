@@ -1,12 +1,7 @@
 package metaconfig
 
-import org.scalatest.FunSuite
-import scala.meta.testkit.DiffAssertions
+class PatchSuite extends munit.FunSuite {
 
-class PatchSuite extends FunSuite with DiffAssertions {
-
-  def ignore(a: Conf, b: Conf, expected: String): Unit =
-    ignore(a.toString()) {}
   def check(original: Conf, revised: Conf, expected: String): Unit =
     test(original.toString()) {
       val obtained = Conf.printHocon(Conf.patch(original, revised))
