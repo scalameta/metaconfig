@@ -5,22 +5,21 @@ import metaconfig.generic.Settings
 import metaconfig.Conf
 import org.typelevel.paiges.Doc
 import metaconfig.annotation.Description
-import java.io.File
 import metaconfig.HelpMessage
 import metaconfig.ConfCodec
 import metaconfig.generic.Surface
 
 case class Markdownish(
     @Description(
-      s"""|The JVM classpath is a list of path '${File.pathSeparator}' separated files.
-          |Example:
-          |
-          |```
-          |a.jar:b.jar:c.jar
-          |```
-          |
-          |The JVM classpath is a list of path '${File.pathSeparator}' separated files.
-          |""".stripMargin
+      """|The JVM classpath is a list of path ':' separated files.
+         |Example:
+         |
+         |```
+         |a.jar:b.jar:c.jar
+         |```
+         |
+         |The JVM classpath is a list of path ':' separated files.
+         |""".stripMargin
     )
     classpath: List[String] = Nil
 )
@@ -64,14 +63,14 @@ class CliSuite extends munit.FunSuite {
   checkOptions(
     "help",
     new HelpMessage[Options](
-      Options(cwd = "/tmp"),
+      Options(cwd = "/tmp", out = "fox"),
       "usage",
       "version",
       Doc.text("description")
     ),
     """|  --in | -i String (default: "docs")
        |    The input directory to generate the fox site.
-       |  --out | -o String (default: "target/fox")
+       |  --out | -o String (default: "fox")
        |    The output directory to generate the fox site.
        |  --cwd String (default: "/tmp")
        |  --repo-name String (default: "olafurpg/fox")

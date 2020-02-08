@@ -72,12 +72,12 @@ class SettingsSuite extends munit.FunSuite {
       .flat(ConfEncoder[Nested].writeObj(Nested()))
       .map { case (s, c) => s"${s.name} $c" }
       .mkString("\n")
-    assert(
-      flat ==
-        """a 31
-          |b.param 82
-          |c.c "nested2"
-          |c.b.param 82""".stripMargin
+    assertNoDiff(
+      flat,
+      """a 31
+        |b.param 82
+        |c.c "nested2"
+        |c.b.param 82""".stripMargin
     )
   }
 }
