@@ -4,15 +4,14 @@ import metaconfig.Conf._
 import metaconfig.annotation._
 import metaconfig.generic.Settings
 import metaconfig.generic.Surface
-import org.scalatest.FunSuite
 
-class DeriveConfDecoderSuite extends FunSuite {
+class DeriveConfDecoderSuite extends munit.FunSuite {
 
   def checkError(name: String, obj: Conf, expected: String): Unit = {
     test(name) {
       ConfDecoder[AllTheAnnotations].read(obj) match {
         case Configured.NotOk(err) =>
-          assert(expected == err.toString)
+          assertNoDiff(expected, err.toString)
         case Configured.Ok(obtained) =>
           fail(s"Expected error, obtained=$obtained")
       }
@@ -99,23 +98,7 @@ class DeriveConfDecoderSuite extends FunSuite {
     assert(obtained == expected)
   }
 
-  test("compile error") {
-    assertCompiles("""generic.deriveDecoder[NoCurry](NoCurry(1))""")
-    assertDoesNotCompile("""generic.deriveDecoder[Curry](Curry(1)("")""")
-  }
-
   case class MissingSurface(b: Int)
-  test("missing surface ") {
-    assertDoesNotCompile(
-      """generic.deriveDecoder[MissingSurface](MissingSurface(1))"""
-    )
-    assertCompiles(
-      """{
-        |  implicit val surface = generic.deriveSurface[MissingSurface]
-        |  generic.deriveDecoder[MissingSurface](MissingSurface(1))
-        |}""".stripMargin
-    )
-  }
 
   def checkOption(conf: Conf, expected: HasOption)(
       implicit decoder: ConfDecoder[HasOption]

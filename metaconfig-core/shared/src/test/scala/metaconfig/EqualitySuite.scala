@@ -1,16 +1,14 @@
 package metaconfig
 
-import org.scalatest.FunSuite
-
-class EqualitySuite extends FunSuite {
+class EqualitySuite extends munit.FunSuite {
   def checkNotEqual(a: Conf, b: Conf): Unit =
     test("ne " + a.toString) {
-      assert(a != b)
+      assertNotEquals(a, b)
     }
 
   def checkEqual(a: Conf, b: Conf): Unit =
     test("eq " + a.toString) {
-      assert(a == b)
+      assertEquals(a, b)
     }
 
   checkNotEqual(

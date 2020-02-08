@@ -22,3 +22,4 @@ final case class Inline() extends StaticAnnotation
 final case class Dynamic() extends StaticAnnotation
 final case class Hidden() extends StaticAnnotation
 final case class Flag() extends StaticAnnotation
+final case class Section(name: String) extends StaticAnnotation

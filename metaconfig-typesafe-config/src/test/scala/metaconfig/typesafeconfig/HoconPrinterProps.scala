@@ -5,7 +5,6 @@ import metaconfig.ConfOps
 import metaconfig.ConfShow
 import org.scalacheck.Properties
 import org.scalameta.logger
-import org.scalatest.FunSuite
 import scala.meta.testkit.DiffAssertions
 import metaconfig.Generators.argConfShow
 import org.scalacheck.Prop.forAll
@@ -32,8 +31,8 @@ class HoconPrinterProps extends Properties("HoconPrinter") {
   }
 }
 
-class HoconPrinterRoundtripSuite extends FunSuite with DiffAssertions {
-  def ignore(conf: String): Unit = super.ignore(conf) {}
+class HoconPrinterRoundtripSuite extends munit.FunSuite {
+  def ignore(conf: String): Unit = super.test(conf.ignore) {}
   def checkRoundtrip(conf: String): Unit =
     test(conf.take(100)) {
       assert(HoconPrinterProps.checkRoundtrip(conf))

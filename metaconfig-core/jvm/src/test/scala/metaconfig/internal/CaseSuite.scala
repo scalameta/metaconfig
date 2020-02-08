@@ -1,9 +1,6 @@
 package metaconfig.internal
 
-import scala.meta.testkit.DiffAssertions
-import org.scalatest.FunSuite
-
-class CaseSuite extends FunSuite with DiffAssertions {
+class CaseSuite extends munit.FunSuite {
   def checkKebabToCamel(original: String, expected: String): Unit = {
     check(original, expected, Case.kebabToCamel)
   }

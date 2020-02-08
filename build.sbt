@@ -32,15 +32,19 @@ inThisBuild(
 lazy val testSettings = List(
   testOptions.in(Test) +=
     Tests.Argument(TestFrameworks.ScalaCheck, "-verbosity", "2"),
+  testFrameworks := List(
+    new TestFramework("munit.Framework"),
+    new TestFramework("org.scalacheck.ScalaCheckFramework")
+  ),
   libraryDependencies ++= {
     if (SettingKey[Boolean]("nativeLinkStubs").?.value.contains(true))
       List(
-        "org.scalatest" %%% "scalatest" % "3.2.0-SNAP10" % Test,
+        "org.scalameta" %%% "munit" % "0.4.5",
         "com.github.lolgab" %%% "scalacheck" % "1.14.1" % Test
       )
     else
       List(
-        "org.scalatest" %%% "scalatest" % "3.0.8" % Test,
+        "org.scalameta" %%% "munit" % "0.4.5",
         "org.scalacheck" %%% "scalacheck" % "1.14.0" % Test,
         "com.github.alexarchambault" %%% "scalacheck-shapeless_1.14" % "1.2.3" % Test
       )
@@ -76,7 +80,7 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
     testSettings,
     moduleName := "metaconfig-core",
     libraryDependencies ++= List(
-      "org.typelevel" %%% "paiges-core" % "0.2.4",
+      "org.typelevel" %%% "paiges-core" % "0.3.0",
       "org.scala-lang.modules" %%% "scala-collection-compat" % "2.1.2",
       scalaOrganization.value % "scala-reflect" % scalaVersion.value % Provided
     ) :+ (CrossVersion.partialVersion(scalaVersion.value) match {
@@ -84,6 +88,7 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
       case _ => "com.lihaoyi" %%% "pprint" % "0.5.5"
     })
   )
+  .jsSettings(scalaJSModuleKind := ModuleKind.CommonJSModule)
   // .nativeSettings(nativeSettings)
   .jvmSettings(
     libraryDependencies += "org.scalameta" %% "testkit" % "4.1.12" % Test

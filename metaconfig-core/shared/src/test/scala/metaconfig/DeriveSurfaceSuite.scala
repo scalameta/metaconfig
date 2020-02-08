@@ -3,9 +3,8 @@ package metaconfig
 import java.io.File
 import metaconfig.generic.Settings
 import metaconfig.generic.Surface
-import org.scalatest.FunSuite
 
-class DeriveSurfaceSuite extends FunSuite {
+class DeriveSurfaceSuite extends munit.FunSuite {
 
   case class WithFile(file: File)
   test("toString") {
@@ -13,15 +12,15 @@ class DeriveSurfaceSuite extends FunSuite {
     val obtained = surface.toString
     val expected =
       """Surface(List(List(Field(name="file",tpe="File",annotations=List(),underlying=List()))))"""
-    assert(obtained == expected)
+    assertEquals(obtained, expected)
   }
 
   case class Curried(a: Int)(b: List[Int])
   test("curried") {
     val surface = generic.deriveSurface[Curried]
     val List(a :: Nil, b :: Nil) = surface.fields
-    assert(a.name == "a")
-    assert(b.name == "b")
+    assertNoDiff(a.name, "a")
+    assertNoDiff(b.name, "b")
   }
 
   case class Underlying(number: Int)
@@ -32,23 +31,8 @@ class DeriveSurfaceSuite extends FunSuite {
     val surface = generic.deriveSurface[Enclosing]
     val List(underlying :: Nil) = surface.fields
     val List(number :: Nil) = underlying.underlying
-    assert(underlying.name == "underlying")
-    assert(number.name == "number")
-  }
-
-  object MyObject
-  test("object") {
-    assertDoesNotCompile("generic.deriveSurface[MyObject.type]")
-  }
-
-  trait MyTrait
-  test("triat") {
-    assertDoesNotCompile("generic.deriveSurface[MyTrait.type]")
-  }
-
-  class MissingCase(a: Int)
-  test("case") {
-    assertDoesNotCompile("generic.deriveSurface[MissingCase]")
+    assertNoDiff(underlying.name, "underlying")
+    assertNoDiff(number.name, "number")
   }
 
   case class TypeParam[T](value: T)
@@ -60,8 +44,8 @@ class DeriveSurfaceSuite extends FunSuite {
     implicit val is: Surface[Int] = new Surface[Int](Nil)
     val surface = TypeParam.surface[Int]
     val List(value :: Nil) = surface.fields
-    assert(value.name == "value")
-    assert(value.tpe == "T")
+    assertNoDiff(value.name, "value")
+    assertNoDiff(value.tpe, "T")
   }
 
   case class AllRepeated[T](

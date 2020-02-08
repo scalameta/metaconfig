@@ -4,9 +4,8 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 import metaconfig.Conf
-import org.scalatest.FunSuite
 
-class TypesafeConfig2ClassTest extends FunSuite {
+class TypesafeConfig2ClassTest extends munit.FunSuite {
   test("basic") {
     val file = File.createTempFile("prefix", ".conf")
     Files.write(
@@ -19,20 +18,20 @@ class TypesafeConfig2ClassTest extends FunSuite {
          |a += true""".stripMargin.getBytes()
     )
     val obtained = TypesafeConfig2Class.gimmeConfFromFile(file).get
-    val expected = Conf.Obj(
+    val expected: Conf = Conf.Obj(
       "a" -> Conf.Lst(
         Conf.Num(1),
         Conf.Str("2"),
         Conf.Bool(true)
       )
     )
-    assert(obtained == expected)
+    assertEquals(obtained, expected)
   }
 
   test("file not found") {
     val f = File.createTempFile("doesnotexist", "conf")
     f.delete()
-    assert(TypesafeConfig2Class.gimmeConfFromFile(f).isNotOk)
+    assert(TypesafeConfig2Class.gimmeConfFromFile(clue(f)).isNotOk)
   }
 
   test("null") {
@@ -44,11 +43,11 @@ class TypesafeConfig2ClassTest extends FunSuite {
              |]""".stripMargin
         )
         .get
-    val expected = Conf.Obj(
+    val expected: Conf = Conf.Obj(
       "keywords" -> Conf.Lst(
         Conf.Null()
       )
     )
-    assert(obtained == expected)
+    assertEquals(obtained, expected)
   }
 }

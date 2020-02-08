@@ -1,13 +1,11 @@
 package metaconfig
 
-import org.scalatest.FunSuite
-
-class DeriveConfEncoderSuite extends FunSuite {
+class DeriveConfEncoderSuite extends munit.FunSuite {
 
   def check[T: ConfEncoder](name: String, original: T, expected: Conf): Unit = {
     test(name) {
       val obtained = ConfEncoder[T].write(original)
-      assert(obtained == expected)
+      assertEquals(obtained, expected)
     }
   }
 
