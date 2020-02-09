@@ -16,6 +16,7 @@ trait ConfEncoder[A] { self =>
 }
 
 object ConfEncoder {
+  def empty[A]: ConfEncoder[A] = instance[A](_ => Conf.Null())
 
   def apply[A](implicit ev: ConfEncoder[A]): ConfEncoder[A] = ev
 
@@ -40,6 +41,11 @@ object ConfEncoder {
   implicit val IntEncoder: ConfEncoder[Int] =
     new ConfEncoder[Int] {
       override def write(value: Int): Conf = Conf.Num(value)
+    }
+
+  implicit val UnitEncoder: ConfEncoder[Unit] =
+    new ConfEncoder[Unit] {
+      override def write(value: Unit): Conf = Conf.Null()
     }
 
   implicit val StringEncoder: ConfEncoder[String] =

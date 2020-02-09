@@ -7,6 +7,7 @@ val ScalaVersions = List(scala212, scala211, scala213)
 inThisBuild(
   List(
     scalaVersion := scala212,
+    scalacOptions += "-Yrangepos",
     organization := "com.geirsson",
     version ~= { old =>
       old.replace('+', '-')

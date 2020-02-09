@@ -6,6 +6,7 @@ import java.io.PrintStream
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.nio.file.Path
+import metaconfig.internal.Levenshtein
 import metaconfig.ConfError.TypeMismatch
 import metaconfig.annotation.DeprecatedName
 import metaconfig.error.CompositeException
@@ -160,7 +161,7 @@ object ConfError {
       else {
         val closestField =
           if (obj.values.isEmpty) ""
-          else obj.keys.sorted.minBy(levenshtein(field))
+          else obj.keys.sorted.minBy(Levenshtein.distance(field))
         s" Did you mean '$closestField' instead?"
       }
     new ConfError(s"$obj has no field '$field'." + hint) {
@@ -186,23 +187,5 @@ object ConfError {
   def apply(errors: Seq[ConfError]): Option[ConfError] = {
     if (errors.isEmpty) None
     else Some(errors.foldLeft(empty)(_ combine _))
-  }
-
-  /** Levenshtein distance. Implementation based on Wikipedia's algorithm. */
-  private def levenshtein(s1: String)(s2: String): Int = {
-    val dist = Array.tabulate(s2.length + 1, s1.length + 1) { (j, i) =>
-      if (j == 0) i else if (i == 0) j else 0
-    }
-
-    for (j <- 1 to s2.length; i <- 1 to s1.length)
-      dist(j)(i) =
-        if (s2(j - 1) == s1(i - 1))
-          dist(j - 1)(i - 1)
-        else
-          dist(j - 1)(i)
-            .min(dist(j)(i - 1))
-            .min(dist(j - 1)(i - 1)) + 1
-
-    dist(s2.length)(s1.length)
   }
 }

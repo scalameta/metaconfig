@@ -5,6 +5,7 @@ import metaconfig.generic.Setting
 import metaconfig.generic.Settings
 import metaconfig.Configured.ok
 import metaconfig.annotation.Inline
+import scala.collection.immutable.Nil
 
 object CliParser {
 
@@ -55,7 +56,20 @@ object CliParser {
                 }
                 settings.get(key, keys) match {
                   case None =>
-                    ConfError.invalidFields(camel :: Nil, settings.names).notOk
+                    val closestCandidate =
+                      Levenshtein.closestCandidate(camel, settings.names)
+                    val didYouMean = closestCandidate match {
+                      case None =>
+                        ""
+                      case Some(candidate) =>
+                        val kebab = Case.camelToKebab(candidate)
+                        s"\n\tDid you mean '--$kebab'?"
+                    }
+                    ConfError
+                      .message(
+                        s"found argument '--$flag' which wasn't expected, or isn't valid in this context.$didYouMean"
+                      )
+                      .notOk
                   case Some(setting) =>
                     if (setting.isBoolean) {
                       val newCurr = add(camel, Conf.fromBoolean(true))
