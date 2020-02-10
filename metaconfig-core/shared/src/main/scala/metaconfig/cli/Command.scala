@@ -54,9 +54,10 @@ abstract class Command[T](val name: String)(
       "EXAMPLES:" -> examples
     ).collect {
       case (key, doc) if doc.nonEmpty =>
-        Doc.line + Doc.text(key) + Doc.line + doc.indent(2)
+        Doc.text(key) + Doc.line + doc.indent(2)
     }
-    val help = Doc.intercalate(Doc.line, docs).renderTrim(width)
+    val blank = Doc.line + Doc.line
+    val help = Doc.intercalate(blank, docs).renderTrim(width)
     out.println(help)
   }
 

@@ -34,7 +34,7 @@ object Messages {
           List(printOption(setting, value))
         }
     }
-    Doc.intercalate(Doc.line, docs)
+    Doc.intercalate(Doc.line, docs.filter(_.nonEmpty))
   }
 
   private def printOption(setting: Setting, value: Conf): Doc = {

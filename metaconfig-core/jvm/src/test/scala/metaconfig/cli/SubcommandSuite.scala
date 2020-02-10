@@ -8,6 +8,7 @@ import org.typelevel.paiges.Doc
 import metaconfig.annotation.Section
 import metaconfig.annotation.Description
 import metaconfig.annotation.Inline
+import metaconfig.annotation.Hidden
 
 class SubcommandSuite extends FunSuite {
   case class CommonOptions(
@@ -19,6 +20,8 @@ class SubcommandSuite extends FunSuite {
       maxCount: Int = 0,
       @Section("Advanced")
       magicNumber: Int = 42,
+      @Hidden()
+      invisible: Int = 41,
       @Inline() common: CommonOptions = CommonOptions()
   )
   implicit val commonSurface = metaconfig.generic.deriveSurface[CommonOptions]
