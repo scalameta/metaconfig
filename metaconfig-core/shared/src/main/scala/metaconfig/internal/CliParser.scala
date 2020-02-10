@@ -71,12 +71,13 @@ object CliParser {
                       )
                       .notOk
                   case Some(setting) =>
+                    val prefix = toInline.get(flag).fold("")(_.name + ".")
+                    val toAdd = prefix + camel
                     if (setting.isBoolean) {
-                      val newCurr = add(camel, Conf.fromBoolean(true))
+                      val newCurr = add(toAdd, Conf.fromBoolean(true))
                       loop(newCurr, tail, NoFlag)
                     } else {
-                      val prefix = toInline.get(flag).fold("")(_.name + ".")
-                      loop(curr, tail, Flag(prefix + camel, setting))
+                      loop(curr, tail, Flag(toAdd, setting))
                     }
                 }
             }
