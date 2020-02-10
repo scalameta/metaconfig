@@ -7,15 +7,26 @@ import java.nio.charset.StandardCharsets
 import org.typelevel.paiges.Doc
 import metaconfig.annotation.Section
 import metaconfig.annotation.Description
+import metaconfig.annotation.Inline
+import metaconfig.annotation.Hidden
 
 class SubcommandSuite extends FunSuite {
+  case class CommonOptions(
+      beep: Boolean = false
+  )
   case class TestOptions(
       verbose: Boolean = false,
       @Description("The maximum number of files to test")
       maxCount: Int = 0,
       @Section("Advanced")
-      magicNumber: Int = 42
+      magicNumber: Int = 42,
+      @Hidden()
+      invisible: Int = 41,
+      @Inline() common: CommonOptions = CommonOptions()
   )
+  implicit val commonSurface = metaconfig.generic.deriveSurface[CommonOptions]
+  implicit val commonCodec =
+    metaconfig.generic.deriveCodec[CommonOptions](CommonOptions())
   implicit val surface = metaconfig.generic.deriveSurface[TestOptions]
   implicit val codec =
     metaconfig.generic.deriveCodec[TestOptions](TestOptions())
@@ -27,6 +38,7 @@ class SubcommandSuite extends FunSuite {
     def run(value: Value, app: CliApp): Int = {
       app.out.println("verbose: " + value.verbose)
       app.out.println("max-count: " + value.maxCount)
+      app.out.println("beep: " + value.common.beep)
       0
     }
   }
@@ -108,6 +120,7 @@ class SubcommandSuite extends FunSuite {
        |
        |  Advanced:
        |  --magic-number Int (default: 42)
+       |  --beep
        |
        |EXAMPLES:
        |  app test --max-count=100 project-name
@@ -151,6 +164,7 @@ class SubcommandSuite extends FunSuite {
     List("test", "--max-count", "40"),
     """|verbose: false
        |max-count: 40
+       |beep: false
        |""".stripMargin
   )
 
@@ -158,6 +172,23 @@ class SubcommandSuite extends FunSuite {
     List("test", "--max-count=41", "--verbose"),
     """|verbose: true
        |max-count: 41
+       |beep: false
        |""".stripMargin
   )
+
+  List(
+    List("test", "--beep"),
+    List("test", "--beep=true"),
+    List("test", "--common.beep"),
+    List("test", "--common.beep=true")
+  ).foreach { beep =>
+    check(
+      beep,
+      """|verbose: false
+         |max-count: 0
+         |beep: true
+         |""".stripMargin
+    )
+  }
+
 }

@@ -38,9 +38,9 @@ case class CliApp(
       case subcommand :: tail =>
         commands.find(_.matchesName(subcommand)) match {
           case Some(command) =>
-            val configured: Configured[command.Value] = Conf
-              .parseCliArgs[command.Value](tail)(command.settings)
-              .andThen(_.as[command.Value](command.decoder))
+            val conf = Conf.parseCliArgs[command.Value](tail)(command.settings)
+            val configured: Configured[command.Value] =
+              conf.andThen(_.as[command.Value](command.decoder))
             configured match {
               case Ok(value) =>
                 command.run(value, app)
