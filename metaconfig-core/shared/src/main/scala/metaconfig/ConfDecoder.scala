@@ -89,6 +89,8 @@ object ConfDecoder {
     }
   implicit val stringConfDecoder: ConfDecoder[String] =
     instanceExpect[String]("String") { case Conf.Str(x) => Ok(x) }
+  implicit val unitConfDecoder: ConfDecoder[Unit] =
+    instanceExpect[Unit]("Unit") { case _ => Ok(()) }
   implicit val booleanConfDecoder: ConfDecoder[Boolean] =
     instanceExpect[Boolean]("Bool") {
       case Conf.Bool(x) => Ok(x)
