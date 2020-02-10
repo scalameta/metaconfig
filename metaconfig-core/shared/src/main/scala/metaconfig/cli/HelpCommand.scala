@@ -19,7 +19,7 @@ import metaconfig.internal.Levenshtein
 
 object HelpCommand
     extends HelpCommand(
-      screenWidth = math.max(60, math.min(40, TermInfo.tputsColumns())),
+      screenWidth = TermInfo.screenWidth(),
       appUsage = app => Doc.text(s"${app.binaryName} COMMAND [OPTIONS]"),
       appExamples = app => Doc.empty
     )
