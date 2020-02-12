@@ -60,6 +60,7 @@ class SubcommandSuite extends FunSuite {
           new HelpCommand(
             80,
             appUsage = app => Doc.text(s"${app.binaryName} COMMAND [OPTIONS]"),
+            appDescription = app => Doc.text("This is a description"),
             appExamples =
               app => Doc.text(s"${app.binaryName} test --max-count=100")
           ),
@@ -81,11 +82,14 @@ class SubcommandSuite extends FunSuite {
     """|USAGE:
        |  app COMMAND [OPTIONS]
        |
+       |DESCRIPTION:
+       |  This is a description
+       |
        |COMMANDS:
        |  help     Print this help message
        |  version  Show version information
        |  test     Run tests
-       |See 'app help <command>' for more information on a specific command.
+       |See 'app help COMMAND' for more information on a specific command.
        |
        |EXAMPLES:
        |  app test --max-count=100

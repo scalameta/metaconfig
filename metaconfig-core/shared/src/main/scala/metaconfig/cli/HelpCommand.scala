@@ -21,11 +21,13 @@ object HelpCommand
     extends HelpCommand(
       screenWidth = TermInfo.screenWidth(),
       appUsage = app => Doc.text(s"${app.binaryName} COMMAND [OPTIONS]"),
+      appDescription = app => Doc.empty,
       appExamples = app => Doc.empty
     )
 class HelpCommand(
     screenWidth: Int,
     appUsage: CliApp => Doc,
+    appDescription: CliApp => Doc,
     appExamples: CliApp => Doc
 ) extends Command[HelpOptions]("help") {
   override def description = Doc.paragraph("Print this help message")
@@ -38,6 +40,12 @@ class HelpCommand(
           app.out.println(s"USAGE:")
           app.out.println(usage.indent(2).renderTrim(screenWidth))
         }
+        val description = appDescription(app)
+        if (description.nonEmpty) {
+          if (usage.nonEmpty) app.out.println()
+          app.out.println(s"DESCRIPTION:")
+          app.out.println(description.indent(2).renderTrim(screenWidth))
+        }
         if (app.commands.nonEmpty) {
           val rows = app.commands.map { command =>
             command.name -> command.description
@@ -47,7 +55,9 @@ class HelpCommand(
           app.out.println(s"COMMANDS:")
           app.out.println(message.renderTrim(screenWidth))
           app.out.println(
-            s"See '${app.binaryName} help <command>' for more information on a specific command."
+            (Doc.text(s"See '${app.binaryName} help COMMAND' ") +
+              Doc.paragraph(s"for more information on a specific command."))
+              .renderTrim(screenWidth)
           )
         }
         val examples = appExamples(app)
