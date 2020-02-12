@@ -27,9 +27,14 @@ case class CliApp(
     environmentVariables: Map[String, String] = sys.env
 ) {
   def error(message: Str): Unit = {
-    err.println(Color.LightRed("error: ") ++ message)
+    out.println(Color.LightRed("error: ") ++ message)
   }
-  def allCommands = onEmptyArguments :: commands
+  def warn(message: Str): Unit = {
+    out.println(Color.LightYellow("warn: ") ++ message)
+  }
+  def info(message: Str): Unit = {
+    out.println(Color.LightBlue("info: ") ++ message)
+  }
 
   def run(args: List[String]): Int = {
     val app = this.copy(arguments = args)

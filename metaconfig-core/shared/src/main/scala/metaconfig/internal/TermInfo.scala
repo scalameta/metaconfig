@@ -1,25 +1,26 @@
 package metaconfig.internal
 
 import scala.util.control.NonFatal
+import java.nio.file.Files
+import java.nio.file.Paths
 
 object TermInfo {
 
-  def screenWidth(): Int = {
-    math.min(120, math.max(40, tputsColumns() - 20))
+  def screenWidth(upperBound: Int = 100, lowerBound: Int = 40): Int = {
+    math.min(upperBound, math.max(lowerBound, tputsColumns() - 20))
   }
 
   def tputsColumns(fallback: Int = 80): Int = {
     import scala.sys.process._
     val pathedTput =
-      if (new java.io.File("/usr/bin/tput").exists()) "/usr/bin/tput"
+      if (Files.exists(Paths.get("/usr/bin/tput"))) "/usr/bin/tput"
       else "tput"
     try {
       val columns =
         Seq("sh", "-c", s"$pathedTput cols 2> /dev/tty").!!.trim.toInt
       columns.toInt
     } catch {
-      case NonFatal(e) =>
-        e.printStackTrace()
+      case NonFatal(_) =>
         fallback
     }
   }
