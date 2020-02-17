@@ -73,6 +73,23 @@ class BaseCliParserSuite extends munit.FunSuite {
       assertNoDiff(obtained, expected)
     }
   }
+
+  def checkError(
+      name: String,
+      args: List[String],
+      expected: String
+  ): Unit = {
+    test(name) {
+      val options = Conf
+        .parseCliArgs[Options](args)
+        .andThen(_.as[Options])
+      val obtained = options match {
+        case Configured.Ok(value) => value.toString()
+        case Configured.NotOk(error) => error.all.mkString("\n")
+      }
+      assertNoDiff(obtained, expected)
+    }
+  }
 }
 
 class CliParserSuite extends BaseCliParserSuite {
@@ -213,6 +230,47 @@ class CliParserSuite extends BaseCliParserSuite {
         "z" -> Conf.Str("1.0")
       )
     )
+  )
+
+  check(
+    "positional-everywhere1",
+    "positional1" :: "--clean-target" :: "positional2" :: Nil,
+    Options(
+      cleanTarget = true,
+      remainingArgs = List("positional1", "positional2")
+    )
+  )
+
+  check(
+    "positional-everywhere2",
+    "positional1" :: "--title" :: "buzz" :: "positional2" :: Nil,
+    Options(
+      title = "buzz",
+      remainingArgs = List("positional1", "positional2")
+    )
+  )
+
+  check(
+    "positional-everywhere3",
+    "positional1" :: "--title" :: "buzz" :: Nil,
+    Options(
+      title = "buzz",
+      remainingArgs = List("positional1")
+    )
+  )
+
+  checkError(
+    "positional-everywhere4",
+    "positional1" :: "--title" :: Nil,
+    "the argument '--title' requires a value but none was supplied"
+  )
+
+  checkError(
+    "positional-everywhere5",
+    "positional1" :: "--titl" :: Nil,
+    """|found argument '--titl' which wasn't expected, or isn't valid in this context.
+       |	Did you mean '--title'?
+       |""".stripMargin
   )
 
 }

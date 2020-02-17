@@ -37,7 +37,15 @@ object CliParser {
 
       (xs, s) match {
         case (Nil, NoFlag) => ok(curr)
-        case (Nil, Flag(flag, _)) => ok(add(flag, Conf.fromBoolean(true)))
+        case (Nil, Flag(flag, setting)) =>
+          if (setting.isBoolean) ok(add(flag, Conf.fromBoolean(true)))
+          else {
+            ConfError
+              .message(
+                s"the argument '--$flag' requires a value but none was supplied"
+              )
+              .notOk
+          }
         case (head :: tail, NoFlag) =>
           val equal = head.indexOf('=')
           if (equal >= 0) { // split "--key=value" into ["--key", "value"]
@@ -82,16 +90,16 @@ object CliParser {
                 }
             }
           } else {
-            ok(add("remainingArgs", Conf.fromList(xs.map(Conf.fromString))))
+            val key = "remainingArgs"
+            val positionalArgs =
+              addRepeated(curr, key, Conf.fromString(head))
+            loop(add(key, positionalArgs), tail, NoFlag)
           }
         case (head :: tail, Flag(flag, setting)) =>
           val value = Conf.fromString(head)
           val newCurr =
             if (setting.isRepeated) {
-              curr.map.get(flag) match {
-                case Some(Conf.Lst(values)) => Conf.Lst(values :+ value)
-                case _ => Conf.Lst(value :: Nil)
-              }
+              addRepeated(curr, flag, value)
             } else {
               value
             }
@@ -99,6 +107,13 @@ object CliParser {
       }
     }
     loop(Conf.Obj(), args, NoFlag).map(_.normalize)
+  }
+
+  private def addRepeated(conf: Conf.Obj, key: String, value: Conf): Conf = {
+    conf.map.get(key) match {
+      case Some(Conf.Lst(values)) => Conf.Lst(values :+ value)
+      case _ => Conf.Lst(value :: Nil)
+    }
   }
 
   private sealed trait State
