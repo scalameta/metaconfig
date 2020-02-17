@@ -6,23 +6,14 @@ import metaconfig.generic.Settings
 import metaconfig.Configured.ok
 import metaconfig.annotation.Inline
 import scala.collection.immutable.Nil
+import scala.collection.mutable
 
 object CliParser {
 
   def parseArgs[T](
       args: List[String]
   )(implicit settings: Settings[T]): Configured[Conf] = {
-    val toInline: Map[String, Setting] =
-      settings.settings.iterator.flatMap { setting =>
-        if (setting.annotations.exists(_.isInstanceOf[Inline])) {
-          for {
-            underlying <- setting.underlying.toList
-            name <- underlying.names
-          } yield name -> setting
-        } else {
-          Nil
-        }
-      }.toMap
+    val toInline = inlinedFields(settings)
     def loop(
         curr: Conf.Obj,
         xs: List[String],
@@ -59,7 +50,8 @@ object CliParser {
                 ConfError.message(s"Flag '$head' must not be empty").notOk
               case flag :: flags =>
                 val (key, keys) = toInline.get(flag) match {
-                  case Some(setting) => setting.name -> (flag :: flags)
+                  case Some(setting :: settings) =>
+                    setting.name -> (flag :: flags)
                   case _ => flag -> flags
                 }
                 settings.get(key, keys) match {
@@ -107,6 +99,24 @@ object CliParser {
       }
     }
     loop(Conf.Obj(), args, NoFlag).map(_.normalize)
+  }
+
+  private def inlinedFields[T](
+      settings: Settings[T]
+  ): Map[String, List[Setting]] = {
+    val result = mutable.Map.empty[String, mutable.ListBuffer[Setting]]
+    settings.settings.iterator.foreach { setting =>
+      if (setting.annotations.exists(_.isInstanceOf[Inline])) {
+        for {
+          underlying <- setting.underlying.toList
+          name <- underlying.names
+        } {
+          val buf = result.getOrElseUpdate(name, mutable.ListBuffer.empty)
+          buf += setting
+        }
+      }
+    }
+    result.mapValues(_.toList).toMap
   }
 
   private def addRepeated(conf: Conf.Obj, key: String, value: Conf): Conf = {

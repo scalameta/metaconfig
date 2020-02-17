@@ -5,29 +5,19 @@ import metaconfig.annotation._
 import metaconfig._
 import metaconfig.generic.Settings
 import java.io.File
+import munit.TestOptions
 
 abstract class BaseCliParserSuite extends munit.FunSuite {
-  val settings = Settings[Options]
-  def toString(options: Options): String = {
-    settings.settings
-      .zip(options.productIterator.toList)
-      .map {
-        case (s, v) =>
-          s"${s.name} = $v"
-      }
-      .mkString("\n")
-  }
-  def check(
-      name: String,
+
+  def check[T: Settings: ConfDecoder: ConfEncoder](
+      name: TestOptions,
       args: List[String],
-      expectedOptions: Options
+      expectedOptions: T
   ): Unit = {
     test(name) {
-      val conf = Conf.parseCliArgs[Options](args).get
-      val obtainedOptions = ConfDecoder[Options].read(conf).get
-      val obtained = toString(obtainedOptions)
-      val expected = toString(expectedOptions)
-      assertNoDiff(obtained, expected)
+      val conf = Conf.parseCliArgs[T](args).get
+      val obtainedOptions = ConfDecoder[T].read(conf).get
+      assertEquals(obtainedOptions, expectedOptions)
     }
   }
 

@@ -4,10 +4,9 @@ val scala211 = "2.11.12"
 val scala212 = "2.12.10"
 val scala213 = "2.13.1"
 val munit = "0.5.2"
-val ScalaVersions = List(scala212, scala211, scala213)
+val ScalaVersions = List(scala213, scala212, scala211)
 inThisBuild(
   List(
-    scalaVersion := scala212,
     scalacOptions += "-Yrangepos",
     organization := "com.geirsson",
     version ~= { old =>
@@ -16,6 +15,7 @@ inThisBuild(
     licenses := Seq(
       "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")
     ),
+    useSuperShell := false,
     homepage := Some(url("https://github.com/olafurpg/metaconfig")),
     autoAPIMappings := true,
     apiURL := Some(url("https://github.com/olafurpg/metaconfig")),
