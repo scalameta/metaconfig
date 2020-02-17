@@ -3,6 +3,7 @@ import sbtcrossproject.CrossPlugin.autoImport.crossProject
 val scala211 = "2.11.12"
 val scala212 = "2.12.10"
 val scala213 = "2.13.1"
+val munit = "0.5.2"
 val ScalaVersions = List(scala212, scala211, scala213)
 inThisBuild(
   List(
@@ -40,12 +41,12 @@ lazy val testSettings = List(
   libraryDependencies ++= {
     if (SettingKey[Boolean]("nativeLinkStubs").?.value.contains(true))
       List(
-        "org.scalameta" %%% "munit" % "0.4.5",
+        "org.scalameta" %%% "munit" % munit,
         "com.github.lolgab" %%% "scalacheck" % "1.14.1" % Test
       )
     else
       List(
-        "org.scalameta" %%% "munit" % "0.4.5",
+        "org.scalameta" %%% "munit" % munit,
         "org.scalacheck" %%% "scalacheck" % "1.14.0" % Test,
         "com.github.alexarchambault" %%% "scalacheck-shapeless_1.14" % "1.2.3" % Test
       )

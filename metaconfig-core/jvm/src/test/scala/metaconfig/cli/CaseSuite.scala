@@ -1,4 +1,6 @@
-package metaconfig.internal
+package metaconfig.cli
+
+import metaconfig.internal.Case
 
 class CaseSuite extends munit.FunSuite {
   def checkKebabToCamel(original: String, expected: String): Unit = {

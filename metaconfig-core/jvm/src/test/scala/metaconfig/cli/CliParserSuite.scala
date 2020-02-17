@@ -1,96 +1,10 @@
-package metaconfig.internal
+package metaconfig.cli
 
 import java.nio.file.Paths
 import metaconfig.annotation._
 import metaconfig._
 import metaconfig.generic.Settings
 import java.io.File
-
-case class Site(
-    foo: String = "foo",
-    custom: Map[String, String] = Map.empty
-)
-object Site {
-  implicit val surface = generic.deriveSurface[Site]
-  implicit val codec = generic.deriveCodec[Site](Site())
-}
-
-case class Options(
-    @Description("The input directory to generate the fox site.")
-    @ExtraName("i")
-    in: String = Paths.get("docs").toString,
-    @Description("The output directory to generate the fox site.")
-    @ExtraName("o")
-    out: String = Paths.get("target").resolve("fox").toString,
-    cwd: String = Paths.get(".").toAbsolutePath.toString,
-    repoName: String = "olafurpg/fox",
-    repoUrl: String = "https://github.com/olafurpg/fox",
-    title: String = "Fox",
-    description: String = "My Description",
-    googleAnalytics: List[String] = Nil,
-    classpath: List[String] = Nil,
-    cleanTarget: Boolean = false,
-    @Description("")
-    baseUrl: String = "",
-    encoding: String = "UTF-8",
-    @Section("Advanced")
-    configPath: String = Paths.get("fox.conf").toString,
-    remainingArgs: List[String] = Nil,
-    conf: Conf = Conf.Obj(),
-    site: Site = Site(),
-    @Inline
-    inlined: Site = Site(),
-    @Hidden // should not appear in --help
-    hidden: Int = 87
-)
-object Options {
-  implicit val surface = generic.deriveSurface[Options]
-  implicit val codec: ConfCodec[Options] =
-    generic.deriveCodec[Options](Options())
-}
-
-class BaseCliParserSuite extends munit.FunSuite {
-  val settings = Settings[Options]
-  def toString(options: Options): String = {
-    settings.settings
-      .zip(options.productIterator.toList)
-      .map {
-        case (s, v) =>
-          s"${s.name} = $v"
-      }
-      .mkString("\n")
-  }
-  def check(
-      name: String,
-      args: List[String],
-      expectedOptions: Options
-  ): Unit = {
-    test(name) {
-      val conf = Conf.parseCliArgs[Options](args).get
-      val obtainedOptions = ConfDecoder[Options].read(conf).get
-      val obtained = toString(obtainedOptions)
-      val expected = toString(expectedOptions)
-      assertNoDiff(obtained, expected)
-    }
-  }
-
-  def checkError(
-      name: String,
-      args: List[String],
-      expected: String
-  ): Unit = {
-    test(name) {
-      val options = Conf
-        .parseCliArgs[Options](args)
-        .andThen(_.as[Options])
-      val obtained = options match {
-        case Configured.Ok(value) => value.toString()
-        case Configured.NotOk(error) => error.all.mkString("\n")
-      }
-      assertNoDiff(obtained, expected)
-    }
-  }
-}
 
 class CliParserSuite extends BaseCliParserSuite {
 
