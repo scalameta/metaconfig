@@ -1,6 +1,7 @@
 package metaconfig
 
 import scala.language.higherKinds
+import java.nio.file.Path
 
 trait ConfEncoder[A] { self =>
   def write(value: A): Conf
@@ -51,6 +52,11 @@ object ConfEncoder {
   implicit val StringEncoder: ConfEncoder[String] =
     new ConfEncoder[String] {
       override def write(value: String): Conf = Conf.Str(value)
+    }
+
+  implicit lazy val PathEncoder: ConfEncoder[Path] =
+    new ConfEncoder[Path] {
+      override def write(value: Path): Conf = Conf.Str(value.toString())
     }
 
   implicit def IterableEncoder[A, C[x] <: Iterable[x]](

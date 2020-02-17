@@ -8,21 +8,12 @@ import metaconfig.annotation.Inline
 import scala.collection.immutable.Nil
 
 object CliParser {
+  val PositionalArgument = "remainingArgs"
 
   def parseArgs[T](
       args: List[String]
   )(implicit settings: Settings[T]): Configured[Conf] = {
-    val toInline: Map[String, Setting] =
-      settings.settings.iterator.flatMap { setting =>
-        if (setting.annotations.exists(_.isInstanceOf[Inline])) {
-          for {
-            underlying <- setting.underlying.toList
-            name <- underlying.names
-          } yield name -> setting
-        } else {
-          Nil
-        }
-      }.toMap
+    val toInline = inlinedSettings(settings)
     def loop(
         curr: Conf.Obj,
         xs: List[String],
@@ -42,7 +33,7 @@ object CliParser {
           else {
             ConfError
               .message(
-                s"the argument '--$flag' requires a value but none was supplied"
+                s"the argument '--${Case.camelToKebab(flag)}' requires a value but none was supplied"
               )
               .notOk
           }
@@ -64,20 +55,30 @@ object CliParser {
                 }
                 settings.get(key, keys) match {
                   case None =>
-                    val closestCandidate =
-                      Levenshtein.closestCandidate(camel, settings.names)
-                    val didYouMean = closestCandidate match {
+                    settings.settings.find(_.isCatchInvalidFlags) match {
                       case None =>
-                        ""
-                      case Some(candidate) =>
-                        val kebab = Case.camelToKebab(candidate)
-                        s"\n\tDid you mean '--$kebab'?"
+                        val closestCandidate =
+                          Levenshtein.closestCandidate(camel, settings.names)
+                        val didYouMean = closestCandidate match {
+                          case None =>
+                            ""
+                          case Some(candidate) =>
+                            val kebab = Case.camelToKebab(candidate)
+                            s"\n\tDid you mean '--$kebab'?"
+                        }
+                        ConfError
+                          .message(
+                            s"found argument '--$flag' which wasn't expected, or isn't valid in this context.$didYouMean"
+                          )
+                          .notOk
+                      case Some(fallback) =>
+                        val values = appendValues(
+                          curr,
+                          PositionalArgument,
+                          xs.map(Conf.fromString)
+                        )
+                        ok(add(PositionalArgument, values))
                     }
-                    ConfError
-                      .message(
-                        s"found argument '--$flag' which wasn't expected, or isn't valid in this context.$didYouMean"
-                      )
-                      .notOk
                   case Some(setting) =>
                     val prefix = toInline.get(flag).fold("")(_.name + ".")
                     val toAdd = prefix + camel
@@ -90,16 +91,19 @@ object CliParser {
                 }
             }
           } else {
-            val key = "remainingArgs"
             val positionalArgs =
-              addRepeated(curr, key, Conf.fromString(head))
-            loop(add(key, positionalArgs), tail, NoFlag)
+              appendValues(
+                curr,
+                PositionalArgument,
+                List(Conf.fromString(head))
+              )
+            loop(add(PositionalArgument, positionalArgs), tail, NoFlag)
           }
         case (head :: tail, Flag(flag, setting)) =>
           val value = Conf.fromString(head)
           val newCurr =
             if (setting.isRepeated) {
-              addRepeated(curr, flag, value)
+              appendValues(curr, flag, List(value))
             } else {
               value
             }
@@ -109,12 +113,27 @@ object CliParser {
     loop(Conf.Obj(), args, NoFlag).map(_.normalize)
   }
 
-  private def addRepeated(conf: Conf.Obj, key: String, value: Conf): Conf = {
-    conf.map.get(key) match {
-      case Some(Conf.Lst(values)) => Conf.Lst(values :+ value)
-      case _ => Conf.Lst(value :: Nil)
+  def appendValues(obj: Conf.Obj, key: String, values: List[Conf]): Conf.Lst = {
+    obj.map.get(key) match {
+      case Some(Conf.Lst(oldValues)) => Conf.Lst(oldValues ++ values)
+      case _ => Conf.Lst(values)
     }
   }
+
+  def inlinedSettings(settings: Settings[_]): Map[String, Setting] =
+    settings.settings.iterator.flatMap { setting =>
+      if (setting.annotations.exists(_.isInstanceOf[Inline])) {
+        for {
+          underlying <- setting.underlying.toList
+          name <- underlying.names
+        } yield name -> setting
+      } else {
+        Nil
+      }
+    }.toMap
+
+  def allSettings(settings: Settings[_]): Map[String, Setting] =
+    inlinedSettings(settings) ++ settings.settings.map(s => s.name -> s)
 
   private sealed trait State
   private case class Flag(flag: String, setting: Setting) extends State

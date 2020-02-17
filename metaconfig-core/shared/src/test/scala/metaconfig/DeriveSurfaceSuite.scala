@@ -10,9 +10,10 @@ class DeriveSurfaceSuite extends munit.FunSuite {
   test("toString") {
     val surface = generic.deriveSurface[WithFile]
     val obtained = surface.toString
-    val expected =
-      """Surface(List(List(Field(name="file",tpe="File",annotations=List(),underlying=List()))))"""
-    assertEquals(obtained, expected)
+    assertNoDiff(
+      obtained,
+      "Surface(List(List(Field(name=\"file\",tpe=\"File\",annotations=List(@TabCompleteAsPath()),underlying=List()))))"
+    )
   }
 
   case class Curried(a: Int)(b: List[Int])

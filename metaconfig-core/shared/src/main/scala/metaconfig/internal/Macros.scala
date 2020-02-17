@@ -8,6 +8,8 @@ import metaconfig._
 import metaconfig.generic.Field
 import metaconfig.generic.Settings
 import metaconfig.generic.Surface
+import java.nio.file.Path
+import java.io.File
 
 object Macros
 class Macros(val c: blackbox.Context) {
@@ -160,7 +162,14 @@ class Macros(val c: blackbox.Context) {
             Nil
           }
 
-        val finalAnnots = repeated ::: dynamic ::: flag ::: baseAnnots
+        val tabCompletePath =
+          if (paramTpe <:< typeOf[Path] || paramTpe <:< typeOf[File]) {
+            q"new _root_.metaconfig.annotation.TabCompleteAsPath" :: Nil
+          } else {
+            Nil
+          }
+
+        val finalAnnots = repeated ::: dynamic ::: flag ::: tabCompletePath ::: baseAnnots
         val fieldsParamTpe = c.internal.typeRef(
           NoPrefix,
           weakTypeOf[Surface[_]].typeSymbol,

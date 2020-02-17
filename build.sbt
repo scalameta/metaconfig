@@ -6,6 +6,7 @@ val scala213 = "2.13.1"
 val ScalaVersions = List(scala212, scala211, scala213)
 inThisBuild(
   List(
+    useSuperShell := false,
     scalaVersion := scala212,
     scalacOptions += "-Yrangepos",
     organization := "com.geirsson",
@@ -29,6 +30,16 @@ inThisBuild(
     resolvers += Resolver.sonatypeRepo("snapshots")
   )
 )
+
+addCommandAlias(
+  "native-image",
+  "; tests/graalvm-native-image:packageBin ; taskready"
+)
+commands += Command.command("taskready") { s =>
+  import scala.sys.process._
+  "afplay /System/Library/Sounds/Hero.aiff".!
+  s
+}
 
 lazy val testSettings = List(
   testOptions.in(Test) +=
@@ -85,8 +96,8 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
       "org.scala-lang.modules" %%% "scala-collection-compat" % "2.1.2",
       scalaOrganization.value % "scala-reflect" % scalaVersion.value % Provided
     ) :+ (CrossVersion.partialVersion(scalaVersion.value) match {
-      case Some((2, 11 | 12)) => "com.lihaoyi" %%% "pprint" % "0.5.3"
-      case _ => "com.lihaoyi" %%% "pprint" % "0.5.5"
+      case Some((2, 11)) => "com.lihaoyi" %%% "pprint" % "0.5.4"
+      case _ => "com.lihaoyi" %%% "pprint" % "0.5.9"
     })
   )
   .jsSettings(scalaJSModuleKind := ModuleKind.CommonJSModule)
@@ -129,6 +140,36 @@ val scalatagsVersion = Def.setting {
   if (scalaVersion.value.startsWith("2.11")) "0.6.7"
   else "0.7.0"
 }
+
+lazy val tests = project
+  .in(file("metaconfig-tests"))
+  .settings(
+    skip in publish := true,
+    mainClass in GraalVMNativeImage := Some("metaconfig.tests.ExampleMain"),
+    sources.in(Compile, doc) := Seq.empty,
+    publishArtifact.in(Compile, packageDoc) := false,
+    graalVMNativeImageOptions ++= {
+      val reflectionFile =
+        Keys.sourceDirectory.in(Compile).value./("graal")./("reflection.json")
+      assert(reflectionFile.exists, "no such file: " + reflectionFile)
+      List(
+        "-H:+ReportUnsupportedElementsAtRuntime",
+        "--initialize-at-build-time",
+        "--initialize-at-run-time=metaconfig",
+        "--no-server",
+        "--enable-http",
+        "--enable-https",
+        "-H:EnableURLProtocols=http,https",
+        "--enable-all-security-services",
+        "--no-fallback",
+        s"-H:ReflectionConfigurationFiles=$reflectionFile",
+        "--allow-incomplete-classpath",
+        "-H:+ReportExceptionStackTraces"
+      )
+    }
+  )
+  .enablePlugins(GraalVMNativeImagePlugin)
+  .dependsOn(coreJVM)
 lazy val docs = project
   .settings(
     moduleName := "metaconfig-docs",

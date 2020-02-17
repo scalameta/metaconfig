@@ -1,4 +1,4 @@
-package metaconfig.internal
+package metaconfig.cli
 
 import java.nio.file.Paths
 import metaconfig.annotation._
@@ -261,8 +261,8 @@ class CliParserSuite extends BaseCliParserSuite {
 
   checkError(
     "positional-everywhere4",
-    "positional1" :: "--title" :: Nil,
-    "the argument '--title' requires a value but none was supplied"
+    "positional1" :: "--repo-url" :: Nil,
+    "the argument '--repo-url' requires a value but none was supplied"
   )
 
   checkError(

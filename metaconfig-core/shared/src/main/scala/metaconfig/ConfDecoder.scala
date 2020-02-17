@@ -9,6 +9,8 @@ import metaconfig.Extractors.Number
 import metaconfig.generic.Settings
 import metaconfig.internal.CanBuildFromDecoder
 import metaconfig.internal.NoTyposDecoder
+import java.nio.file.Path
+import java.nio.file.Paths
 
 trait ConfDecoder[A] { self =>
 
@@ -96,6 +98,10 @@ object ConfDecoder {
       case Conf.Bool(x) => Ok(x)
       case Conf.Str("true" | "on" | "yes") => Ok(true)
       case Conf.Str("false" | "off" | "no") => Ok(false)
+    }
+  implicit lazy val pathConfDecoder: ConfDecoder[Path] =
+    stringConfDecoder.flatMap { path =>
+      Configured.fromExceptionThrowing(Paths.get(path))
     }
   implicit def canBuildFromOption[A](
       implicit ev: ConfDecoder[A],
