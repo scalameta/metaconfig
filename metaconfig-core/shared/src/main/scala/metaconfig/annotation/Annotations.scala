@@ -23,3 +23,6 @@ final case class Dynamic() extends StaticAnnotation
 final case class Hidden() extends StaticAnnotation
 final case class Flag() extends StaticAnnotation
 final case class Section(name: String) extends StaticAnnotation
+final case class TabCompleteAsPath() extends StaticAnnotation
+final case class CatchInvalidFlags() extends StaticAnnotation
+final case class TabCompleteAsOneOf(options: String*) extends StaticAnnotation

@@ -2,6 +2,7 @@ package metaconfig.generic
 
 import scala.annotation.StaticAnnotation
 import metaconfig.annotation._
+import metaconfig.internal.CliParser
 
 final class Setting(val field: Field) {
   def name: String = field.name
@@ -45,6 +46,19 @@ final class Setting(val field: Field) {
     annotations.exists(_.isInstanceOf[Hidden])
   def isBoolean: Boolean =
     annotations.exists(_.isInstanceOf[Flag])
+  def isTabCompleteAsPath: Boolean =
+    annotations.exists(_.isInstanceOf[TabCompleteAsPath])
+  def isCatchInvalidFlags: Boolean =
+    annotations.exists(_.isInstanceOf[CatchInvalidFlags])
+  def isPositionalArgument: Boolean =
+    annotations.exists {
+      case ExampleValue(CliParser.PositionalArgument) => true
+      case _ => false
+    }
+  def tabCompleteOneOf: Option[List[String]] =
+    annotations.collectFirst {
+      case oneof: TabCompleteAsOneOf => oneof.options.toList
+    }
   @deprecated("Use isDynamic instead", "0.8.2")
   def isMap: Boolean = field.tpe.startsWith("Map")
   @deprecated("Use isDynamic instead", "0.8.2")

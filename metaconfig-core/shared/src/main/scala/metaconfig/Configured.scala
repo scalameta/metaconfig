@@ -1,5 +1,8 @@
 package metaconfig
 
+import scala.util.Failure
+import scala.util.Success
+
 sealed abstract class Configured[+A] extends Product with Serializable {
   import Configured._
   def getOrElse[B >: A](els: => B): B = this match {
@@ -46,6 +49,12 @@ object Configured {
   def notOk[T](error: ConfError): Configured[T] = NotOk(error)
   def error(message: String): Configured[Nothing] =
     ConfError.message(message).notOk
+  def fromExceptionThrowing[T](thunk: => T): Configured[T] = {
+    scala.util.Try(thunk) match {
+      case Failure(exception) => Configured.exception(exception)
+      case Success(value) => Configured.ok(value)
+    }
+  }
   def exception(
       exception: Throwable,
       stackSize: Int = 10

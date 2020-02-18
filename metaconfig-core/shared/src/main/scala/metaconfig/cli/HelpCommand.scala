@@ -32,6 +32,17 @@ class HelpCommand(
 ) extends Command[HelpOptions]("help") {
   override def description = Doc.paragraph("Print this help message")
   override def extraNames: List[String] = List("-h", "--help", "-help")
+  override def complete(
+      context: TabCompletionContext
+  ): List[TabCompletionItem] = {
+    if (context.arguments.length <= 1) {
+      context.app.commands
+        .filterNot(_.isHidden)
+        .map(c => TabCompletionItem(c.name))
+    } else {
+      Nil
+    }
+  }
   def run(options: HelpOptions, app: CliApp): Int = {
     options.subcommand match {
       case Nil =>

@@ -1,4 +1,4 @@
-package metaconfig.internal
+package metaconfig.cli
 
 import metaconfig.generic
 import metaconfig.generic.Settings
@@ -7,7 +7,6 @@ import org.typelevel.paiges.Doc
 import metaconfig.annotation.Description
 import metaconfig.ConfCodec
 import metaconfig.generic.Surface
-import metaconfig.cli.Messages
 
 case class Markdownish(
     @Description(

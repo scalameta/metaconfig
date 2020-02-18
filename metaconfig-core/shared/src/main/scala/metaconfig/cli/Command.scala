@@ -13,18 +13,20 @@ import metaconfig.generic.Settings
 import metaconfig.ConfDecoder
 
 abstract class Command[T](val name: String)(
-    implicit surface: Surface[T],
+    implicit val surface: Surface[T],
     confEncoder: ConfEncoder[T],
     confDecoder: ConfDecoder[T]
 ) { self =>
   type Value = T
 
   def run(value: Value, app: CliApp): Int
+  def complete(context: TabCompletionContext): List[TabCompletionItem] = Nil
   def description: Doc = Doc.empty
   def options: Doc = Doc.empty
   def usage: Doc = Doc.empty
   def examples: Doc = Doc.empty
   def extraNames: List[String] = Nil
+  def isHidden: Boolean = false
 
   final def settings: Settings[Value] = Settings[T]
   final def encoder: ConfEncoder[Value] = confEncoder
