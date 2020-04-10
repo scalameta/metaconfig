@@ -56,7 +56,7 @@ lazy val testSettings = List(
       )
     else
       List(
-        "org.scalameta" %%% "munit" % "0.4.5",
+        "org.scalameta" %%% "munit" % "0.4.5" % Test,
         "org.scalacheck" %%% "scalacheck" % "1.14.0" % Test,
         "com.github.alexarchambault" %%% "scalacheck-shapeless_1.14" % "1.2.3" % Test
       )
