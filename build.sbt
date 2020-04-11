@@ -51,7 +51,7 @@ lazy val testSettings = List(
   libraryDependencies ++= {
     if (SettingKey[Boolean]("nativeLinkStubs").?.value.contains(true))
       List(
-        "org.scalameta" %%% "munit" % "0.4.5",
+        "org.scalameta" %%% "munit" % "0.4.5" % Test,
         "com.github.lolgab" %%% "scalacheck" % "1.14.1" % Test
       )
     else
