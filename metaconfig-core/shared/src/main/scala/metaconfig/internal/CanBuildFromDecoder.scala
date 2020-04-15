@@ -10,6 +10,7 @@ import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok
+import metaconfig.ConfDecoderWithDefault
 
 object CanBuildFromDecoder {
   def map[A](
@@ -29,12 +30,13 @@ object CanBuildFromDecoder {
             Ok(results.collect { case Ok(x) => x }.toMap)
         }
     }
-  def list[C[_], A](
+
+  def list[C[X] <: Iterable[X], A](
       implicit ev: ConfDecoder[A],
       factory: Factory[A, C[A]],
       classTag: ClassTag[A]
-  ): ConfDecoder[C[A]] =
-    new ConfDecoder[C[A]] {
+  ): ConfDecoderWithDefault[C[A]] =
+    new ConfDecoderWithDefault[C[A]] {
       override def read(conf: Conf): Configured[C[A]] = conf match {
         case Conf.Lst(values) =>
           val successB = factory.newBuilder
@@ -57,6 +59,21 @@ object CanBuildFromDecoder {
           )
           NotOk(error)
       }
-    }
 
+      override def readWithDefault(
+          conf: Conf,
+          default: C[A]
+      ): Configured[C[A]] = {
+        conf match {
+          case Conf.Obj(("add", conf) :: Nil) =>
+            val builder = factory.newBuilder
+            read(conf).map { res =>
+              default.foreach(builder += _)
+              res.foreach(builder += _)
+              builder.result()
+            }
+          case els => read(els)
+        }
+      }
+    }
 }
