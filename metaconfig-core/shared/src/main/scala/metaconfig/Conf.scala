@@ -3,6 +3,7 @@ package metaconfig
 import java.io.File
 import scala.util.Try
 import metaconfig.Extractors._
+import metaconfig.ConfDecoder.ConfDecoderWithDefaultMaybe
 import metaconfig.generic.Setting
 import metaconfig.generic.Settings
 import metaconfig.internal.CliParser
@@ -26,16 +27,17 @@ sealed abstract class Conf extends Product with Serializable {
   def as[T](implicit ev: ConfDecoder[T]): Configured[T] =
     ev.read(this)
   def getSettingOrElse[T](setting: Setting, default: T)(
-      implicit ev: ConfDecoder[T]
-  ): Configured[T] =
+      implicit ev: ConfDecoderWithDefaultMaybe[T]
+  ): Configured[T] = {
     ConfGet.getOrElse(this, default, setting.name, setting.alternativeNames: _*)
+  }
   def get[T](path: String, extraNames: String*)(
       implicit ev: ConfDecoder[T]
   ): Configured[T] =
     ConfGet.get(this, path, extraNames: _*)
   def getOrElse[T](path: String, extraNames: String*)(
       default: T
-  )(implicit ev: ConfDecoder[T]): Configured[T] =
+  )(implicit ev: ConfDecoderWithDefaultMaybe[T]): Configured[T] =
     ConfGet.getOrElse(this, default, path, extraNames: _*)
 }
 

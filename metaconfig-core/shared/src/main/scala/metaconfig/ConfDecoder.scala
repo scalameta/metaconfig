@@ -9,6 +9,7 @@ import metaconfig.Extractors.Number
 import metaconfig.generic.Settings
 import metaconfig.internal.CanBuildFromDecoder
 import metaconfig.internal.NoTyposDecoder
+import metaconfig.internal.Priority
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -41,7 +42,14 @@ trait ConfDecoder[A] { self =>
     NoTyposDecoder[A](self)
 }
 
+trait ConfDecoderWithDefault[A] extends ConfDecoder[A] {
+  def readWithDefault(conf: Conf, default: A): Configured[A]
+}
+
 object ConfDecoder {
+
+  type ConfDecoderWithDefaultMaybe[A] =
+    Priority[ConfDecoderWithDefault[A], ConfDecoder[A]]
 
   @deprecated("Use ConfDecoder[T].read instead", "0.6.1")
   def decode[T](conf: Conf)(implicit ev: ConfDecoder[T]): Configured[T] =
@@ -71,7 +79,6 @@ object ConfDecoder {
           }
         )
     }
-
   def constant[T](value: T): ConfDecoder[T] = new ConfDecoder[T] {
     override def read(conf: Conf): Configured[T] = Configured.ok(value)
   }
@@ -119,11 +126,11 @@ object ConfDecoder {
   ): ConfDecoder[Map[String, A]] =
     CanBuildFromDecoder.map[A]
 
-  implicit def canBuildFromConfDecoder[C[_], A](
+  implicit def canBuildFromConfDecoder[C[X] <: Iterable[X], A](
       implicit ev: ConfDecoder[A],
       factory: Factory[A, C[A]],
       classTag: ClassTag[A]
-  ): ConfDecoder[C[A]] =
+  ): ConfDecoderWithDefault[C[A]] =
     CanBuildFromDecoder.list[C, A]
 
   def orElse[A](a: ConfDecoder[A], b: ConfDecoder[A]): ConfDecoder[A] =
