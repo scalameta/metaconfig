@@ -16,10 +16,16 @@ object CanBuildFromDecoder {
   def map[A](
       implicit ev: ConfDecoder[A],
       classTag: ClassTag[A]
-  ): ConfDecoder[Map[String, A]] =
-    ConfDecoder.instanceExpect[Map[String, A]](
+  ): ConfDecoderWithDefault[Map[String, A]] =
+    ConfDecoder.instanceExpectWithDefault[Map[String, A]](
       s"Map[String, ${classTag.runtimeClass.getName}]"
-    ) {
+    ) { (conf, default, read) =>
+      conf match {
+        case Conf.Obj(("add", conf) :: Nil) =>
+          read(conf).map(res => default ++ res)
+        case els => read(els)
+      }
+    } {
       case Conf.Obj(values) =>
         val results = values.map {
           case (key, value) => ev.read(value).map(key -> _)

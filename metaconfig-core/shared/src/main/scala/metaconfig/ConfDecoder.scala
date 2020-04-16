@@ -96,6 +96,25 @@ object ConfDecoder {
           }
         )
     }
+
+  def instanceExpectWithDefault[T](
+      expect: String
+  )(rwd: (Conf, T, Conf => Configured[T]) => Configured[T])(
+      f: PartialFunction[Conf, Configured[T]]
+  )(implicit ev: ClassTag[T]): ConfDecoderWithDefault[T] =
+    new ConfDecoderWithDefault[T] {
+      override def read(any: Conf): Configured[T] =
+        f.applyOrElse(
+          any,
+          (x: Conf) => {
+            NotOk(ConfError.typeMismatch(expect, x))
+          }
+        )
+
+      override def readWithDefault(conf: Conf, default: T): Configured[T] =
+        rwd(conf, default, read)
+    }
+
   def constant[T](value: T): ConfDecoder[T] = new ConfDecoder[T] {
     override def read(conf: Conf): Configured[T] = Configured.ok(value)
   }
@@ -140,7 +159,7 @@ object ConfDecoder {
   implicit def canBuildFromMapWithStringKey[A](
       implicit ev: ConfDecoder[A],
       classTag: ClassTag[A]
-  ): ConfDecoder[Map[String, A]] =
+  ): ConfDecoderWithDefault[Map[String, A]] =
     CanBuildFromDecoder.map[A]
 
   implicit def canBuildFromConfDecoder[C[X] <: Iterable[X], A](
