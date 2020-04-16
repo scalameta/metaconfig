@@ -28,9 +28,8 @@ sealed abstract class Conf extends Product with Serializable {
     ev.read(this)
   def getSettingOrElse[T](setting: Setting, default: T)(
       implicit ev: ConfDecoderWithDefaultMaybe[T]
-  ): Configured[T] = {
+  ): Configured[T] =
     ConfGet.getOrElse(this, default, setting.name, setting.alternativeNames: _*)
-  }
   def get[T](path: String, extraNames: String*)(
       implicit ev: ConfDecoder[T]
   ): Configured[T] =
