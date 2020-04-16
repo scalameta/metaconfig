@@ -42,8 +42,25 @@ trait ConfDecoder[A] { self =>
     NoTyposDecoder[A](self)
 }
 
-trait ConfDecoderWithDefault[A] extends ConfDecoder[A] {
+trait ConfDecoderWithDefault[A] extends ConfDecoder[A] { self =>
   def readWithDefault(conf: Conf, default: A): Configured[A]
+
+  final def mapWithDefault[B](f: A => B)(g: B => A): ConfDecoderWithDefault[B] =
+    self.flatMapWithDefault(x => Ok(f(x)))(g)
+  final def flatMapWithDefault[TT](
+      f: A => Configured[TT]
+  )(g: TT => A): ConfDecoderWithDefault[TT] =
+    new ConfDecoderWithDefault[TT] {
+      override def read(any: Conf): Configured[TT] = self.read(any) match {
+        case Ok(x) => f(x)
+        case NotOk(x) => Configured.NotOk(x)
+      }
+      override def readWithDefault(any: Conf, default: TT): Configured[TT] =
+        self.readWithDefault(any, g(default)) match {
+          case Ok(x) => f(x)
+          case NotOk(x) => Configured.NotOk(x)
+        }
+    }
 }
 
 object ConfDecoder {

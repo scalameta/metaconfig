@@ -22,10 +22,23 @@ object ConfListTest {
 
   implicit val reader: ConfDecoder[Foo] =
     generic.deriveDecoder[Foo](Foo()).noTypos
+
+  case class Mapped(raw: String)
+  case class Baz(as: List[Mapped] = List(Mapped("a")))
+
+  implicit val readerListA: ConfDecoderWithDefault[List[Mapped]] =
+    implicitly[ConfDecoderWithDefault[List[String]]]
+      .mapWithDefault(x => x.map(a => Mapped(a + "_mapped")))(_.map(_.raw))
+
+  implicit val surfaceBaz: generic.Surface[Baz] =
+    generic.deriveSurface
+
+  implicit val readerBaz: ConfDecoder[Baz] =
+    generic.deriveDecoder[Baz](Baz()).noTypos
 }
 
 class ConfListTest extends munit.FunSuite {
-  import ConfListTest.{Foo, Bar}
+  import ConfListTest.{Foo, Bar, Baz, Mapped}
   import Conf._
 
   test("simple") {
@@ -67,6 +80,13 @@ class ConfListTest extends munit.FunSuite {
     )
     val obtained = conf.as[Foo].get
     val expected = Foo(List("c", "a", "b"), List("d"), Bar(List("e")))
+    assertEquals(obtained, expected)
+  }
+
+  test("map appendable values") {
+    val conf = Obj("as" -> Obj("add" -> Lst(Str("b"))))
+    val obtained = conf.as[Baz].get
+    val expected = Baz(List(Mapped("a_mapped"), Mapped("b_mapped")))
     assertEquals(obtained, expected)
   }
 
