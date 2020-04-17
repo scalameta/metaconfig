@@ -6,92 +6,6 @@ import metaconfig._
 import metaconfig.generic.Settings
 import java.io.File
 
-case class Site(
-    foo: String = "foo",
-    custom: Map[String, String] = Map.empty
-)
-object Site {
-  implicit val surface = generic.deriveSurface[Site]
-  implicit val codec = generic.deriveCodec[Site](Site())
-}
-
-case class Options(
-    @Description("The input directory to generate the fox site.")
-    @ExtraName("i")
-    in: String = Paths.get("docs").toString,
-    @Description("The output directory to generate the fox site.")
-    @ExtraName("o")
-    out: String = Paths.get("target").resolve("fox").toString,
-    cwd: String = Paths.get(".").toAbsolutePath.toString,
-    repoName: String = "olafurpg/fox",
-    repoUrl: String = "https://github.com/olafurpg/fox",
-    title: String = "Fox",
-    description: String = "My Description",
-    googleAnalytics: List[String] = Nil,
-    classpath: List[String] = Nil,
-    cleanTarget: Boolean = false,
-    @Description("")
-    baseUrl: String = "",
-    encoding: String = "UTF-8",
-    @Section("Advanced")
-    configPath: String = Paths.get("fox.conf").toString,
-    remainingArgs: List[String] = Nil,
-    conf: Conf = Conf.Obj(),
-    site: Site = Site(),
-    @Inline
-    inlined: Site = Site(),
-    @Hidden // should not appear in --help
-    hidden: Int = 87
-)
-object Options {
-  implicit val surface = generic.deriveSurface[Options]
-  implicit val codec: ConfCodec[Options] =
-    generic.deriveCodec[Options](Options())
-}
-
-class BaseCliParserSuite extends munit.FunSuite {
-  val settings = Settings[Options]
-  def toString(options: Options): String = {
-    settings.settings
-      .zip(options.productIterator.toList)
-      .map {
-        case (s, v) =>
-          s"${s.name} = $v"
-      }
-      .mkString("\n")
-  }
-  def check(
-      name: String,
-      args: List[String],
-      expectedOptions: Options
-  ): Unit = {
-    test(name) {
-      val conf = Conf.parseCliArgs[Options](args).get
-      val obtainedOptions = ConfDecoder[Options].read(conf).get
-      val obtained = toString(obtainedOptions)
-      val expected = toString(expectedOptions)
-      assertNoDiff(obtained, expected)
-    }
-  }
-
-  def checkError(
-      name: String,
-      args: List[String],
-      expected: String
-  ): Unit = {
-    test(name) {
-      val options = Conf
-        .parseCliArgs[Options](args)
-        .andThen(_.as[Options])
-      val obtained = options match {
-        case Configured.Ok(value) => value.toString()
-        case Configured.NotOk(error) => error.all.mkString("\n")
-      }
-      assertNoDiff(obtained, expected)
-    }
-  }
-}
-
 class CliParserSuite extends BaseCliParserSuite {
 
   check(
@@ -104,6 +18,72 @@ class CliParserSuite extends BaseCliParserSuite {
     "boolean",
     "--clean-target" :: Nil,
     Options(cleanTarget = true)
+  )
+
+  check(
+    "no-boolean-default-true",
+    "--default-true" :: Nil,
+    Options(defaultTrue = true)
+  )
+
+  check(
+    "no-boolean-default-true",
+    "--no-default-true" :: Nil,
+    Options(defaultTrue = false)
+  )
+
+  check(
+    "no-boolean-default-false",
+    "--default-false" :: Nil,
+    Options(defaultFalse = true)
+  )
+
+  check(
+    "no-boolean-default-false",
+    "--no-default-false" :: Nil,
+    Options(defaultFalse = false)
+  )
+
+  check(
+    "no-boolean-flip-default-true",
+    "--flip-default-true" :: Nil,
+    Options(noFlipDefaultTrue = false)
+  )
+
+  check(
+    "no-boolean-flip-default-true",
+    "--no-flip-default-true" :: Nil,
+    Options(noFlipDefaultTrue = true)
+  )
+
+  check(
+    "no-boolean-flip-default-false",
+    "--flip-default-false" :: Nil,
+    Options(noFlipDefaultFalse = false)
+  )
+
+  check(
+    "no-boolean-flip-default-false",
+    "--no-flip-default-false" :: Nil,
+    Options(noFlipDefaultFalse = true)
+  )
+
+  check(
+    "no-boolean-conflict",
+    "--conflict" :: Nil,
+    Options(conflict = true, noConflict = false)
+  )
+
+  check(
+    "no-boolean-conflict",
+    "--no-conflict" :: Nil,
+    Options(conflict = false, noConflict = true)
+  )
+
+  check(
+    "no-boolean-conflict",
+    "--no-no-conflict" :: Nil,
+    Options(conflict = false, noConflict = false)
   )
 
   check(

@@ -69,6 +69,12 @@ class CliSuite extends munit.FunSuite {
        |--google-analytics List[String] (default: [])
        |--classpath List[String] (default: [])
        |--clean-target
+       |--default-true
+       |--default-false
+       |--no-flip-default-true
+       |--no-flip-default-false
+       |--conflict
+       |--no-conflict
        |--base-url String (default: "")
        |--encoding String (default: "UTF-8")
        |
