@@ -13,6 +13,11 @@ sealed abstract class Configured[+A] extends Product with Serializable {
     case Ok(value) => value
     case NotOk(error) => throw new NoSuchElementException(error.toString)
   }
+  def orElse[B >: A](alternative: => Configured[B]): Configured[B] =
+    this match {
+      case _: NotOk => alternative
+      case ok => ok
+    }
   def toEither: Either[ConfError, A] = this match {
     case Ok(value) => Right(value)
     case NotOk(error) => Left(error)
