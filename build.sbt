@@ -13,9 +13,7 @@ inThisBuild(
     scalaVersion := scala212,
     scalacOptions += "-Yrangepos",
     organization := "com.geirsson",
-    version ~= { old =>
-      old.replace('+', '-')
-    },
+    version ~= { old => old.replace('+', '-') },
     licenses := Seq(
       "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")
     ),

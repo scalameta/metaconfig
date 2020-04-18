@@ -47,9 +47,7 @@ case class CliApp(
               case Ok(value) =>
                 command.run(value, app)
               case NotOk(error) =>
-                error.all.foreach { message =>
-                  app.error(message)
-                }
+                error.all.foreach { message => app.error(message) }
                 1
             }
           case None =>

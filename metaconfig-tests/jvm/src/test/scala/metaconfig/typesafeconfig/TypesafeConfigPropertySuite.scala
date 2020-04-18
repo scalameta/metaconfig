@@ -22,9 +22,7 @@ class TypesafeConfigPropertySuite extends munit.ScalaCheckSuite {
   }
 
   property("roundtrip") {
-    forAll { (a: ConfShow, b: ConfShow) =>
-      assertRoundtrip(a.str, b.str)
-    }
+    forAll { (a: ConfShow, b: ConfShow) => assertRoundtrip(a.str, b.str) }
   }
 
   check(

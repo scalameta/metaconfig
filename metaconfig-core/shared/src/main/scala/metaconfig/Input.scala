@@ -23,7 +23,8 @@ sealed abstract class Input(val path: String, val text: String)
         buf += (i + 1)
       i += 1
     }
-    if (buf.last != chars.length) buf += chars.length // sentinel value used for binary search
+    if (buf.last != chars.length)
+      buf += chars.length // sentinel value used for binary search
     buf.toArray
   }
 

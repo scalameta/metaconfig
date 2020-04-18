@@ -107,9 +107,7 @@ object Conf {
     ): Configured[Option[T]] =
       ConfGet
         .getKey(this, path +: extraNames)
-        .map(
-          value => ev.read(value).map(Some(_))
-        )
+        .map(value => ev.read(value).map(Some(_)))
         .getOrElse(Configured.Ok(None))
   }
   object Obj {

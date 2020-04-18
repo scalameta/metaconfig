@@ -167,7 +167,8 @@ class Macros(val c: blackbox.Context) {
             Nil
           }
 
-        val finalAnnots = repeated ::: dynamic ::: flag ::: tabCompletePath ::: baseAnnots
+        val finalAnnots =
+          repeated ::: dynamic ::: flag ::: tabCompletePath ::: baseAnnots
         val fieldsParamTpe = c.internal.typeRef(
           NoPrefix,
           weakTypeOf[Surface[_]].typeSymbol,

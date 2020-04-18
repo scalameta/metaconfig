@@ -70,9 +70,7 @@ class DeriveSurfaceSuite extends munit.FunSuite {
     assert(settings.settings.length == 4)
     val notIterable :: tail = settings.settings
     assert(!notIterable.isRepeated)
-    tail.foreach { setting =>
-      assert(setting.isRepeated, setting.name)
-    }
+    tail.foreach { setting => assert(setting.isRepeated, setting.name) }
   }
 
   case class CustomTypePrinting(a: Int, b: Option[Int], c: List[String])
@@ -80,15 +78,11 @@ class DeriveSurfaceSuite extends munit.FunSuite {
     import pprint.TPrint
     implicit val intPrint = TPrint.literal[Int]("number")
     implicit def optionPrint[T](implicit ev: TPrint[T]): TPrint[Option[T]] =
-      TPrint.make { implicit colors =>
-        "(" + ev.render + ")"
-      }
+      TPrint.make { implicit colors => "(" + ev.render + ")" }
     implicit def iterablePrint[C[x] <: Iterable[x], T](
         implicit ev: TPrint[T]
     ): TPrint[C[T]] =
-      TPrint.make { implicit colors =>
-        "[" + ev.render + " ...]"
-      }
+      TPrint.make { implicit colors => "[" + ev.render + " ...]" }
     implicit val surface = generic.deriveSurface[CustomTypePrinting]
     val a :: b :: c :: Nil = Settings[CustomTypePrinting].settings
     assert(a.tpe == "number")
