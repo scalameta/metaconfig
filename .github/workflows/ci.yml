@@ -28,3 +28,5 @@ jobs:
       - uses: olafurpg/setup-scala@v7
       - run: ./bin/scalafmt --check
       - run: sbt scalafixCheckAll
+      - run: sbt coreJVM/mimaReportBinaryIssues
+      - run: sbt docs/docusaurusCreateSite

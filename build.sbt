@@ -1,5 +1,7 @@
 import java.util.Date
 import sbtcrossproject.CrossPlugin.autoImport.crossProject
+import com.typesafe.tools.mima.core._
+
 lazy val V = new {
   def munit = "0.7.2"
 }
@@ -56,14 +58,31 @@ lazy val warnUnusedImport = Def.setting {
   else "-Ywarn-unused-import"
 }
 
+val languageAgnosticCompatibilityPolicy: ProblemFilter = (problem: Problem) => {
+  val (ref, fullName) = problem match {
+    case problem: TemplateProblem => (problem.ref, problem.ref.fullName)
+    case problem: MemberProblem => (problem.ref, problem.ref.fullName)
+  }
+  val public = ref.isPublic
+  val include = fullName.startsWith("metaconfig.")
+  val exclude = fullName.contains(".internal.") ||
+    fullName.startsWith("metaconfig.cli")
+  public && include && !exclude
+}
+
 lazy val sharedSettings = List[Setting[_]](
   scalacOptions ++= List(
     "-Yrangepos",
     warnUnusedImport.value
-  )
+  ),
+  mimaBinaryIssueFilters ++= List[ProblemFilter](
+    languageAgnosticCompatibilityPolicy
+  ),
+  mimaPreviousArtifacts := Set("com.geirsson" %% moduleName.value % "0.9.10")
 )
 
 skip.in(publish) := true
+disablePlugins(MimaPlugin)
 
 lazy val core = crossProject(JVMPlatform, JSPlatform)
   .in(file("metaconfig-core"))
@@ -126,6 +145,7 @@ val scalatagsVersion = Def.setting {
 
 lazy val tests = crossProject(JVMPlatform, JSPlatform)
   .in(file("metaconfig-tests"))
+  .disablePlugins(MimaPlugin)
   .settings(
     sharedSettings,
     skip in publish := true,
@@ -162,18 +182,28 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform)
   )
   .jvmConfigure(
     _.enablePlugins(GraalVMNativeImagePlugin)
-      .dependsOn(json, typesafe, sconfigJVM)
+      .dependsOn(json, typesafe, sconfigJVM, docs)
   )
   .dependsOn(core)
 lazy val testsJVM = tests.jvm
 lazy val testsJS = tests.js
 
 lazy val docs = project
+  .in(file("metaconfig-docs"))
   .settings(
     sharedSettings,
     moduleName := "metaconfig-docs",
     libraryDependencies ++= List(
       "com.lihaoyi" %% "scalatags" % scalatagsVersion.value
-    )
+    ),
+    mdocVariables := Map(
+      "VERSION" -> version.value.replaceFirst("\\+.*", ""),
+      "SCALA_VERSION" -> scalaVersion.value
+    ),
+    mdocOut :=
+      baseDirectory.in(ThisBuild).value / "website" / "target" / "docs",
+    mdocExtraArguments := List("--no-link-hygiene")
   )
-  .dependsOn(coreJVM)
+  .dependsOn(coreJVM, json, typesafe, sconfigJVM)
+  .enablePlugins(DocusaurusPlugin)
+  .disablePlugins(MimaPlugin)

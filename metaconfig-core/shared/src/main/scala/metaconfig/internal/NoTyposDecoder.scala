@@ -15,8 +15,8 @@ object NoTyposDecoder {
         case Conf.Obj(values) =>
           val names = ev.allNames
           val typos = values.collect {
-            case (key, _) if !names.contains(key) =>
-              key
+            case (key, obj) if !names.contains(key) =>
+              key -> obj.pos
           }
           if (typos.isEmpty) underlying.read(conf)
           else ConfError.invalidFields(typos, ev.settings.map(_.name)).notOk

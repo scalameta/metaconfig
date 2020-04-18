@@ -2,6 +2,8 @@ package metaconfig
 
 import scala.util.Failure
 import scala.util.Success
+import metaconfig.Configured.Ok
+import metaconfig.Configured.NotOk
 
 sealed abstract class Configured[+A] extends Product with Serializable {
   import Configured._
@@ -11,8 +13,10 @@ sealed abstract class Configured[+A] extends Product with Serializable {
   }
   def get: A = this match {
     case Ok(value) => value
-    case NotOk(error) => throw new NoSuchElementException(error.toString)
+    case NotOk(error) =>
+      throw new NoSuchElementException(error.toString)
   }
+
   def orElse[B >: A](alternative: => Configured[B]): Configured[B] =
     this match {
       case _: NotOk => alternative

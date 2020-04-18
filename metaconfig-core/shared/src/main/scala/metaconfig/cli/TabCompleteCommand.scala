@@ -1,7 +1,6 @@
 package metaconfig.cli
 
 import scala.collection.immutable.Nil
-import metaconfig.generic.Settings
 import metaconfig.internal.CliParser
 import java.io.File
 import java.nio.file.Files
@@ -39,7 +38,7 @@ object TabCompleteCommand extends Command[TabCompleteOptions]("tab-complete") {
   ): Unit = {
     val last = tail.lastOption.getOrElse(head)
     val inlined = CliParser
-      .allSettings(Settings(subcommand.surface))
+      .allSettings(subcommand.settings)
       .filter(!_._2.isHidden)
     val secondLast = (head :: tail).takeRight(2) match {
       case flag :: last :: Nil => Some(flag)

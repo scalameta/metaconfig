@@ -2,6 +2,7 @@ package metaconfig.docs
 
 import metaconfig._
 import metaconfig.annotation._
+import metaconfig.generic.Surface
 
 class DocsSuite extends munit.FunSuite {
 
@@ -11,8 +12,8 @@ class DocsSuite extends munit.FunSuite {
       country: String = "Iceland"
   )
   object Home {
-    implicit val surface = generic.deriveSurface[Home]
-    implicit val codec = generic.deriveCodec[Home](Home())
+    implicit val surface: Surface[Home] = generic.deriveSurface[Home]
+    implicit val codec: ConfCodec[Home] = generic.deriveCodec[Home](Home())
   }
 
   case class User(
@@ -23,8 +24,8 @@ class DocsSuite extends munit.FunSuite {
       home: Home = Home()
   )
   object User {
-    implicit val surface = generic.deriveSurface[User]
-    implicit val codec = generic.deriveCodec[User](User())
+    implicit val surface: Surface[User] = generic.deriveSurface[User]
+    implicit val codec: ConfCodec[User] = generic.deriveCodec[User](User())
   }
 
   test("html") {

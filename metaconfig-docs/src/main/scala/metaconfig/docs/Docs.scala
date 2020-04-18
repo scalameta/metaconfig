@@ -4,14 +4,16 @@ import metaconfig.ConfEncoder
 import scalatags.Text.all._
 import metaconfig.generic.Setting
 import metaconfig.generic.Settings
+import scalatags.Text
 
 object Docs {
-  def htmlSetting(setting: Setting, defaultValue: Any) = tr(
-    td(code(setting.name)),
-    td(code(setting.field.tpe)),
-    td(setting.description),
-    td(defaultValue.toString)
-  )
+  def htmlSetting(setting: Setting, defaultValue: Any): Text.TypedTag[String] =
+    tr(
+      td(code(setting.name)),
+      td(code(setting.field.tpe)),
+      td(setting.description),
+      td(defaultValue.toString)
+    )
 
   def html[T](
       default: T
