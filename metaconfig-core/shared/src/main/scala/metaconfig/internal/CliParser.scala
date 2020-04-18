@@ -5,7 +5,6 @@ import metaconfig.generic.Setting
 import metaconfig.generic.Settings
 import metaconfig.Configured.ok
 import metaconfig.annotation.Inline
-import metaconfig.Configured.Ok
 import metaconfig.Configured.NotOk
 
 class CliParser[T](

@@ -77,7 +77,7 @@ object Position {
     def endLine: Int = input.offsetToLine(end)
     def endColumn: Int = end - input.lineToOffset(endLine)
     override def text = new String(input.chars, start, end - start)
-    override def toString = s"[$start..$end) in $input"
+    override def toString: String = s"[$start..$end) in $input"
   }
 
 }

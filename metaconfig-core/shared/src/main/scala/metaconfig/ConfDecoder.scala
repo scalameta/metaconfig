@@ -1,6 +1,5 @@
 package metaconfig
 
-import scala.language.experimental.macros
 import scala.language.higherKinds
 import scala.collection.compat._
 import scala.reflect.ClassTag

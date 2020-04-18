@@ -3,7 +3,6 @@ package metaconfig.cli
 import metaconfig._
 import metaconfig.annotation._
 import metaconfig.generic._
-import metaconfig.generic
 import metaconfig.internal.CliParser
 
 case class TabCompleteOptions(
@@ -12,7 +11,7 @@ case class TabCompleteOptions(
     arguments: List[String] = Nil
 )
 object TabCompleteOptions {
-  val default = TabCompleteOptions()
+  val default: TabCompleteOptions = TabCompleteOptions()
   implicit val surface: Surface[TabCompleteOptions] = new Surface(
     List(
       List(

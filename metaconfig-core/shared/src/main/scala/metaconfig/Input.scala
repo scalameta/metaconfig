@@ -23,7 +23,8 @@ sealed abstract class Input(val path: String, val text: String)
         buf += (i + 1)
       i += 1
     }
-    if (buf.last != chars.length) buf += chars.length // sentinel value used for binary search
+    if (buf.last != chars.length)
+      buf += chars.length // sentinel value used for binary search
     buf.toArray
   }
 
@@ -66,19 +67,21 @@ sealed abstract class Input(val path: String, val text: String)
 object Input {
 
   case object None extends Input("<none>", "") {
-    override def toString = "Input.None"
+    override def toString: Predef.String = "Input.None"
   }
 
   final case class String(override val text: Predef.String)
       extends Input("<input>", text) {
-    override def toString = s"""Input.String("$text")"""
+    override def toString: Predef.String =
+      s"""Input.String("$text")"""
   }
 
   final case class VirtualFile(
       override val path: Predef.String,
       override val text: Predef.String
   ) extends Input(path, text) {
-    override def toString = s"""Input.VirtualFile("$path", "...")"""
+    override def toString: Predef.String =
+      s"""Input.VirtualFile("$path", "...")"""
   }
 
   final case class File(file: Path, charset: Charset)
