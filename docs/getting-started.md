@@ -1,13 +1,16 @@
-# Metaconfig
+---
+id: getting-started
+title: Getting started
+---
 
 Metaconfig is a library to read HOCON configuration into Scala case classes. Key
 features of Metaconfig include
 
-* helpful error messages on common mistakes like typos or type mismatch
+- helpful error messages on common mistakes like typos or type mismatch
   (expected string, obtained int)
-* configurable, semi-automatic derivation of decoders, with support for
+- configurable, semi-automatic derivation of decoders, with support for
   deprecating setting options
-* cross-platform, supports JS/JVM. Native support is on the roadmap
+- cross-platform, supports JS/JVM. Native support is on the roadmap
 
 The target use-case for metaconfig is tool maintainers who support HOCON
 configuration in their tool. Metaconfig is used by scalafmt to read
@@ -18,8 +21,8 @@ should get helpful error messages when they mistype a setting name.
 
 There are alternatives to metaconfig that you might want to give a try first
 
-* https://github.com/circe/circe-config
-* https://github.com/pureconfig/pureconfig
+- https://github.com/circe/circe-config
+- https://github.com/pureconfig/pureconfig
 
 ## Getting started
 
@@ -41,27 +44,26 @@ scope.
 
 <!-- TOC -->
 
-* [Metaconfig](#metaconfig)
-  * [Getting started](#getting-started)
-  * [Conf](#conf)
-  * [Conf.parse](#confparse)
-  * [Conf.printHocon](#confprinthocon)
-  * [Conf.patch](#confpatch)
-  * [ConfDecoder](#confdecoder)
-  * [ConfEncoder](#confencoder)
-  * [ConfCodec](#confcodec)
-  * [ConfError](#conferror)
-  * [Configured](#configured)
-  * [generic.deriveSurface](#genericderivesurface)
-  * [generic.deriveDecoder](#genericderivedecoder)
-    * [Limitations](#limitations)
-  * [@DeprecatedName](#deprecatedname)
-  * [Conf.parseCliArgs](#confparsecliargs)
-  * [Settings.toCliHelp](#settingstoclihelp)
-  * [@Inline](#inline)
-  * [Docs](#docs)
-  * [JSON](#json)
-  * [JSON Schema](#json-schema)
+- [Getting started](#getting-started)
+- [Conf](#conf)
+- [Conf.parse](#confparse)
+- [Conf.printHocon](#confprinthocon)
+- [Conf.patch](#confpatch)
+- [ConfDecoder](#confdecoder)
+- [ConfEncoder](#confencoder)
+- [ConfCodec](#confcodec)
+- [ConfError](#conferror)
+- [Configured](#configured)
+- [generic.deriveSurface](#genericderivesurface)
+- [generic.deriveDecoder](#genericderivedecoder)
+  - [Limitations](#limitations)
+- [@DeprecatedName](#deprecatedname)
+- [Conf.parseCliArgs](#confparsecliargs)
+- [Settings.toCliHelp](#settingstoclihelp)
+- [@Inline](#inline)
+- [Docs](#docs)
+- [JSON](#json)
+- [JSON Schema](#json-schema)
 
 <!-- /TOC -->
 
@@ -126,10 +128,10 @@ so it should be safe to parse the output from the printer.
 
 Imagine the scenario
 
-* your application has many configuration options with default values,
-* you have a custom configuration object that overrides only a few specific
+- your application has many configuration options with default values,
+- you have a custom configuration object that overrides only a few specific
   fields.
-* you want to pretty-print the minimal HOCON configuration to obtain that custom
+- you want to pretty-print the minimal HOCON configuration to obtain that custom
   configuration
 
 Use `Conf.patch` compute a minimal `Conf` to go from an original `Conf` to a
@@ -383,9 +385,9 @@ Observe that the error message is complaining about a missing
 
 The following features are not supported by generic derivation
 
-* derivation for objects, sealed traits or non-case classes, only case classes
+- derivation for objects, sealed traits or non-case classes, only case classes
   are supported
-* parameterized types, it's possible to derive decoders for a concrete
+- parameterized types, it's possible to derive decoders for a concrete
   parameterized type like `Option[Foo]` but note that the type field
   (`Field.tpe`) will be pretty-printed to the generic representation of that
   field: `Option[T].value: T`.

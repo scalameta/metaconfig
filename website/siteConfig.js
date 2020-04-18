@@ -1,31 +1,30 @@
 // See https://docusaurus.io/docs/site-config.html for all the possible
 // site configuration options.
 
-const repoUrl = "https://github.com/scalameta/munit";
-const baseUrl = "/munit/";
+const repoUrl = "https://github.com/scalameta/metaconfig";
+const baseUrl = "/metaconfig/";
 
 const siteConfig = {
-  title: "MUnit",
-  tagline: "Scala testing library with actionable errors and extensible APIs",
-  url: "http://scalameta.org/munit",
+  title: "Metaconfig",
+  tagline: "Library to build configurable tools",
+  url: "https://scalameta.org/metaconfig",
   baseUrl: baseUrl,
 
   // Used for publishing and more
-  projectName: "munit",
+  projectName: "metaconfig",
   organizationName: "scalameta",
 
-  algolia: {
-    apiKey: "586dbbac9432319747bfea750fab16cb",
-    indexName: "scalameta_munit"
-  },
+  // algolia: {
+  //   apiKey: "586dbbac9432319747bfea750fab16cb",
+  //   indexName: "scalameta_munit"
+  // },
 
   gaTrackingId: "UA-140140828-1",
 
   // For no header links in the top nav bar -> headerLinks: [],
   headerLinks: [
     { doc: "getting-started", label: "Docs" },
-    { blog: true, label: "Blog" },
-    { href: repoUrl, label: "GitHub", external: true }
+    { href: repoUrl, label: "GitHub", external: true },
   ],
 
   // If you have users set above, you add it here:
@@ -39,7 +38,7 @@ const siteConfig = {
   /* colors for website */
   colors: {
     primaryColor: "#058772",
-    secondaryColor: "#045C4D"
+    secondaryColor: "#045C4D",
   },
 
   customDocsPath: "website/target/docs",
@@ -53,7 +52,7 @@ const siteConfig = {
 
   highlight: {
     // Highlight.js theme to use for syntax highlighting in code blocks
-    theme: "github"
+    theme: "github",
   },
 
   /* On page navigation for the current documentation page */
@@ -65,7 +64,7 @@ const siteConfig = {
 
   editUrl: `${repoUrl}/edit/master/docs/`,
 
-  repoUrl
+  repoUrl,
 };
 
 module.exports = siteConfig;

@@ -169,11 +169,20 @@ lazy val testsJVM = tests.jvm
 lazy val testsJS = tests.js
 
 lazy val docs = project
+  .in(file("metaconfig-docs"))
   .settings(
     sharedSettings,
     moduleName := "metaconfig-docs",
     libraryDependencies ++= List(
       "com.lihaoyi" %% "scalatags" % scalatagsVersion.value
-    )
+    ),
+    mdocVariables := Map(
+      "VERSION" -> version.value.replaceFirst("\\+.*", ""),
+      "SCALA_VERSION" -> scalaVersion.value
+    ),
+    mdocOut :=
+      baseDirectory.in(ThisBuild).value / "website" / "target" / "docs",
+    mdocExtraArguments := List("--no-link-hygiene")
   )
   .dependsOn(coreJVM)
+  .enablePlugins(DocusaurusPlugin)
