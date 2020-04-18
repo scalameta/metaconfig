@@ -32,7 +32,22 @@ class Footer extends React.Component {
             <a href={`${docsUrl}getting-started.html`}>Getting started</a>
           </div>
           <div>
-            <h5>Social</h5>
+            <h5>Scalameta Projects</h5>
+            <a href="https://scalameta.org/metals">Metals: language server</a>
+            <a href="https://scalameta.org/scalafmt">
+              Scalafmt: code formatter
+            </a>
+            <a href="https://scalacenter.github.io/scalafix">
+              Scalafix: linting and refactoring tool
+            </a>
+            <a href="https://scalameta.org/munit">MUnit: testing library</a>
+            <a href="https://scalameta.org/mdoc">MDoc: documentation tool</a>
+            <a href="https://github.com/scalameta/metabrowse">
+              Metabrowse: online code browser
+            </a>
+          </div>
+          <div>
+            <h5>Community</h5>
             <a href="https://github.com/scalameta/metaconfig" target="_blank">
               <img src="https://img.shields.io/github/stars/scalameta/metaconfig.svg?color=%23087e8b&label=stars&logo=github&style=social" />
             </a>

@@ -30,10 +30,10 @@ class Button extends React.Component {
 }
 
 Button.defaultProps = {
-  target: "_self"
+  target: "_self",
 };
 
-const SplashContainer = props => (
+const SplashContainer = (props) => (
   <div className="homeContainer">
     <div className="homeSplashFade">
       <div className="wrapper homeWrapper">{props.children}</div>
@@ -41,14 +41,14 @@ const SplashContainer = props => (
   </div>
 );
 
-const ProjectTitle = props => (
+const ProjectTitle = (props) => (
   <h2 className="projectTitle">
     {siteConfig.title}
     <small>{siteConfig.tagline}</small>
   </h2>
 );
 
-const PromoSection = props => (
+const PromoSection = (props) => (
   <div className="section promoSection">
     <div className="promoRow">
       <div className="pluginRowBlock">{props.children}</div>
@@ -74,7 +74,7 @@ class HomeSplash extends React.Component {
   }
 }
 
-const Block = props => (
+const Block = (props) => (
   <Container
     padding={["bottom", "top"]}
     id={props.id}
@@ -84,47 +84,13 @@ const Block = props => (
   </Container>
 );
 
-const Features = props => {
-  const features = [
-    {
-      title: "Source locations for errors",
-      content:
-        "Test failures point to the source code location where the failure happened. " +
-        "Cmd+click on the filename to open the relevant line number in your editor (does not work in all terminals).",
-      image: "https://i.imgur.com/goYdJhw.png",
-      imageAlign: "left"
-    },
-    {
-      title: "Helpful diffs",
-      content:
-        "Assertion failures show the difference between the expected and obtained behavior. " +
-        "Diffs for case classes include field names in Scala 2.13.",
-      image: "https://i.imgur.com/NaAU2He.png",
-      imageAlign: "right"
-    },
-    {
-      title: "Highlighted stack traces",
-      content:
-        "Classes that are defined in your workspace are highlighted in stack traces " +
-        "making it easier to quickly understand an error.",
-      image: "https://i.imgur.com/iosErEv.png",
-      imageAlign: "left"
-    },
-    {
-      title: "IDE support",
-      content:
-        "Run MUnit test suites directly from the comfort of your IDE, whether it's IntelliJ, VS Code, or any other LSP editor.",
-      image:
-        "https://camo.githubusercontent.com/2965bd83df7b98dbc2734815c5bcbe3e784f6242/68747470733a2f2f692e696d6775722e636f6d2f6f4141325a65512e706e67",
-      imageAlign: "right"
-    }
-  ];
+const Features = (props) => {
   return (
     <div
       className="productShowcaseSection paddingBottom"
       style={{ textAlign: "left" }}
     >
-      {features.map(feature => (
+      {siteConfig.features.map((feature) => (
         <Block key={feature.title}>{[feature]}</Block>
       ))}
     </div>

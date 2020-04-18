@@ -3,10 +3,33 @@
 
 const repoUrl = "https://github.com/scalameta/metaconfig";
 const baseUrl = "/metaconfig/";
+const features = [
+  {
+    title: "HOCON and JSON support",
+    content: "Support user configuration in HOCON or JSON syntax",
+    image: "https://i.imgur.com/goYdJhw.png",
+    imageAlign: "left",
+  },
+  {
+    title: "Command-line parsing",
+    content:
+      "Parse command-line arguments using the same solution as for reading user configuration files.",
+    image: "https://i.imgur.com/goYdJhw.png",
+    imageAlign: "right",
+  },
+  {
+    title: "Documentation generation",
+    content:
+      "Generate comprehensive documentation of all supported configuration options, including example usages and deprecation notices. " +
+      "Documentation for configuration options ",
+    image: "https://i.imgur.com/goYdJhw.png",
+    imageAlign: "left",
+  },
+];
 
 const siteConfig = {
   title: "Metaconfig",
-  tagline: "Library to build configurable tools",
+  tagline: "Library to build configurable applications",
   url: "https://scalameta.org/metaconfig",
   baseUrl: baseUrl,
 
@@ -65,6 +88,7 @@ const siteConfig = {
   editUrl: `${repoUrl}/edit/master/docs/`,
 
   repoUrl,
+  features: features,
 };
 
 module.exports = siteConfig;
