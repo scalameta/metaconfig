@@ -1,0 +1,15 @@
+{
+  "docs": {
+    "Overview": [
+      "getting-started",
+      "tests",
+      "assertions",
+      "fixtures",
+      "filtering",
+      "reports",
+      "scalatest",
+      "troubleshooting"
+    ],
+    "Integrations": ["integrations/scalacheck"]
+  }
+}
