@@ -1,8 +1,5 @@
 package metaconfig.cli
 
-import java.io.ByteArrayOutputStream
-import java.io.PrintStream
-import java.nio.charset.StandardCharsets
 import metaconfig.annotation.Hidden
 import metaconfig.annotation.Inline
 import metaconfig.annotation.Section

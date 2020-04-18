@@ -2,9 +2,6 @@ package metaconfig.cli
 
 import java.io.PrintStream
 import java.io.InputStream
-import metaconfig.generic
-import metaconfig.ConfEncoder
-import metaconfig.generic.Surface
 import java.nio.file.Path
 import fansi.Str
 import fansi.Color

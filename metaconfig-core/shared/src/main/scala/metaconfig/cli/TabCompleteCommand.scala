@@ -1,18 +1,13 @@
 package metaconfig.cli
 
-import metaconfig.generic.Surface
 import scala.collection.immutable.Nil
 import metaconfig.generic.Settings
 import metaconfig.internal.CliParser
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
-import metaconfig.Conf
-import metaconfig.generic
 import metaconfig.internal.Case
 import java.nio.file.Path
-import scala.util.Try
-import metaconfig.generic.Setting
 
 object TabCompleteCommand extends Command[TabCompleteOptions]("tab-complete") {
 

@@ -1,8 +1,5 @@
 package metaconfig.cli
 
-import metaconfig.generic.Surface
-import metaconfig.ConfEncoder
-import metaconfig.Conf
 import org.typelevel.paiges.Doc
 
 object VersionCommand extends Command[Unit]("version") {

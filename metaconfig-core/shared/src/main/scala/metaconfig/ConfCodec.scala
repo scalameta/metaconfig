@@ -1,7 +1,5 @@
 package metaconfig
 
-import scala.language.higherKinds
-
 trait ConfCodec[A] extends ConfDecoder[A] with ConfEncoder[A] { self =>
   def bimap[B](in: B => A, out: A => B): ConfCodec[B] = new ConfCodec[B] {
     override def write(value: B): Conf = self.write(in(value))

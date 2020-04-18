@@ -1,20 +1,7 @@
 package metaconfig.cli
 
-import metaconfig.generic.Field
-import metaconfig.generic.Surface
-import metaconfig.ConfEncoder
-import metaconfig.Conf
 import org.typelevel.paiges.Doc
-import scala.util.control.NonFatal
-import metaconfig.Conf.Str
-import java.io.PrintStream
-import java.io.ByteArrayOutputStream
-import java.nio.charset.StandardCharsets
 import metaconfig.internal.TermInfo
-import metaconfig.annotation.ExtraName
-import metaconfig.ConfDecoder
-import metaconfig.Configured
-import metaconfig.Conf.Obj
 import metaconfig.internal.Levenshtein
 
 object HelpCommand
@@ -30,7 +17,7 @@ class HelpCommand(
     appDescription: CliApp => Doc,
     appExamples: CliApp => Doc
 ) extends Command[HelpOptions]("help") {
-  override def description = Doc.paragraph("Print this help message")
+  override def description: Doc = Doc.paragraph("Print this help message")
   override def extraNames: List[String] = List("-h", "--help", "-help")
   override def complete(
       context: TabCompletionContext
