@@ -200,7 +200,12 @@ class Macros(val c: blackbox.Context) {
       args
     }
     val args = q"_root_.scala.List.apply(..$argss)"
-    val result = q"new ${weakTypeOf[Surface[T]]}($args)"
+    val classAnnotations = Tclass.annotations.collect {
+      case annot if annot.tree.tpe <:< typeOf[StaticAnnotation] =>
+        annot.tree
+    }
+    val result =
+      q"new ${weakTypeOf[Surface[T]]}($args, _root_.scala.List.apply(..$classAnnotations))"
     c.untypecheck(result)
   }
 

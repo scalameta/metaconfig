@@ -1,0 +1,14 @@
+USAGE:
+  echo [OPTIONS] [ARGUMENTS ...]
+
+OPTIONS:
+  --verbose
+    Print out additional information.
+  --uppercase
+    Print the message in all uppercase.
+
+EXAMPLES:
+  $ echo Hello world!
+  Hello world!
+  $ echo --uppercase Hello world!
+  HELLO WORLD!

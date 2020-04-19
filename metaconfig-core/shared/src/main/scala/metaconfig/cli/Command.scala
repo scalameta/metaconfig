@@ -18,10 +18,10 @@ abstract class Command[T](val name: String)(
 
   def run(value: Value, app: CliApp): Int
   def complete(context: TabCompletionContext): List[TabCompletionItem] = Nil
-  def description: Doc = Doc.empty
+  def description: Doc = Settings[T].cliDescription.getOrElse(Doc.empty)
+  def usage: Doc = Settings[T].cliUsage.getOrElse(Doc.empty)
   def options: Doc = Doc.empty
-  def usage: Doc = Doc.empty
-  def examples: Doc = Doc.empty
+  def examples: Doc = Doc.intercalate(Doc.line, Settings[T].cliExamples)
   def extraNames: List[String] = Nil
   def isHidden: Boolean = false
 

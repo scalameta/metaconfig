@@ -3,34 +3,39 @@
 
 const repoUrl = "https://github.com/scalameta/metaconfig";
 const baseUrl = "/metaconfig/";
+const title = "Metaconfig";
+const tagline = "Library to build configurable Scala applications";
+const url = "https://scalameta.org/metaconfig";
 const features = [
   {
-    title: "HOCON and JSON support",
-    content: "Support user configuration in HOCON or JSON syntax",
-    image: "https://i.imgur.com/goYdJhw.png",
+    title: "HOCON and JSON",
+    content:
+      "Use Metaconfig to convert HOCON and JSON configuration into Scala case classes.",
+    image: "https://i.imgur.com/zKu8dz4.png",
     imageAlign: "left",
   },
   {
     title: "Command-line parsing",
     content:
-      "Parse command-line arguments using the same solution as for reading user configuration files.",
-    image: "https://i.imgur.com/goYdJhw.png",
+      "Use Metaconfig to build command-line tools with automatic `--help` message generation, clear error reporting and tab completion support. " +
+      "Command-line flags are converted into Scala case classes, just like HOCON and JSON configuration.",
+    image: "https://i.imgur.com/w7YzxOU.png",
     imageAlign: "right",
   },
   {
     title: "Documentation generation",
     content:
-      "Generate comprehensive documentation of all supported configuration options, including example usages and deprecation notices. " +
-      "Documentation for configuration options ",
-    image: "https://i.imgur.com/goYdJhw.png",
+      "Automatically generate markdown documentation for all configuration options in your application, " +
+      "including example usages, deprecation notices, command-line flags, and more.",
+    image: "https://i.imgur.com/zWCMmhu.png",
     imageAlign: "left",
   },
 ];
 
 const siteConfig = {
-  title: "Metaconfig",
-  tagline: "Library to build configurable applications",
-  url: "https://scalameta.org/metaconfig",
+  title: title,
+  tagline: tagline,
+  url: url,
   baseUrl: baseUrl,
 
   // Used for publishing and more

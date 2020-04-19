@@ -4,8 +4,18 @@ import metaconfig.Conf
 import metaconfig.ConfEncoder
 import metaconfig.annotation.DeprecatedName
 import metaconfig.internal.Cli
+import scala.annotation.StaticAnnotation
+import metaconfig.annotation.DescriptionDoc
+import org.typelevel.paiges.Doc
+import metaconfig.annotation.Description
+import metaconfig.annotation.Usage
+import metaconfig.annotation.ExampleUsage
 
-final class Settings[T](val settings: List[Setting]) {
+final class Settings[T](
+    val settings: List[Setting],
+    val annotations: List[StaticAnnotation]
+) {
+  def this(settings: List[Setting]) = this(settings, Nil)
   def fields: List[Field] = settings.map(_.field)
 
   @deprecated("Use flat(Conf) instead", "0.8.0")
@@ -77,11 +87,23 @@ final class Settings[T](val settings: List[Setting]) {
     toCliHelp(default, 80)
   def toCliHelp(default: T, width: Int)(implicit ev: ConfEncoder[T]): String =
     Cli.help[T](default)(ev, this).renderTrim(width)
+
+  def cliDescription: Option[Doc] = annotations.collectFirst {
+    case DescriptionDoc(doc) => doc
+    case Description(doc) => Doc.text(doc)
+  }
+  def cliUsage: Option[Doc] = annotations.collectFirst {
+    case Usage(doc) => Doc.text(doc)
+  }
+  def cliExamples: List[Doc] = annotations.collect {
+    case ExampleUsage(example) => Doc.text(example)
+  }
+
 }
 
 object Settings {
   implicit def FieldsToSettings[T](implicit ev: Surface[T]): Settings[T] =
     apply(ev)
   def apply[T](implicit ev: Surface[T]): Settings[T] =
-    new Settings[T](ev.fields.flatten.map(new Setting(_)))
+    new Settings[T](ev.fields.flatten.map(new Setting(_)), ev.annotations)
 }
