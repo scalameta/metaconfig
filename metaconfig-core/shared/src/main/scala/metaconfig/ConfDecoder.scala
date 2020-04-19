@@ -68,9 +68,12 @@ object ConfDecoder {
 
   def fromPartial[A](expect: String)(
       f: PartialFunction[Conf, Configured[A]]
-  ): ConfDecoder[A] = from {
+  ): ConfDecoder[A] = readWithPartial(expect)(f)(_)
+
+  def readWithPartial[A](expect: String)(
+      f: PartialFunction[Conf, Configured[A]]
+  ): Conf => Configured[A] =
     f.applyOrElse(_, (x: Conf) => NotOk(ConfError.typeMismatch(expect, x)))
-  }
 
   def constant[T](value: T): ConfDecoder[T] =
     _ => Configured.ok(value)
