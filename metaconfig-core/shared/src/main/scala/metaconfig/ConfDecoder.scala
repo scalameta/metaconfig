@@ -137,14 +137,6 @@ object ConfDecoder {
     CanBuildFromDecoder.list[C, A]
 
   def orElse[A](a: ConfDecoder[A], b: ConfDecoder[A]): ConfDecoder[A] =
-    (conf: Conf) =>
-      a.read(conf) match {
-        case ok @ Configured.Ok(_) => ok
-        case Configured.NotOk(notOk) =>
-          b.read(conf) match {
-            case ok2 @ Configured.Ok(_) => ok2
-            case Configured.NotOk(notOk2) =>
-              notOk.combine(notOk2).notOk
-          }
-      }
+    conf => a.read(conf).recoverWith(x => b.read(conf).recoverWith(x.combine))
+
 }
