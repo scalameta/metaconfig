@@ -20,6 +20,11 @@ sealed abstract class Configured[+A] extends Product with Serializable {
       case _: NotOk => alternative
       case ok => ok
     }
+  def recoverWith[B >: A](f: NotOk => Configured[B]): Configured[B] =
+    this match {
+      case x: NotOk => f(x)
+      case ok => ok
+    }
   def toEither: Either[ConfError, A] = this match {
     case Ok(value) => Right(value)
     case NotOk(error) => Left(error)
@@ -32,7 +37,7 @@ sealed abstract class Configured[+A] extends Product with Serializable {
   def product[B](other: Configured[B]): Configured[(A, B)] =
     (this, other) match {
       case (Ok(a), Ok(b)) => Ok(a -> b)
-      case (NotOk(a), NotOk(b)) => NotOk(a.combine(b))
+      case (a: NotOk, b: NotOk) => a.combine(b)
       case (NotOk(_), _) => this.asInstanceOf[Configured[(A, B)]]
       case (_, NotOk(_)) => other.asInstanceOf[Configured[(A, B)]]
     }
@@ -74,5 +79,7 @@ object Configured {
   final case class Ok[T](value: T) extends Configured[T]
   final case class NotOk(error: ConfError) extends Configured[Nothing] {
     def combine(other: ConfError): NotOk = NotOk(error.combine(other))
+    @inline
+    def combine(other: NotOk): NotOk = combine(other.error)
   }
 }
