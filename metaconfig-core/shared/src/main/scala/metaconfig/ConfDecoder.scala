@@ -18,14 +18,13 @@ trait ConfDecoder[A] { self =>
     conf.andThen(self.read)
 
   final def map[B](f: A => B): ConfDecoder[B] =
-    self.flatMap(x => Ok(f(x)))
+    self.read(_).map(f)
+
+  final def flatMap[B](f: A => Configured[B]): ConfDecoder[B] =
+    self.read(_).andThen(f)
+
   final def orElse(other: ConfDecoder[A]): ConfDecoder[A] =
     ConfDecoder.orElse(this, other)
-  final def flatMap[TT](f: A => Configured[TT]): ConfDecoder[TT] =
-    self.read(_) match {
-      case Ok(x) => f(x)
-      case NotOk(x) => Configured.NotOk(x)
-    }
 
   /**
     * Fail this decoder on unknown fields.
