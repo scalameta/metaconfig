@@ -1,7 +1,5 @@
 package metaconfig
 
-import metaconfig.internal.CanBuildFromDecoder
-
 object ConfListTest {
 
   case class Bar(add: List[String] = Nil)
@@ -23,23 +21,45 @@ object ConfListTest {
   implicit val reader: ConfDecoder[Foo] =
     generic.deriveDecoder[Foo](Foo()).noTypos
 
-  case class Mapped(raw: String)
-  case class Baz(as: List[Mapped] = List(Mapped("a")))
+  case class Nested(raw: String = "x")
+  implicit val surfaceNested: generic.Surface[Nested] =
+    generic.deriveSurface
 
-  implicit val readerListA: ConfDecoderWithDefault[List[Mapped]] =
-    implicitly[ConfDecoderWithDefault[List[String]]]
-      .mapWithDefault(x => x.map(a => Mapped(a + "_mapped")))(_.map(_.raw))
+  implicit val readerNested: ConfDecoder[Nested] =
+    generic
+      .deriveDecoder[Nested](Nested())
+      .map(x => Nested(x.raw + "_mapped"))
+      .noTypos
+
+  case class Baz(as: List[Nested] = List(Nested("a")))
 
   implicit val surfaceBaz: generic.Surface[Baz] =
     generic.deriveSurface
 
   implicit val readerBaz: ConfDecoder[Baz] =
     generic.deriveDecoder[Baz](Baz()).noTypos
+
+  case class FromString(str: String)
+
+  implicit val fromStringListReader
+      : ConfDecoderReader[WithDefault[List[FromString]], List[FromString]] =
+    implicitly[ConfDecoderReader[WithDefault[List[String]], List[String]]]
+      .map(x => x.map(a => FromString(a + "_mapped")))
+      .local(_.map(_.map(_.str)))
+
+  case class Caz(as: List[FromString] = List(FromString("a")))
+
+  implicit val surfaceCaz: generic.Surface[Caz] =
+    generic.deriveSurface
+
+  implicit val readerCaz: ConfDecoder[Caz] =
+    generic.deriveDecoder[Caz](Caz()).noTypos
+
 }
 
 class ConfListTest extends munit.FunSuite {
-  import ConfListTest.{Foo, Bar, Baz, Mapped}
   import Conf._
+  import ConfListTest.{Bar, Baz, Caz, Foo, FromString, Nested}
 
   test("simple") {
     val conf = Obj("field" -> Lst(Str("a"), Str("b")))
@@ -83,11 +103,17 @@ class ConfListTest extends munit.FunSuite {
     assertEquals(obtained, expected)
   }
 
-  test("map appendable values") {
-    val conf = Obj("as" -> Obj("add" -> Lst(Str("b"))))
+  test("read nested records") {
+    val conf = Obj("as" -> Obj("add" -> Lst(Obj("raw" -> Str("b")))))
     val obtained = conf.as[Baz].get
-    val expected = Baz(List(Mapped("a_mapped"), Mapped("b_mapped")))
+    val expected = Baz(List(Nested("a"), Nested("b_mapped")))
     assertEquals(obtained, expected)
   }
 
+  test("read nested records from primitives") {
+    val conf = Obj("as" -> Obj("add" -> Lst(Str("b"))))
+    val obtained = conf.as[Caz].get
+    val expected = Caz(List(FromString("a_mapped"), FromString("b_mapped")))
+    assertEquals(obtained, expected)
+  }
 }
