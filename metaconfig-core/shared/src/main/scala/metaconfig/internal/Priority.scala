@@ -11,30 +11,6 @@ private[metaconfig] sealed trait Priority[+P, +F] {
       case Preferred(x) => f1(x)
       case Fallback(y) => f2(y)
     }
-
-  def join[U >: P with F]: U =
-    fold(_.asInstanceOf[U])(_.asInstanceOf[U])
-
-  def bimap[P2, F2](f1: P => P2)(f2: F => F2): Priority[P2, F2] =
-    this match {
-      case Preferred(x) => Preferred(f1(x))
-      case Fallback(y) => Fallback(f2(y))
-    }
-
-  def toEither: Either[P, F] =
-    fold[Either[P, F]](p => Left(p))(f => Right(f))
-
-  def isPreferred: Boolean =
-    fold(_ => true)(_ => false)
-
-  def isFallback: Boolean =
-    fold(_ => false)(_ => true)
-
-  def getPreferred: Option[P] =
-    fold[Option[P]](p => Some(p))(_ => None)
-
-  def getFallback: Option[F] =
-    fold[Option[F]](_ => None)(f => Some(f))
 }
 
 private[metaconfig] object Priority extends FindPreferred {
