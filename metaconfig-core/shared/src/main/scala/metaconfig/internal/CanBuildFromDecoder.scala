@@ -21,9 +21,7 @@ object CanBuildFromDecoder {
             override def read(conf: Conf): Configured[Map[String, A]] =
               conf match {
                 case Conf.Obj(("add", conf) :: Nil) =>
-                  underlying.read(conf).map { res =>
-                    state.default ++ res
-                  }
+                  underlying.read(conf).map { res => state.default ++ res }
                 case els => underlying.read(els)
               }
           }
