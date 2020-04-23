@@ -47,7 +47,7 @@ object ConfListTest {
       .map(x => x.map(a => FromString(a + "_mapped")))
       .local(_.map(_.map(_.str)))
 
-  case class Caz(as: List[FromString] = List(FromString("a")))
+  case class Caz(as: List[FromString] = List(FromString("y")))
 
   implicit val surfaceCaz: generic.Surface[Caz] =
     generic.deriveSurface
@@ -113,7 +113,7 @@ class ConfListTest extends munit.FunSuite {
   test("read nested records from primitives") {
     val conf = Obj("as" -> Obj("add" -> Lst(Str("b"))))
     val obtained = conf.as[Caz].get
-    val expected = Caz(List(FromString("a_mapped"), FromString("b_mapped")))
+    val expected = Caz(List(FromString("y_mapped"), FromString("b_mapped")))
     assertEquals(obtained, expected)
   }
 }
