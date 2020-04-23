@@ -42,31 +42,10 @@ trait ConfDecoder[A] { self =>
     NoTyposDecoder[A](self)
 }
 
-trait ConfDecoderWithDefault[A] extends ConfDecoder[A] { self =>
-  def readWithDefault(conf: Conf, default: A): Configured[A]
-
-  final def mapWithDefault[B](f: A => B)(g: B => A): ConfDecoderWithDefault[B] =
-    self.flatMapWithDefault(x => Ok(f(x)))(g)
-  final def flatMapWithDefault[TT](
-      f: A => Configured[TT]
-  )(g: TT => A): ConfDecoderWithDefault[TT] =
-    new ConfDecoderWithDefault[TT] {
-      override def read(any: Conf): Configured[TT] = self.read(any) match {
-        case Ok(x) => f(x)
-        case NotOk(x) => Configured.NotOk(x)
-      }
-      override def readWithDefault(any: Conf, default: TT): Configured[TT] =
-        self.readWithDefault(any, g(default)) match {
-          case Ok(x) => f(x)
-          case NotOk(x) => Configured.NotOk(x)
-        }
-    }
-}
-
 object ConfDecoder {
 
   type ConfDecoderWithDefaultMaybe[A] =
-    Priority[ConfDecoderWithDefault[A], ConfDecoder[A]]
+    Priority[ConfDecoderReader[WithDefault[A], A], ConfDecoder[A]]
 
   @deprecated("Use ConfDecoder[T].read instead", "0.6.1")
   def decode[T](conf: Conf)(implicit ev: ConfDecoder[T]): Configured[T] =
@@ -95,24 +74,6 @@ object ConfDecoder {
             NotOk(ConfError.typeMismatch(expect, x))
           }
         )
-    }
-
-  def instanceExpectWithDefault[T](
-      expect: String
-  )(rwd: (Conf, T, Conf => Configured[T]) => Configured[T])(
-      f: PartialFunction[Conf, Configured[T]]
-  )(implicit ev: ClassTag[T]): ConfDecoderWithDefault[T] =
-    new ConfDecoderWithDefault[T] {
-      override def read(any: Conf): Configured[T] =
-        f.applyOrElse(
-          any,
-          (x: Conf) => {
-            NotOk(ConfError.typeMismatch(expect, x))
-          }
-        )
-
-      override def readWithDefault(conf: Conf, default: T): Configured[T] =
-        rwd(conf, default, read)
     }
 
   def constant[T](value: T): ConfDecoder[T] = new ConfDecoder[T] {
@@ -159,14 +120,14 @@ object ConfDecoder {
   implicit def canBuildFromMapWithStringKey[A](
       implicit ev: ConfDecoder[A],
       classTag: ClassTag[A]
-  ): ConfDecoderWithDefault[Map[String, A]] =
+  ): ConfDecoder[Map[String, A]] =
     CanBuildFromDecoder.map[A]
 
-  implicit def canBuildFromConfDecoder[C[X] <: Iterable[X], A](
+  implicit def canBuildFromConfDecoder[C[_], A](
       implicit ev: ConfDecoder[A],
       factory: Factory[A, C[A]],
       classTag: ClassTag[A]
-  ): ConfDecoderWithDefault[C[A]] =
+  ): ConfDecoder[C[A]] =
     CanBuildFromDecoder.list[C, A]
 
   def orElse[A](a: ConfDecoder[A], b: ConfDecoder[A]): ConfDecoder[A] =

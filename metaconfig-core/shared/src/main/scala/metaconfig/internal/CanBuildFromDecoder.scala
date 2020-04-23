@@ -1,31 +1,41 @@
 package metaconfig.internal
 
-import scala.language.higherKinds
+import metaconfig.ConfDecoderReader.ConfDecoderFactory
+import metaconfig.Configured.{NotOk, Ok}
+import metaconfig._
 
 import scala.collection.compat._
+import scala.language.higherKinds
 import scala.reflect.ClassTag
-import metaconfig.Conf
-import metaconfig.ConfDecoder
-import metaconfig.ConfError
-import metaconfig.Configured
-import metaconfig.Configured.NotOk
-import metaconfig.Configured.Ok
-import metaconfig.ConfDecoderWithDefault
 
 object CanBuildFromDecoder {
+  def mapReader[A, S <: WithDefault[Map[String, A]]](
+      implicit ev: ConfDecoder[A],
+      classTag: ClassTag[A]
+  ): ConfDecoderReader[S, Map[String, A]] =
+    new ConfDecoderReader[S, Map[String, A]] {
+      override def decoder: ConfDecoderFactory[S, Map[String, A]] =
+        state =>
+          new ConfDecoder[Map[String, A]] {
+            private val underlying = CanBuildFromDecoder.map[A]
+            override def read(conf: Conf): Configured[Map[String, A]] =
+              conf match {
+                case Conf.Obj(("add", conf) :: Nil) =>
+                  underlying.read(conf).map { res =>
+                    state.default ++ res
+                  }
+                case els => underlying.read(els)
+              }
+          }
+    }
+
   def map[A](
       implicit ev: ConfDecoder[A],
       classTag: ClassTag[A]
-  ): ConfDecoderWithDefault[Map[String, A]] =
-    ConfDecoder.instanceExpectWithDefault[Map[String, A]](
+  ): ConfDecoder[Map[String, A]] =
+    ConfDecoder.instanceExpect[Map[String, A]](
       s"Map[String, ${classTag.runtimeClass.getName}]"
-    ) { (conf, default, read) =>
-      conf match {
-        case Conf.Obj(("add", conf) :: Nil) =>
-          read(conf).map(res => default ++ res)
-        case els => read(els)
-      }
-    } {
+    ) {
       case Conf.Obj(values) =>
         val results = values.map {
           case (key, value) => ev.read(value).map(key -> _)
@@ -37,12 +47,37 @@ object CanBuildFromDecoder {
         }
     }
 
-  def list[C[X] <: Iterable[X], A](
+  def listReader[C[X] <: Iterable[X], A, S <: WithDefault[C[A]]](
       implicit ev: ConfDecoder[A],
       factory: Factory[A, C[A]],
       classTag: ClassTag[A]
-  ): ConfDecoderWithDefault[C[A]] =
-    new ConfDecoderWithDefault[C[A]] {
+  ): ConfDecoderReader[S, C[A]] =
+    new ConfDecoderReader[S, C[A]] {
+      override def decoder: S => ConfDecoder[C[A]] =
+        state =>
+          new ConfDecoder[C[A]] {
+            private val underlying = list[C, A]
+
+            override def read(conf: Conf): Configured[C[A]] =
+              conf match {
+                case Conf.Obj(("add", conf) :: Nil) =>
+                  val builder = factory.newBuilder
+                  underlying.read(conf).map { res =>
+                    state.default.foreach(builder += _)
+                    res.foreach(builder += _)
+                    builder.result()
+                  }
+                case els => underlying.read(els)
+              }
+          }
+    }
+
+  def list[C[_], A](
+      implicit ev: ConfDecoder[A],
+      factory: Factory[A, C[A]],
+      classTag: ClassTag[A]
+  ): ConfDecoder[C[A]] =
+    new ConfDecoder[C[A]] {
       override def read(conf: Conf): Configured[C[A]] = conf match {
         case Conf.Lst(values) =>
           val successB = factory.newBuilder
@@ -64,22 +99,6 @@ object CanBuildFromDecoder {
             conf
           )
           NotOk(error)
-      }
-
-      override def readWithDefault(
-          conf: Conf,
-          default: C[A]
-      ): Configured[C[A]] = {
-        conf match {
-          case Conf.Obj(("add", conf) :: Nil) =>
-            val builder = factory.newBuilder
-            read(conf).map { res =>
-              default.foreach(builder += _)
-              res.foreach(builder += _)
-              builder.result()
-            }
-          case els => read(els)
-        }
       }
     }
 }

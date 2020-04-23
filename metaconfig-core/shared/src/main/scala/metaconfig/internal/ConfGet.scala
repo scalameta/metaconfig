@@ -1,10 +1,7 @@
 package metaconfig.internal
 
 import scala.collection.mutable
-import metaconfig.Conf
-import metaconfig.ConfDecoder
-import metaconfig.ConfError
-import metaconfig.Configured
+import metaconfig.{Conf, ConfDecoder, ConfError, Configured, WithDefault}
 import metaconfig.ConfDecoder.ConfDecoderWithDefaultMaybe
 
 object ConfGet {
@@ -25,7 +22,7 @@ object ConfGet {
   ): Configured[T] = {
     getKey(conf, path +: extraNames) match {
       case Some(value) =>
-        ev.fold(_.readWithDefault(value, default))(_.read(value))
+        ev.fold(_.decoder(WithDefault.of(default)).read(value))(_.read(value))
       case None => Configured.Ok(default)
     }
   }
