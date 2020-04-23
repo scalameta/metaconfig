@@ -1,11 +1,8 @@
 package metaconfig.typesafeconfig
 
-import metaconfig.generic
-import metaconfig.ConfDecoder
-import metaconfig.Conf
-import metaconfig.ConfCodec
+import metaconfig.{Conf, ConfCodec, generic}
 
-object ReadHoconToCaseClass {
+object ReadHoconToCaseClassSuite {
   case class Bar(lst: List[String] = List("a"))
 
   implicit val barSurface: generic.Surface[Bar] =
@@ -29,8 +26,8 @@ object ReadHoconToCaseClass {
     generic.deriveCodec[Foo](Foo())
 }
 
-class ReadHoconToCaseClass extends munit.FunSuite {
-  import ReadHoconToCaseClass.{Foo, Bar}
+class ReadHoconToCaseClassSuite extends munit.FunSuite {
+  import ReadHoconToCaseClassSuite.{Bar, Foo}
 
   test("read case class simple") {
     val hocon = """

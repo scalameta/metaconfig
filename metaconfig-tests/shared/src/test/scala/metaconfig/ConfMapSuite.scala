@@ -1,6 +1,6 @@
 package metaconfig
 
-object ConfMapTest {
+object ConfMapSuite {
   case class Foo(m: Map[String, Int] = Map("a" -> 1))
 
   implicit val surface: generic.Surface[Foo] =
@@ -11,9 +11,9 @@ object ConfMapTest {
 
 }
 
-class ConfMapTest extends munit.FunSuite {
-  import ConfMapTest.Foo
+class ConfMapSuite extends munit.FunSuite {
   import Conf._
+  import ConfMapSuite.Foo
 
   test("simple") {
     val conf = Obj("m" -> Obj("b" -> Num(2)))

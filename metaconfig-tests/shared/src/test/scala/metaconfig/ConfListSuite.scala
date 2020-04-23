@@ -1,6 +1,6 @@
 package metaconfig
 
-object ConfListTest {
+object ConfListSuite {
 
   case class Bar(add: List[String] = Nil)
 
@@ -42,7 +42,7 @@ object ConfListTest {
   case class FromString(str: String)
 
   implicit val fromStringListReader
-    : ConfDecoderReader[WithDefault[List[FromString]], List[FromString]] =
+      : ConfDecoderReader[WithDefault[List[FromString]], List[FromString]] =
     implicitly[ConfDecoderReader[WithDefault[List[String]], List[String]]]
       .map(x => x.map(a => FromString(a + "_mapped")))
       .local(_.map(_.map(_.str)))
@@ -57,9 +57,9 @@ object ConfListTest {
 
 }
 
-class ConfListTest extends munit.FunSuite {
+class ConfListSuite extends munit.FunSuite {
   import Conf._
-  import ConfListTest.{Bar, Baz, Caz, Foo, FromString, Nested}
+  import ConfListSuite.{Bar, Baz, Caz, Foo, FromString, Nested}
 
   test("simple") {
     val conf = Obj("field" -> Lst(Str("a"), Str("b")))
