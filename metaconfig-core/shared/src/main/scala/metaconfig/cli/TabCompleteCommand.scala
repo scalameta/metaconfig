@@ -1,18 +1,13 @@
 package metaconfig.cli
 
-import metaconfig.generic.Surface
 import scala.collection.immutable.Nil
 import metaconfig.generic.Settings
 import metaconfig.internal.CliParser
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
-import metaconfig.Conf
-import metaconfig.generic
 import metaconfig.internal.Case
 import java.nio.file.Path
-import scala.util.Try
-import metaconfig.generic.Setting
 
 object TabCompleteCommand extends Command[TabCompleteOptions]("tab-complete") {
 
@@ -50,8 +45,8 @@ object TabCompleteCommand extends Command[TabCompleteOptions]("tab-complete") {
       case flag :: last :: Nil => Some(flag)
       case _ => None
     }
-    val setting = secondLast.flatMap(
-      flag => inlined.get(Case.kebabToCamel(flag.stripPrefix("--")))
+    val setting = secondLast.flatMap(flag =>
+      inlined.get(Case.kebabToCamel(flag.stripPrefix("--")))
     )
     val context = TabCompletionContext(
       options.format,
@@ -68,9 +63,7 @@ object TabCompleteCommand extends Command[TabCompleteOptions]("tab-complete") {
     }
   }
   private def renderCompletions(items: List[String], app: CliApp): Unit = {
-    items.foreach { item =>
-      renderCompletion(TabCompletionItem(item), app)
-    }
+    items.foreach { item => renderCompletion(TabCompletionItem(item), app) }
   }
 
   private def renderCompletion(item: TabCompletionItem, app: CliApp): Unit = {

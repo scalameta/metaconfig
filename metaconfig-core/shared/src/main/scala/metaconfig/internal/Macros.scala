@@ -1,7 +1,5 @@
 package metaconfig.internal
 
-import scala.language.experimental.macros
-
 import scala.annotation.StaticAnnotation
 import scala.reflect.macros.blackbox
 import metaconfig._
@@ -169,7 +167,8 @@ class Macros(val c: blackbox.Context) {
             Nil
           }
 
-        val finalAnnots = repeated ::: dynamic ::: flag ::: tabCompletePath ::: baseAnnots
+        val finalAnnots =
+          repeated ::: dynamic ::: flag ::: tabCompletePath ::: baseAnnots
         val fieldsParamTpe = c.internal.typeRef(
           NoPrefix,
           weakTypeOf[Surface[_]].typeSymbol,

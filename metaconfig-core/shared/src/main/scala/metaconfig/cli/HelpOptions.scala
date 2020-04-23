@@ -4,12 +4,6 @@ import metaconfig.generic.Field
 import metaconfig.generic.Surface
 import metaconfig.ConfEncoder
 import metaconfig.Conf
-import org.typelevel.paiges.Doc
-import scala.util.control.NonFatal
-import metaconfig.Conf.Str
-import java.io.PrintStream
-import java.io.ByteArrayOutputStream
-import java.nio.charset.StandardCharsets
 import metaconfig.annotation.ExtraName
 import metaconfig.ConfDecoder
 import metaconfig.Configured
@@ -23,7 +17,7 @@ case class HelpOptions(
 // in the same project as where we define macros. The boilerplat is not nice at
 // all.
 object HelpOptions {
-  val default = HelpOptions()
+  val default: HelpOptions = HelpOptions()
   implicit val surface: Surface[HelpOptions] = new Surface(
     List(
       List(

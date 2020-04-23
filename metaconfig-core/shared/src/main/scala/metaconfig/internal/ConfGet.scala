@@ -53,7 +53,8 @@ object ConfGet {
       if (chars(i) == '\n') buf += (i + 1)
       i += 1
     }
-    if (buf.last != chars.length) buf += chars.length // sentinel value used for binary search
+    if (buf.last != chars.length)
+      buf += chars.length // sentinel value used for binary search
     buf.toArray
   }
 

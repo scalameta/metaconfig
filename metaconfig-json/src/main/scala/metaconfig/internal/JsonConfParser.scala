@@ -11,7 +11,7 @@ final class JsonConfParser[J](input: Input)
     with CharBasedParser[J] {
   var line = 0
   val chars = input.chars
-  val wrapped = CharBuffer.wrap(chars)
+  val wrapped: CharBuffer = CharBuffer.wrap(chars)
 
   override def die(i: Int, msg: String): Nothing = {
     val pos = Position.Range(input, i, i)
