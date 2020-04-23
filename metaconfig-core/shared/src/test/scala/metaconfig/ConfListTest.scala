@@ -42,7 +42,7 @@ object ConfListTest {
   case class FromString(str: String)
 
   implicit val fromStringListReader
-      : ConfDecoderReader[WithDefault[List[FromString]], List[FromString]] =
+    : ConfDecoderReader[WithDefault[List[FromString]], List[FromString]] =
     implicitly[ConfDecoderReader[WithDefault[List[String]], List[String]]]
       .map(x => x.map(a => FromString(a + "_mapped")))
       .local(_.map(_.map(_.str)))
