@@ -55,11 +55,36 @@ object ConfListSuite {
   implicit val readerCaz: ConfDecoder[Caz] =
     generic.deriveDecoder[Caz](Caz()).noTypos
 
+  case class OneParam(param: Int = 82)
+  object OneParam {
+    implicit val surface: generic.Surface[OneParam] = generic.deriveSurface
+    implicit val decoder: ConfDecoder[OneParam] =
+      generic.deriveDecoder[OneParam](OneParam())
+  }
+  case class Nested2(c: String = "nested2", b: Set[OneParam] = Set(OneParam(1)))
+  object Nested2 {
+    implicit val surface: generic.Surface[Nested2] =
+      generic.deriveSurface
+    implicit val decoder: ConfDecoder[Nested2] =
+      generic.deriveDecoder[Nested2](Nested2())
+  }
+
+  case class MultiNested(
+      a: Int = 31,
+      b: OneParam = OneParam(),
+      c: Nested2 = Nested2()
+  )
+  object MultiNested {
+    implicit val surface: generic.Surface[MultiNested] =
+      generic.deriveSurface
+    implicit val decoder: ConfDecoder[MultiNested] =
+      generic.deriveDecoder[MultiNested](MultiNested())
+  }
 }
 
 class ConfListSuite extends munit.FunSuite {
   import Conf._
-  import ConfListSuite.{Bar, Baz, Caz, Foo, FromString, Nested}
+  import ConfListSuite._
 
   test("simple") {
     val conf = Obj("field" -> Lst(Str("a"), Str("b")))
@@ -114,6 +139,17 @@ class ConfListSuite extends munit.FunSuite {
     val conf = Obj("as" -> Obj("add" -> Lst(Str("b"))))
     val obtained = conf.as[Caz].get
     val expected = Caz(List(FromString("y_mapped"), FromString("b_mapped")))
+    assertEquals(obtained, expected)
+  }
+
+  test("read multi nested records") {
+    val conf = Obj("c" -> Obj("b" -> Obj("add" -> Lst(Obj("param" -> Num(2))))))
+    val obtained = conf.as[MultiNested].get
+    val expected = MultiNested(
+      31,
+      OneParam(),
+      Nested2("nested2", Set(OneParam(1), OneParam(2)))
+    )
     assertEquals(obtained, expected)
   }
 }
