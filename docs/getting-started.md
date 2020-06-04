@@ -62,7 +62,7 @@ metaconfig.Hocon.parseString[HelloConfig](
   """
   verrbose = true # typo is ignored
   name = John
-  """,
+  """
 ).get
 metaconfig.Hocon.parseString[HelloConfig](
   """
