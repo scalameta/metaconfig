@@ -1,23 +1,23 @@
 // See https://docusaurus.io/docs/site-config.html for all the possible
 // site configuration options.
 
-const repoUrl = "https://github.com/scalameta/metaconfig";
-const baseUrl = "/metaconfig/";
-const title = "Metaconfig";
-const tagline = "Library to build configurable Scala applications";
-const url = "https://scalameta.org/metaconfig";
+const repoUrl = "https://github.com/scalameta/mopt";
+const baseUrl = "/mopt/";
+const title = "MOpt";
+const tagline = "Library to build command-line applications in Scala";
+const url = "https://scalameta.org/mopt";
 const features = [
   {
     title: "HOCON and JSON",
     content:
-      "Use Metaconfig to convert HOCON and JSON configuration into Scala case classes.",
+      "Use MOpt to convert HOCON and JSON configuration into Scala case classes.",
     image: "https://i.imgur.com/zKu8dz4.png",
     imageAlign: "left",
   },
   {
     title: "Command-line parsing",
     content:
-      "Use Metaconfig to build command-line tools with automatic `--help` message generation, clear error reporting and tab completion support. " +
+      "Use MOpt to build command-line tools with automatic `--help` message generation, clear error reporting and tab completion support. " +
       "Command-line flags are converted into Scala case classes, just like HOCON and JSON configuration.",
     image: "https://i.imgur.com/w7YzxOU.png",
     imageAlign: "right",
@@ -39,7 +39,7 @@ const siteConfig = {
   baseUrl: baseUrl,
 
   // Used for publishing and more
-  projectName: "metaconfig",
+  projectName: "mopt",
   organizationName: "scalameta",
 
   // algolia: {

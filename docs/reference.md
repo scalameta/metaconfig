@@ -3,8 +3,8 @@ id: reference
 title: Reference
 ---
 
-Metaconfig is a library to read HOCON configuration into Scala case classes. Key
-features of Metaconfig include
+MOpt is a library to read HOCON configuration into Scala case classes. Key
+features of MOpt include
 
 - helpful error messages on common mistakes like typos or type mismatch
   (expected string, obtained int)
@@ -12,14 +12,14 @@ features of Metaconfig include
   deprecating setting options
 - cross-platform, supports JS/JVM. Native support is on the roadmap
 
-The target use-case for metaconfig is tool maintainers who support HOCON
-configuration in their tool. Metaconfig is used by scalafmt to read
-`.scalafmt.conf` and scalafix to read `.scalafix.conf`. With metaconfig, tool
+The target use-case for mopt is tool maintainers who support HOCON
+configuration in their tool. MOpt is used by scalafmt to read
+`.scalafmt.conf` and scalafix to read `.scalafix.conf`. With mopt, tool
 maintainers should be able to safely evolve their configuration (deprecate old
 fields, add new fields) without breaking existing configuration files. Users
 should get helpful error messages when they mistype a setting name.
 
-There are alternatives to metaconfig that you might want to give a try first
+There are alternatives to mopt that you might want to give a try first
 
 - https://github.com/circe/circe-config
 - https://github.com/pureconfig/pureconfig
@@ -27,24 +27,24 @@ There are alternatives to metaconfig that you might want to give a try first
 ## Getting started
 
 ```scala
-libraryDependencies += "com.geirsson" %% "metaconfig-core" % "@VERSION@"
+libraryDependencies += "com.geirsson" %% "mopt-core" % "@VERSION@"
 
 // Use https://github.com/lightbend/config to parse HOCON
-libraryDependencies += "com.geirsson" %% "metaconfig-typesafe-config" % "@VERSION@"
+libraryDependencies += "com.geirsson" %% "mopt-typesafe-config" % "@VERSION@"
 ```
 
-Use this import to access the metaconfig API
+Use this import to access the mopt API
 
 ```scala mdoc:silent
-import metaconfig._
+import mopt._
 ```
 
-All of the following code examples assume that you have `import metaconfig._` in
+All of the following code examples assume that you have `import mopt._` in
 scope.
 
 ## Conf
 
-`Conf` is a JSON-like data structure that is the foundation of metaconfig.
+`Conf` is a JSON-like data structure that is the foundation of mopt.
 
 ```scala mdoc
 val string = Conf.fromString("string")
@@ -55,11 +55,11 @@ Conf.fromMap(Map("a" -> string, "b" -> int))
 
 ## Conf.parse
 
-You need an implicit `MetaconfigParser` to convert HOCON into `Conf`. Assuming
-you depend on the `metaconfig-typesafe-config` module,
+You need an implicit `MOptParser` to convert HOCON into `Conf`. Assuming
+you depend on the `mopt-typesafe-config` module,
 
 ```scala mdoc
-import metaconfig.typesafeconfig._
+import mopt.typesafeconfig._
 Conf.parseString("""
 a.b.c = 2
 a.d = [ 1, 2, 3 ]
@@ -69,10 +69,10 @@ Conf.parseFile(new java.io.File(".scalafmt.conf"))
 ```
 
 Note. The example above is JVM-only. For a Scala.js alternative, depend on the
-`metaconfig-sconfig` module and replace `metaconfig.typesafeconfig` with
+`mopt-sconfig` module and replace `mopt.typesafeconfig` with
 
 ```scala
-import metaconfig.sconfig._
+import mopt.sconfig._
 ```
 
 ## Conf.printHocon
@@ -253,7 +253,7 @@ ConfError.typeMismatch("Int", "String", "field")
 ConfError.message("Failure 1").combine(ConfError.message("Failure 2"))
 ```
 
-Metaconfig uses `Input` to represent a source that can be parsed and `Position`
+MOpt uses `Input` to represent a source that can be parsed and `Position`
 to represent range positions in a given `Input`
 
 ```scala mdoc:silent
@@ -275,8 +275,8 @@ ConfError.parseError(pos, "No var")
 
 ## Configured
 
-`Configured[T]` is like an `Either[metaconfig.ConfError, T]` which is used
-throughout the metaconfig API to either represent a successfully parsed/decoded
+`Configured[T]` is like an `Either[mopt.ConfError, T]` which is used
+throughout the mopt API to either represent a successfully parsed/decoded
 value or a failure.
 
 ```scala mdoc
@@ -302,16 +302,16 @@ Configured.ok(42).get
 To use automatic derivation, you first need a `Surface[T]` typeclass instance
 
 ```scala mdoc
-import metaconfig.generic._
+import mopt.generic._
 implicit val userSurface: Surface[User] =
   generic.deriveSurface[User]
 ```
 
-The surface is used by metaconfig to support configurable decoding such as
+The surface is used by mopt to support configurable decoding such as
 alternative fields names. In the future, the plan is to use `Surface[T]` to
 automatically generate html/markdown documentation for configuration settings.
 For now, you can ignore `Surface[T]` and just consider it as an annoying
-requirement from metaconfig.
+requirement from mopt.
 
 ## generic.deriveDecoder
 
@@ -354,7 +354,7 @@ implicit val decoder = generic.deriveDecoder[Funky](Funky(new File("")))
 ```
 
 Observe that the error message is complaining about a missing
-`metaconfig.ConfDecoder[java.io.File]` implicit.
+`mopt.ConfDecoder[java.io.File]` implicit.
 
 ### Limitations
 
@@ -374,7 +374,7 @@ existing users who are using the old name. Use the `@DeprecatedName` annotation
 to continue supporting the old name even if you go ahead with the rename.
 
 ```scala mdoc:silent:nest
-import metaconfig.annotation._
+import mopt.annotation._
 case class EvolvingConfig(
     @DeprecatedName("goodName", "Use isGoodName instead", "1.0")
     isGoodName: Boolean
@@ -391,7 +391,7 @@ decoder.read(Conf.Obj("gooodName" -> Conf.fromBoolean(false)))
 
 ## Conf.parseCliArgs
 
-Metaconfig can parse command line arguments into a `Conf`.
+MOpt can parse command line arguments into a `Conf`.
 
 ```scala mdoc:silent:nest
 case class App(
@@ -489,15 +489,15 @@ To generate documentation for you configuration, add a dependency to the
 following module
 
 ```scala
-libraryDependencies += "com.geirsson" %% "metaconfig-docs" % "@VERSION@"
+libraryDependencies += "com.geirsson" %% "mopt-docs" % "@VERSION@"
 ```
 
 First define your configuration
 
 ```scala mdoc:silent:reset
-import metaconfig._
-import metaconfig.annotation._
-import metaconfig.generic._
+import mopt._
+import mopt.annotation._
+import mopt.generic._
 
 case class Home(
     @Description("Address description")
@@ -544,18 +544,18 @@ flat.map { case (setting, defaultValue) =>
 
 ## JSON
 
-To parse JSON instead of HOCON use the `metaconfig-json` module.
+To parse JSON instead of HOCON use the `mopt-json` module.
 
 ```scala
 // JVM-only
-libraryDependencies += "com.geirsson" %% "metaconfig-json" % "@VERSION@"
+libraryDependencies += "com.geirsson" %% "mopt-json" % "@VERSION@"
 ```
 
-To parse JSON into `metaconfig.Conf`
+To parse JSON into `mopt.Conf`
 
 ```scala mdoc
-import metaconfig.json.parser
-import metaconfig._
+import mopt.json.parser
+import mopt._
 ```
 
 ```scala mdoc
@@ -592,7 +592,7 @@ Conf.parseString("""
 It's possible to automatically generate a JSON schema
 
 ```scala mdoc
-val js = metaconfig.JsonSchema.generate(
+val js = mopt.JsonSchema.generate(
   title = "My User App",
   description = "My User APP description",
   url = Some("http://my.user.app/schema.json"),

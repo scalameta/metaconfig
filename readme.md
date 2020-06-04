@@ -1,7 +1,7 @@
-# Metaconfig
+# MOpt
 
-[![Maven](https://img.shields.io/maven-central/v/com.geirsson/metaconfig-core_2.12.svg?label=maven)](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22metaconfig-core_2.12%22)
-[![Travis](https://travis-ci.org/olafurpg/metaconfig.svg?branch=master)](https://travis-ci.org/olafurpg/metaconfig)
+[![Maven](https://img.shields.io/maven-central/v/com.geirsson/mopt-core_2.12.svg?label=maven)](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22mopt-core_2.12%22)
+[![Travis](https://travis-ci.org/olafurpg/mopt.svg?branch=master)](https://travis-ci.org/olafurpg/mopt)
 
 Configuration library used by
 [scalafix](https://github.com/scalacenter/scalafix) and
@@ -9,4 +9,4 @@ Configuration library used by
 
 ## Docs
 
-See <https://scalameta.org/metaconfig/>
+See <https://scalameta.org/mopt/>

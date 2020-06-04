@@ -14,14 +14,14 @@ inThisBuild(
     useSuperShell := false,
     scalaVersion := scala212,
     scalacOptions += "-Yrangepos",
-    organization := "com.geirsson",
+    organization := "org.scalameta",
     version ~= { old => old.replace('+', '-') },
     licenses := Seq(
       "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")
     ),
-    homepage := Some(url("https://github.com/olafurpg/metaconfig")),
+    homepage := Some(url("https://github.com/scalameta/mopt")),
     autoAPIMappings := true,
-    apiURL := Some(url("https://github.com/olafurpg/metaconfig")),
+    apiURL := Some(url("https://github.com/scalameta/mopt")),
     developers += Developer(
       "olafurpg",
       "Ólafur Páll Geirsson",
@@ -64,9 +64,9 @@ val languageAgnosticCompatibilityPolicy: ProblemFilter = (problem: Problem) => {
     case problem: MemberProblem => (problem.ref, problem.ref.fullName)
   }
   val public = ref.isPublic
-  val include = fullName.startsWith("metaconfig.")
+  val include = fullName.startsWith("mopt.")
   val exclude = fullName.contains(".internal.") ||
-    fullName.startsWith("metaconfig.cli")
+    fullName.startsWith("mopt.cli")
   public && include && !exclude
 }
 
@@ -78,17 +78,17 @@ lazy val sharedSettings = List[Setting[_]](
   mimaBinaryIssueFilters ++= List[ProblemFilter](
     languageAgnosticCompatibilityPolicy
   ),
-  mimaPreviousArtifacts := Set("com.geirsson" %% moduleName.value % "0.9.10")
+  mimaPreviousArtifacts := Set.empty
 )
 
 skip.in(publish) := true
 disablePlugins(MimaPlugin)
 
 lazy val core = crossProject(JVMPlatform, JSPlatform)
-  .in(file("metaconfig-core"))
+  .in(file("mopt-core"))
   .settings(
     sharedSettings,
-    moduleName := "metaconfig-core",
+    moduleName := "mopt-core",
     libraryDependencies ++= List(
       "org.typelevel" %%% "paiges-core" % "0.3.0",
       "org.scala-lang.modules" %%% "scala-collection-compat" % "2.1.2",
@@ -102,10 +102,10 @@ lazy val coreJVM = core.jvm
 lazy val coreJS = core.js
 
 lazy val json = project
-  .in(file("metaconfig-json"))
+  .in(file("mopt-json"))
   .settings(
     sharedSettings,
-    moduleName := "metaconfig-json",
+    moduleName := "mopt-json",
     libraryDependencies ++= List(
       (CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, 11 | 12)) => "com.lihaoyi" %%% "upickle" % "0.7.4"
@@ -116,20 +116,20 @@ lazy val json = project
   .dependsOn(coreJVM)
 
 lazy val typesafe = project
-  .in(file("metaconfig-typesafe-config"))
+  .in(file("mopt-typesafe-config"))
   .settings(
     sharedSettings,
-    moduleName := "metaconfig-typesafe-config",
+    moduleName := "mopt-typesafe-config",
     description := "Integration for HOCON using typesafehub/config.",
     libraryDependencies += "com.typesafe" % "config" % "1.2.1"
   )
   .dependsOn(coreJVM)
 
 lazy val sconfig = crossProject(JVMPlatform)
-  .in(file("metaconfig-sconfig"))
+  .in(file("mopt-sconfig"))
   .settings(
     sharedSettings,
-    moduleName := "metaconfig-sconfig",
+    moduleName := "mopt-sconfig",
     description := "Integration for HOCON using ekrich/sconfig.",
     libraryDependencies ++= List(
       "org.ekrich" %%% "sconfig" % "1.0.0"
@@ -144,7 +144,7 @@ val scalatagsVersion = Def.setting {
 }
 
 lazy val tests = crossProject(JVMPlatform, JSPlatform)
-  .in(file("metaconfig-tests"))
+  .in(file("mopt-tests"))
   .disablePlugins(MimaPlugin)
   .settings(
     sharedSettings,
@@ -158,7 +158,7 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform)
   )
   .jsSettings(scalaJSModuleKind := ModuleKind.CommonJSModule)
   .jvmSettings(
-    mainClass in GraalVMNativeImage := Some("metaconfig.tests.ExampleMain"),
+    mainClass in GraalVMNativeImage := Some("mopt.tests.ExampleMain"),
     sources.in(Compile, doc) := Seq.empty,
     graalVMNativeImageOptions ++= {
       val reflectionFile =
@@ -167,7 +167,7 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform)
       List(
         "-H:+ReportUnsupportedElementsAtRuntime",
         "--initialize-at-build-time",
-        "--initialize-at-run-time=metaconfig",
+        "--initialize-at-run-time=mopt",
         "--no-server",
         "--enable-http",
         "--enable-https",
@@ -189,10 +189,10 @@ lazy val testsJVM = tests.jvm
 lazy val testsJS = tests.js
 
 lazy val docs = project
-  .in(file("metaconfig-docs"))
+  .in(file("mopt-docs"))
   .settings(
     sharedSettings,
-    moduleName := "metaconfig-docs",
+    moduleName := "mopt-docs",
     libraryDependencies ++= List(
       "com.lihaoyi" %% "scalatags" % scalatagsVersion.value
     ),
