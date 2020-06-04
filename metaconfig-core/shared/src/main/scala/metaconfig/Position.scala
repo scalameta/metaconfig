@@ -36,7 +36,7 @@ sealed abstract class Position { pos =>
   final def lineInput(severity: String, message: String): String = {
     val sev = if (severity.isEmpty) "" else s" $severity:"
     val msg = if (message.isEmpty) "" else s" $message"
-    s"${pos.input.syntax}:${pos.startLine}:${pos.startColumn}$sev$msg"
+    s"${pos.input.syntax}:${pos.startLine + 1}:${pos.startColumn}$sev$msg"
   }
 
   final def lineCaret: String = pos match {

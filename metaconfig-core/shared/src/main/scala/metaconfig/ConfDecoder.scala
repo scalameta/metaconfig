@@ -14,6 +14,7 @@ import java.nio.file.Paths
 trait ConfDecoder[A] { self =>
 
   def read(conf: Conf): Configured[A]
+
   final def read(conf: Configured[Conf]): Configured[A] =
     conf.andThen(self.read)
 

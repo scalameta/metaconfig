@@ -9,4 +9,4 @@ Configuration library used by
 
 ## Docs
 
-See <https://olafurpg.github.io/metaconfig/>
+See <https://scalameta.org/metaconfig/>

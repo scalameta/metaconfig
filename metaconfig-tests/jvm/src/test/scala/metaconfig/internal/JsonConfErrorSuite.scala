@@ -4,7 +4,11 @@ import metaconfig.Input
 import ujson._
 
 class JsonConfErrorSuite extends munit.FunSuite {
-  def checkError(path: String, original: String, expected: String): Unit = {
+  def checkError(
+      path: String,
+      original: String,
+      expected: String
+  )(implicit loc: munit.Location): Unit = {
     test(path) {
       val e = intercept[Exception] {
         val readable =
@@ -21,7 +25,7 @@ class JsonConfErrorSuite extends munit.FunSuite {
   checkError(
     "colon",
     """{ "a" 1 """,
-    """|colon:0:6 error: expected :
+    """|colon:1:6 error: expected :
        |{ "a" 1
        |      ^
        |""".stripMargin

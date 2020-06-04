@@ -139,6 +139,7 @@ object ConfError {
       path: String
   ): ConfError = {
     typeMismatch(expected, s"${obtained.kind} (value: $obtained)", path)
+      .atPos(obtained.pos)
   }
   def typeMismatch(
       expected: String,
@@ -169,16 +170,31 @@ object ConfError {
     }
   }
 
-  // TOOD(olafur) levenshtein
   def invalidFields(
       invalid: Iterable[String],
       valid: Iterable[String]
   ): ConfError = {
-    val plural = if (invalid.size > 1) "s" else ""
-    new ConfError(
-      s"Invalid field$plural: ${invalid.mkString(", ")}. " +
-        s"Expected one of ${valid.mkString(", ")}"
-    ) {}
+    invalidFields(invalid.map(i => i -> Position.None), valid)
+  }
+  def invalidFields(
+      invalid: Iterable[(String, Position)],
+      valid: Iterable[String]
+  )(implicit dummy: DummyImplicit): ConfError = {
+    val candidates = valid.toSeq
+    val errors = invalid.toList.map {
+      case (field, pos) =>
+        val closestCandidate = Levenshtein.closestCandidate(field, candidates)
+        val didYouMean = closestCandidate match {
+          case None =>
+            ""
+          case Some(candidate) =>
+            s"\n\tDid you mean '$candidate'?"
+        }
+        message(
+          s"found option '$field' which wasn't expected, or isn't valid in this context.$didYouMean"
+        ).atPos(pos)
+    }
+    errors.foldLeft(ConfError.empty)(_ combine _)
   }
 
   def fromResults(results: Seq[Configured[_]]): Option[ConfError] =

@@ -4,11 +4,15 @@ import metaconfig.Conf._
 
 class DeriveConfDecoderSuite extends munit.FunSuite {
 
-  def checkError(name: String, obj: Conf, expected: String): Unit = {
+  def checkError(
+      name: String,
+      obj: Conf,
+      expected: String
+  )(implicit loc: munit.Location): Unit = {
     test(name) {
       ConfDecoder[AllTheAnnotations].read(obj) match {
-        case Configured.NotOk(err) =>
-          assertNoDiff(expected, err.toString)
+        case Configured.NotOk(obtained) =>
+          assertNoDiff(obtained.toString, expected)
         case Configured.Ok(obtained) =>
           fail(s"Expected error, obtained=$obtained")
       }
@@ -32,13 +36,17 @@ class DeriveConfDecoderSuite extends munit.FunSuite {
   checkError(
     "typo",
     Obj(number, "sttring" -> Str("42")),
-    "Invalid field: sttring. Expected one of number, string, lst"
+    """|found option 'sttring' which wasn't expected, or isn't valid in this context.
+       |	Did you mean 'string'?
+       |""".stripMargin
   )
 
   checkError(
     "typo2",
     Obj(string, "nummbber" -> Str("42")),
-    "Invalid field: nummbber. Expected one of number, string, lst"
+    """|found option 'nummbber' which wasn't expected, or isn't valid in this context.
+       |	Did you mean 'number'?
+       |""".stripMargin
   )
 
   checkOk(

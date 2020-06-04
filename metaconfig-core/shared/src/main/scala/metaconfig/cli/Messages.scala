@@ -8,14 +8,14 @@ import scala.collection.mutable.ListBuffer
 import metaconfig.internal.Case
 import metaconfig.Conf
 import metaconfig.ConfEncoder
-import metaconfig.generic.Surface
 import metaconfig.generic.Setting
 import metaconfig.generic.Settings
 
 object Messages {
 
-  def options[T: Surface: ConfEncoder](default: T): Doc = {
-    val settings = Settings[T]
+  def options[T](
+      default: T
+  )(implicit encoder: ConfEncoder[T], settings: Settings[T]): Doc = {
     val obj = ConfEncoder[T].writeObj(default)
     val docs = settings.settings.zip(obj.values).flatMap {
       case (setting, (_, value)) =>

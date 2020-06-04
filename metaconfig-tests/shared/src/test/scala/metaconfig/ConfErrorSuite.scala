@@ -5,10 +5,14 @@ import metaconfig.Conf._
 
 class ConfErrorSuite extends munit.FunSuite {
 
-  def check(name: String, error: => ConfError, expected: => String): Unit = {
+  def check(
+      name: String,
+      error: => ConfError,
+      expected: => String
+  )(implicit loc: munit.Location): Unit = {
     test(name) {
       val obtained = error.toString.trim
-      assertEquals(obtained, expected.trim)
+      assertNoDiff(obtained, expected.trim)
     }
   }
 
@@ -31,7 +35,7 @@ class ConfErrorSuite extends munit.FunSuite {
   check(
     "invalidFields",
     invalidFields(List("A"), List("B", "C")),
-    "Invalid field: A. Expected one of B, C"
+    "found option 'A' which wasn't expected, or isn't valid in this context."
   )
 
   check(
@@ -74,7 +78,7 @@ class ConfErrorSuite extends munit.FunSuite {
       val pos = Position.Range(input, i, i + 2)
       parseError(pos, "No var")
     },
-    """|foo.scala:2:2 error: No var
+    """|foo.scala:3:2 error: No var
        |  var x
        |  ^^^
        |""".stripMargin

@@ -113,12 +113,14 @@ class Macros(val c: blackbox.Context) {
 
     val result = q"""
        new ${weakTypeOf[ConfDecoder[T]]} {
-         def read(conf: _root_.metaconfig.Conf): ${weakTypeOf[Configured[T]]} = {
-             val settings = $settings
-             val tmp = $default
-             $product.map { t =>
-               $ctor
-             }
+         def read(
+             conf: _root_.metaconfig.Conf
+         ): ${weakTypeOf[Configured[T]]} = {
+           val settings = $settings
+           val tmp = $default
+           $product.map { t =>
+             $ctor
+           }
          }
        }
      """
@@ -200,7 +202,12 @@ class Macros(val c: blackbox.Context) {
       args
     }
     val args = q"_root_.scala.List.apply(..$argss)"
-    val result = q"new ${weakTypeOf[Surface[T]]}($args)"
+    val classAnnotations = Tclass.annotations.collect {
+      case annot if annot.tree.tpe <:< typeOf[StaticAnnotation] =>
+        annot.tree
+    }
+    val result =
+      q"new ${weakTypeOf[Surface[T]]}($args, _root_.scala.List.apply(..$classAnnotations))"
     c.untypecheck(result)
   }
 

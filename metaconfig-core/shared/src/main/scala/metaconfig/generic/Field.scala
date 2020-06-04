@@ -38,19 +38,3 @@ final class Field(
     s"""Field(name="$name",tpe="$tpe",annotations=List($annots),underlying=$underlying)"""
   }
 }
-
-/**
-  * Aggregated metadata about a given type.
-  *
-  * @param fields the fields of this type
-  * @tparam T not used for anything but to drive implicit resolution.
-  */
-final class Surface[T](val fields: List[List[Field]]) {
-  def cast[B]: Surface[B] = new Surface(fields)
-  override def toString: String = s"Surface($fields)"
-}
-object Surface {
-  implicit val unitSurface: Surface[Unit] = empty[Unit]
-  def empty[T]: Surface[T] = new Surface(Nil)
-  def apply[T](implicit ev: Surface[T]): Surface[T] = ev
-}
