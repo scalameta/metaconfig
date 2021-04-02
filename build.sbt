@@ -3,11 +3,11 @@ import sbtcrossproject.CrossPlugin.autoImport.crossProject
 import com.typesafe.tools.mima.core._
 
 lazy val V = new {
-  def munit = "0.7.2"
+  def munit = "0.7.23"
 }
 val scala211 = "2.11.12"
-val scala212 = "2.12.11"
-val scala213 = "2.13.1"
+val scala212 = "2.12.13"
+val scala213 = "2.13.5"
 val ScalaVersions = List(scala212, scala211, scala213)
 inThisBuild(
   List(
@@ -90,13 +90,11 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
     sharedSettings,
     moduleName := "metaconfig-core",
     libraryDependencies ++= List(
-      "org.typelevel" %%% "paiges-core" % "0.3.0",
-      "org.scala-lang.modules" %%% "scala-collection-compat" % "2.1.2",
-      scalaOrganization.value % "scala-reflect" % scalaVersion.value % Provided
-    ) :+ (CrossVersion.partialVersion(scalaVersion.value) match {
-      case Some((2, 11)) => "com.lihaoyi" %%% "pprint" % "0.5.4"
-      case _ => "com.lihaoyi" %%% "pprint" % "0.5.9"
-    })
+      //"org.typelevel" %%% "paiges-core" % "0.3.0",
+      "org.scala-lang.modules" %%% "scala-collection-compat" % "2.4.3",
+      scalaOrganization.value % "scala-reflect" % scalaVersion.value % Provided,
+      "com.lihaoyi" %%% "pprint" % "0.6.4"
+    )
   )
 lazy val coreJVM = core.jvm
 lazy val coreJS = core.js
@@ -118,7 +116,7 @@ lazy val typesafe = project
     sharedSettings,
     moduleName := "metaconfig-typesafe-config",
     description := "Integration for HOCON using typesafehub/config.",
-    libraryDependencies += "com.typesafe" % "config" % "1.2.1"
+    libraryDependencies += "com.typesafe" % "config" % "1.4.1"
   )
   .dependsOn(coreJVM)
 
@@ -129,16 +127,11 @@ lazy val sconfig = crossProject(JVMPlatform)
     moduleName := "metaconfig-sconfig",
     description := "Integration for HOCON using ekrich/sconfig.",
     libraryDependencies ++= List(
-      "org.ekrich" %%% "sconfig" % "1.0.0"
+      "org.ekrich" %%% "sconfig" % "1.4.2"
     )
   )
   .dependsOn(core)
 lazy val sconfigJVM = sconfig.jvm
-
-val scalatagsVersion = Def.setting {
-  if (scalaVersion.value.startsWith("2.11")) "0.6.7"
-  else "0.7.0"
-}
 
 lazy val tests = crossProject(JVMPlatform, JSPlatform)
   .in(file("metaconfig-tests"))
@@ -150,10 +143,12 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform)
     testFrameworks := List(new TestFramework("munit.Framework")),
     libraryDependencies ++= List(
       "org.scalameta" %%% "munit-scalacheck" % V.munit,
-      "com.github.alexarchambault" %%% "scalacheck-shapeless_1.14" % "1.2.3"
+      "com.github.alexarchambault" %%% "scalacheck-shapeless_1.14" % "1.2.5" // no native
     )
   )
-  .jsSettings(scalaJSModuleKind := ModuleKind.CommonJSModule)
+  .jsSettings(
+    scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
+  )
   .jvmSettings(
     mainClass in GraalVMNativeImage := Some("metaconfig.tests.ExampleMain"),
     sources.in(Compile, doc) := Seq.empty,
@@ -191,7 +186,7 @@ lazy val docs = project
     sharedSettings,
     moduleName := "metaconfig-docs",
     libraryDependencies ++= List(
-      "com.lihaoyi" %% "scalatags" % scalatagsVersion.value
+      "com.lihaoyi" %% "scalatags" % "0.9.4"
     ),
     mdocVariables := Map(
       "VERSION" -> version.value.replaceFirst("\\+.*", ""),
