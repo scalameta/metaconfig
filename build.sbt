@@ -5,10 +5,9 @@ import com.typesafe.tools.mima.core._
 lazy val V = new {
   def munit = "0.7.23"
 }
-val scala211 = "2.11.12"
 val scala212 = "2.12.13"
 val scala213 = "2.13.5"
-val ScalaVersions = List(scala212, scala211, scala213)
+val ScalaVersions = List(scala212, scala213)
 inThisBuild(
   List(
     useSuperShell := false,
@@ -73,6 +72,7 @@ val languageAgnosticCompatibilityPolicy: ProblemFilter = (problem: Problem) => {
 lazy val sharedSettings = List[Setting[_]](
   scalacOptions ++= List(
     "-Yrangepos",
+    "-deprecation",
     warnUnusedImport.value
   ),
   mimaBinaryIssueFilters ++= List[ProblemFilter](
@@ -90,7 +90,7 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
     sharedSettings,
     moduleName := "metaconfig-core",
     libraryDependencies ++= List(
-      //"org.typelevel" %%% "paiges-core" % "0.3.0",
+      "org.typelevel" %%% "paiges-core" % "0.4.1",
       "org.scala-lang.modules" %%% "scala-collection-compat" % "2.4.3",
       scalaOrganization.value % "scala-reflect" % scalaVersion.value % Provided,
       "com.lihaoyi" %%% "pprint" % "0.6.4"
@@ -105,7 +105,7 @@ lazy val json = project
     sharedSettings,
     moduleName := "metaconfig-json",
     libraryDependencies ++= List(
-      "com.lihaoyi" %%% "upickle" % "1.3.11"
+      "com.lihaoyi" %%% "upickle" % "0.7.5"
     )
   )
   .dependsOn(coreJVM)
