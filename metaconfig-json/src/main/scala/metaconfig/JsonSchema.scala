@@ -3,7 +3,6 @@ package metaconfig
 import metaconfig.generic.Setting
 import metaconfig.generic.Settings
 import metaconfig.internal.JsonConverter
-import ujson._
 
 object JsonSchema {
 
@@ -12,7 +11,7 @@ object JsonSchema {
       description: String,
       url: Option[String],
       default: T
-  )(implicit settings: Settings[T]): Js.Obj = {
+  )(implicit settings: Settings[T]): ujson.Value = {
     ConfEncoder[T].write(default) match {
       case obj: Conf.Obj =>
         this.generate[T](title, description, url, obj)
@@ -26,16 +25,16 @@ object JsonSchema {
       description: String,
       url: Option[String],
       default: Conf.Obj
-  )(implicit settings: Settings[T]): Js.Obj = {
+  )(implicit settings: Settings[T]): ujson.Value = {
 
-    val properties: List[(String, Js.Obj)] = settings.settings
+    val properties: List[(String, ujson.Value)] = settings.settings
       .zip(default.values)
       .map { case (s, (_, v)) => fromSetting(s, v) }
 
-    Js.Obj(
-      "$id" -> url.map(Js.Str).getOrElse(Js.Null),
-      "title" -> Js.Str(title),
-      "description" -> Js.Str(description),
+    ujson.Obj(
+      "$id" -> url.map(ujson.Str).getOrElse(ujson.Null),
+      "title" -> ujson.Str(title),
+      "description" -> ujson.Str(description),
       "type" -> "object",
       "properties" -> properties
     )
@@ -44,13 +43,13 @@ object JsonSchema {
   private def fromSetting(
       setting: Setting,
       defaultValue: Conf
-  ): (String, Js.Obj) = {
+  ): (String, ujson.Value) = {
     val defaultJsonValue = JsonConverter.toJson(defaultValue)
-    val obj = Js.Obj(
-      "title" -> Js.Str(setting.name),
-      "description" -> setting.description.map(Js.Str).getOrElse(Js.Null),
+    val obj = ujson.Obj(
+      "title" -> ujson.Str(setting.name),
+      "description" -> setting.description.map(ujson.Str).getOrElse(ujson.Null),
       "default" -> defaultJsonValue,
-      "required" -> Js.False, // TODO: How should we handle required
+      "required" -> ujson.False, // TODO: How should we handle required
       "type" -> toSchemaType(defaultValue)
     )
     defaultValue match {
@@ -69,7 +68,7 @@ object JsonSchema {
     setting.name -> obj
   }
 
-  private def toSchemaType(conf: Conf): Js.Str = Js.Str(
+  private def toSchemaType(conf: Conf): ujson.Str = ujson.Str(
     conf match {
       // https://tools.ietf.org/html/draft-handrews-json-schema-01#section-4.2.1
       case _: Conf.Bool => "boolean"
