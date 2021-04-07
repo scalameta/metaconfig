@@ -107,10 +107,7 @@ lazy val json = project
     sharedSettings,
     moduleName := "metaconfig-json",
     libraryDependencies ++= List(
-      (CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, 11 | 12)) => "com.lihaoyi" %%% "upickle" % "0.7.4"
-        case _ => "com.lihaoyi" %% "upickle" % "0.7.5"
-      })
+      "com.lihaoyi" %%% "upickle" % "1.3.11"
     )
   )
   .dependsOn(coreJVM)
