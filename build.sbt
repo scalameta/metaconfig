@@ -84,7 +84,7 @@ lazy val sharedSettings = List[Setting[_]](
 skip.in(publish) := true
 disablePlugins(MimaPlugin)
 
-lazy val core = crossProject(JVMPlatform, JSPlatform)
+lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .in(file("metaconfig-core"))
   .settings(
     sharedSettings,
@@ -98,6 +98,7 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
   )
 lazy val coreJVM = core.jvm
 lazy val coreJS = core.js
+lazy val coreNative = core.native
 
 lazy val json = project
   .in(file("metaconfig-json"))
