@@ -121,7 +121,7 @@ lazy val typesafe = project
   )
   .dependsOn(coreJVM)
 
-lazy val sconfig = crossProject(JVMPlatform)
+lazy val sconfig = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .in(file("metaconfig-sconfig"))
   .settings(
     sharedSettings,
@@ -131,8 +131,20 @@ lazy val sconfig = crossProject(JVMPlatform)
       "org.ekrich" %%% "sconfig" % "1.4.2"
     )
   )
+  .jsSettings(
+    libraryDependencies ++= List(
+      "org.ekrich" %%% "sjavatime" % "1.1.3"
+    )
+  )
+  .nativeSettings(
+    libraryDependencies ++= List(
+      "org.ekrich" %%% "sjavatime" % "1.1.3"
+    )
+  )
   .dependsOn(core)
 lazy val sconfigJVM = sconfig.jvm
+lazy val sconfigJS = sconfig.js
+lazy val sconfigNative = sconfig.native
 
 lazy val tests = crossProject(JVMPlatform, JSPlatform)
   .in(file("metaconfig-tests"))
