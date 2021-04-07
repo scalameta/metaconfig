@@ -105,7 +105,7 @@ lazy val json = project
     sharedSettings,
     moduleName := "metaconfig-json",
     libraryDependencies ++= List(
-      "com.lihaoyi" %%% "upickle" % "0.7.5"
+      "com.lihaoyi" %%% "upickle" % "1.3.11"
     )
   )
   .dependsOn(coreJVM)
