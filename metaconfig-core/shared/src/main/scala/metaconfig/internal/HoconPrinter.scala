@@ -64,7 +64,7 @@ object HoconPrinter {
   private val quote = char('"')
 
   // Spec is here:
-  // https://github.com/lightbend/config/blob/master/HOCON.md#unquoted-strings
+  // https://github.com/lightbend/config/blob/main/HOCON.md#unquoted-strings
   // but this method is conservative and quotes if the string contains non-letter characters
   private def needsQuote(str: String): Boolean =
     str.isEmpty ||
