@@ -146,7 +146,7 @@ lazy val sconfigJVM = sconfig.jvm
 lazy val sconfigJS = sconfig.js
 lazy val sconfigNative = sconfig.native
 
-lazy val tests = crossProject(JVMPlatform, JSPlatform)
+lazy val tests = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .in(file("metaconfig-tests"))
   .disablePlugins(MimaPlugin)
   .settings(
@@ -155,8 +155,7 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform)
     publishArtifact.in(Compile, packageDoc) := false,
     testFrameworks := List(new TestFramework("munit.Framework")),
     libraryDependencies ++= List(
-      "org.scalameta" %%% "munit-scalacheck" % V.munit,
-      "com.github.alexarchambault" %%% "scalacheck-shapeless_1.14" % "1.2.5" // no native
+      "org.scalameta" %%% "munit-scalacheck" % V.munit
     )
   )
   .jsSettings(
@@ -165,6 +164,7 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform)
   .jvmSettings(
     mainClass in GraalVMNativeImage := Some("metaconfig.tests.ExampleMain"),
     sources.in(Compile, doc) := Seq.empty,
+    libraryDependencies += "com.github.alexarchambault" %%% "scalacheck-shapeless_1.14" % "1.2.5",
     graalVMNativeImageOptions ++= {
       val reflectionFile =
         Keys.sourceDirectory.in(Compile).value./("graal")./("reflection.json")
@@ -192,6 +192,7 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform)
   .dependsOn(core)
 lazy val testsJVM = tests.jvm
 lazy val testsJS = tests.js
+lazy val testsNative = tests.native
 
 lazy val docs = project
   .in(file("metaconfig-docs"))
