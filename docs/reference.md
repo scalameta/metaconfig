@@ -78,7 +78,7 @@ import metaconfig.sconfig._
 ## Conf.printHocon
 
 It's possible to print `Conf` as
-[HOCON](https://github.com/lightbend/config/blob/master/HOCON.md).
+[HOCON](https://github.com/lightbend/config/blob/main/HOCON.md).
 
 ```scala mdoc
 Conf.printHocon(Conf.Obj(

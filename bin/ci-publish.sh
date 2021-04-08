@@ -8,7 +8,7 @@ if [ "$TRAVIS_SECURE_ENV_VARS" == true ]; then
   if [ -n "$TRAVIS_TAG" ]; then
     sbt release
   else
-    echo "Merge into master, no tag push."
+    echo "Merge into main, no tag push."
   fi
 else
   echo "Skipping publish, branch=$TRAVIS_BRANCH"
