@@ -1,7 +1,6 @@
 package metaconfig.internal
 
 import metaconfig.Input
-import ujson._
 
 class JsonConfErrorSuite extends munit.FunSuite {
   def checkError(
@@ -12,11 +11,11 @@ class JsonConfErrorSuite extends munit.FunSuite {
     test(path) {
       val e = intercept[Exception] {
         val readable =
-          Readable.fromTransformer[Input](
+          ujson.Readable.fromTransformer[Input](
             Input.VirtualFile(path, original),
             JsonConfParser
           )
-        readable.transform(Js)
+        readable.transform(ujson.Value)
       }
       assertNoDiff(e.getMessage, expected)
     }

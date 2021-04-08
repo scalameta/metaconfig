@@ -1,12 +1,11 @@
 package metaconfig.internal
 
 import metaconfig.Input
-import ujson._
 import scala.util.Properties
 
 class JsonConfParserSuite extends munit.FunSuite {
 
-  def check(original: String, expected: Js): Unit = {
+  def check(original: String, expected: ujson.Value): Unit = {
     test(original) {
       assume(
         !Properties.isWin,
@@ -21,7 +20,7 @@ class JsonConfParserSuite extends munit.FunSuite {
     """{
       |  "a":1
       |}""".stripMargin,
-    Js.Obj("a" -> Js.Num(1))
+    ujson.Obj("a" -> ujson.Num(1))
   )
 
   // comments
@@ -37,10 +36,10 @@ class JsonConfParserSuite extends munit.FunSuite {
       |  ] // close
       |}
       |""".stripMargin,
-    Js.Obj(
-      "a" -> Js.Num(1),
-      "b" -> Js.Num(2),
-      "c" -> Js.Arr(Js.Num(3))
+    ujson.Obj(
+      "a" -> ujson.Num(1),
+      "b" -> ujson.Num(2),
+      "c" -> ujson.Arr(ujson.Num(3))
     )
   )
 
@@ -58,9 +57,9 @@ class JsonConfParserSuite extends munit.FunSuite {
       |
       |}
     """.stripMargin,
-    Js.Obj(
-      "b" -> Js.Arr(Js.Num(1), Js.Num(2)),
-      "a" -> Js.Num(2)
+    ujson.Obj(
+      "b" -> ujson.Arr(ujson.Num(1), ujson.Num(2)),
+      "a" -> ujson.Num(2)
     )
   )
 
@@ -68,7 +67,7 @@ class JsonConfParserSuite extends munit.FunSuite {
     """
       |{ "a": [1,], }
     """.stripMargin,
-    Js.Obj("a" -> Js.Arr(1))
+    ujson.Obj("a" -> ujson.Arr(1))
   )
 
 }

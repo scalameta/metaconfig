@@ -2,46 +2,45 @@ package metaconfig.internal
 
 import metaconfig.Conf
 import metaconfig.Input
-import ujson._
 
 object JsonConverter {
 
-  def fromInput(input: Input): Js = {
-    val readable = Readable.fromTransformer(input, JsonConfParser)
-    val js = readable.transform(Js)
+  def fromInput(input: Input): ujson.Value = {
+    val readable = ujson.Readable.fromTransformer(input, JsonConfParser)
+    val js = readable.transform(ujson.Value)
     js
   }
 
-  def toConf(js: Js): Conf = js match {
-    case Js.Obj(values) =>
+  def toConf(js: ujson.Value): Conf = js match {
+    case ujson.Obj(values) =>
       Conf.Obj(values.iterator.map {
         case (key, value) => key -> toConf(value)
       }.toList)
-    case Js.Arr(values) =>
+    case ujson.Arr(values) =>
       Conf.Lst(values.iterator.map(toConf).toList)
-    case Js.Bool(value) =>
+    case ujson.Bool(value) =>
       Conf.Bool(value)
-    case Js.Num(value) =>
+    case ujson.Num(value) =>
       Conf.Num(value)
-    case Js.Str(value) =>
+    case ujson.Str(value) =>
       Conf.Str(value)
-    case Js.Null =>
+    case ujson.Null =>
       Conf.Null()
   }
 
-  import Js.Obj._
-  def toJson(conf: Conf): Js.Value = conf match {
+  import ujson.Obj._
+  def toJson(conf: Conf): ujson.Value = conf match {
     case Conf.Obj(values) =>
       values.map { case (k, v) => k -> toJson(v) }
     case Conf.Lst(values) =>
-      Js.Arr(values.map(toJson): _*)
+      ujson.Arr(values.map(toJson): _*)
     case Conf.Null() =>
-      Js.Null
+      ujson.Null
     case Conf.Str(value) =>
-      Js.Str(value)
+      ujson.Str(value)
     case Conf.Num(value) =>
-      Js.Num(value.toDouble)
+      ujson.Num(value.toDouble)
     case Conf.Bool(value) =>
-      Js.Bool(value)
+      ujson.Bool(value)
   }
 }
