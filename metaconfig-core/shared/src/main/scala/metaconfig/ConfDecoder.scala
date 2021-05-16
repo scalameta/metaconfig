@@ -47,19 +47,31 @@ object ConfDecoder {
   def apply[T](implicit ev: ConfDecoder[T]): ConfDecoder[T] = ev
 
   // TODO(olafur) remove in favor of instanceExpect.
+  @deprecated("Use fromPartial instead", "0.9.12")
   def instance[T](
       f: PartialFunction[Conf, Configured[T]]
   )(implicit ev: ClassTag[T]): ConfDecoder[T] =
-    instanceExpect(ev.runtimeClass.getName)(f)
+    fromPartial(ev.runtimeClass.getName)(f)
+
+  @deprecated("Use from instead", "0.9.12")
   def instanceF[T](
       f: Conf => Configured[T]
   )(implicit ev: ClassTag[T]): ConfDecoder[T] =
-    instance[T] { case x => f(x) }
+    from(f)
 
+  def from[T](f: Conf => Configured[T]): ConfDecoder[T] = f(_)
+
+  @deprecated("Use fromPartial instead", "0.9.12")
   def instanceExpect[T](expect: String)(
       f: PartialFunction[Conf, Configured[T]]
   )(implicit ev: ClassTag[T]): ConfDecoder[T] =
+    fromPartial(expect)(f)
+
+  def fromPartial[A](expect: String)(
+      f: PartialFunction[Conf, Configured[A]]
+  ): ConfDecoder[A] = from {
     f.applyOrElse(_, (x: Conf) => NotOk(ConfError.typeMismatch(expect, x)))
+  }
 
   def constant[T](value: T): ConfDecoder[T] =
     _ => Configured.ok(value)
@@ -67,20 +79,20 @@ object ConfDecoder {
   implicit val confDecoder: ConfDecoder[Conf] =
     Configured.Ok(_)
   implicit val intConfDecoder: ConfDecoder[Int] =
-    instanceExpect[Int]("Number") {
+    fromPartial[Int]("Number") {
       case Conf.Num(x) => Ok(x.toInt)
       case Conf.Str(Number(n)) => Ok(n.toInt)
     }
   implicit val bigDecimalConfDecoder: ConfDecoder[BigDecimal] =
-    instanceExpect[BigDecimal]("Number") {
+    fromPartial[BigDecimal]("Number") {
       case Conf.Num(x) => Ok(x)
     }
   implicit val stringConfDecoder: ConfDecoder[String] =
-    instanceExpect[String]("String") { case Conf.Str(x) => Ok(x) }
+    fromPartial[String]("String") { case Conf.Str(x) => Ok(x) }
   implicit val unitConfDecoder: ConfDecoder[Unit] =
-    instanceExpect[Unit]("Unit") { case _ => Ok(()) }
+    from[Unit] { case _ => Ok(()) }
   implicit val booleanConfDecoder: ConfDecoder[Boolean] =
-    instanceExpect[Boolean]("Bool") {
+    fromPartial[Boolean]("Bool") {
       case Conf.Bool(x) => Ok(x)
       case Conf.Str("true" | "on" | "yes") => Ok(true)
       case Conf.Str("false" | "off" | "no") => Ok(false)

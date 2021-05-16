@@ -42,7 +42,7 @@ object TabCompleteOptions {
   implicit val encoder: ConfEncoder[TabCompleteOptions] =
     ConfEncoder.StringEncoder
       .contramap[TabCompleteOptions](_.arguments.mkString(" "))
-  implicit val decoder: ConfDecoder[TabCompleteOptions] = ConfDecoder.instance {
+  implicit val decoder: ConfDecoder[TabCompleteOptions] = ConfDecoder.from {
     case obj: Conf.Obj =>
       (obj.getOption[Int]("current") |@|
         obj.getOption[String]("format") |@|

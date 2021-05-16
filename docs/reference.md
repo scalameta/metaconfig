@@ -143,10 +143,10 @@ applyPatch(original, revised) == applyPatch(original, patch(original, revised))
 
 To convert `Conf` into higher-level data structures you need a `ConfDecoder[T]`
 instance. Convert a partial function from `Conf` to your target type using
-`ConfDecoder.instance[T]`.
+`ConfDecoder.fromPartial[T]`.
 
 ```scala mdoc:silent
-val number2 = ConfDecoder.instance[Int] {
+val number2 = ConfDecoder.fromPartial[Int]("String") {
     case Conf.Str("2") => Configured.Ok(2)
 }
 ```
@@ -157,11 +157,11 @@ number2.read(Conf.fromInt(2))
 ```
 
 Convert a regular function from `Conf` to your target type using
-`ConfDecoder.instanceF[T]`.
+`ConfDecoder.from[T]`.
 
 ```scala mdoc:silent
 case class User(name: String, age: Int)
-val decoder = ConfDecoder.instanceF[User] { conf =>
+val decoder = ConfDecoder.from[User] { conf =>
   conf.get[String]("name").product(conf.get[Int]("age")).map {
       case (name, age) => User(name, age)
   }
