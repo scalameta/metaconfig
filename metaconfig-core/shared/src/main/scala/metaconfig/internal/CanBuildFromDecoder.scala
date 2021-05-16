@@ -19,14 +19,8 @@ object CanBuildFromDecoder {
       s"Map[String, ${classTag.runtimeClass.getName}]"
     ) {
       case Conf.Obj(values) =>
-        val results = values.map {
-          case (key, value) => ev.read(value).map(key -> _)
-        }
-        ConfError.fromResults(results) match {
-          case Some(err) => NotOk(err)
-          case None =>
-            Ok(results.collect { case Ok(x) => x }.toMap)
-        }
+        val factory = Map.canBuildFrom[String, A]
+        build(values, ev, factory)(_._2, (x, y) => (x._1, y))
     }
 
   def list[C[_], A](
