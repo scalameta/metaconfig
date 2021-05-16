@@ -13,7 +13,7 @@ object CanBuildFromDecoder {
       implicit ev: ConfDecoder[A],
       classTag: ClassTag[A]
   ): ConfDecoder[Map[String, A]] =
-    ConfDecoder.instanceExpect[Map[String, A]](
+    ConfDecoder.fromPartial(
       s"Map[String, ${classTag.runtimeClass.getName}]"
     ) {
       case Conf.Obj(values) =>

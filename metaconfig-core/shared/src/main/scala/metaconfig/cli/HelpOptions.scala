@@ -32,7 +32,7 @@ object HelpOptions {
   )
   implicit val encoder: ConfEncoder[HelpOptions] =
     ConfEncoder.StringEncoder.contramap[HelpOptions](_.subcommand.mkString(" "))
-  implicit val decoder: ConfDecoder[HelpOptions] = ConfDecoder.instance {
+  implicit val decoder: ConfDecoder[HelpOptions] = ConfDecoder.from {
     case Obj(
         List(("remainingArgs", Conf.Lst(subcommands)))
         ) =>
