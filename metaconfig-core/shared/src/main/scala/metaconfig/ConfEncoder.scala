@@ -48,12 +48,6 @@ object ConfEncoder {
   ): ConfEncoder[C[A]] =
     (value: C[A]) => Conf.Lst(value.view.map(ev.write).toList)
 
-  @deprecated("Use IterableEncoder instead", "0.8.1")
-  protected[metaconfig] implicit def SeqEncoder[A, C[x] <: Seq[x]](
-      implicit ev: ConfEncoder[A]
-  ): ConfEncoder[C[A]] =
-    (value: C[A]) => Conf.Lst(value.view.map(ev.write).toList)
-
   implicit def OptionEncoder[A](
       implicit ev: ConfEncoder[A]
   ): ConfEncoder[Option[A]] =
