@@ -9,6 +9,7 @@ import metaconfig.Configured.NotOk
 import metaconfig.Configured.Ok
 
 object CanBuildFromDecoder {
+
   def map[A](
       implicit ev: ConfDecoder[A],
       classTag: ClassTag[A]
@@ -26,12 +27,15 @@ object CanBuildFromDecoder {
             Ok(results.collect { case Ok(x) => x }.toMap)
         }
     }
+
   def list[C[_], A](
       implicit ev: ConfDecoder[A],
       factory: Factory[A, C[A]],
       classTag: ClassTag[A]
   ): ConfDecoder[C[A]] =
-    _ match {
+    ConfDecoder.fromPartial(
+      s"List[${classTag.runtimeClass.getName}]"
+    ) {
       case Conf.Lst(values) =>
         val successB = factory.newBuilder
         val errorB = List.newBuilder[ConfError]
@@ -46,12 +50,6 @@ object CanBuildFromDecoder {
           case Some(x) => NotOk(x)
           case None => Ok(successB.result())
         }
-      case conf =>
-        val error = ConfError.typeMismatch(
-          s"List[${classTag.runtimeClass.getName}]",
-          conf
-        )
-        NotOk(error)
     }
 
 }
