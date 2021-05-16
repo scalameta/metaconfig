@@ -59,9 +59,10 @@ object ConfEncoder {
   ): ConfEncoder[Option[A]] =
     _.fold[Conf](Conf.Null())(ev.write)
 
-  implicit def MapEncoder[A](
+  implicit def MapEncoder[A, CC[String, A] <: collection.Map[String, A]](
       implicit ev: ConfEncoder[A]
-  ): ConfEncoder[Map[String, A]] =
-    (value: Map[String, A]) => Conf.Obj(value.mapValues(ev.write).toList)
+  ): ConfEncoder[CC[String, A]] =
+    (value: CC[String, A]) =>
+      Conf.Obj(value.view.map { case (k, v) => k -> ev.write(v) }.toList)
 
 }

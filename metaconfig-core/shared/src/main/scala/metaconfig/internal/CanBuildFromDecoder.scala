@@ -11,15 +11,15 @@ import metaconfig.Configured.Ok
 
 object CanBuildFromDecoder {
 
-  def map[A](
+  def map[A, CC[_, _]](
       implicit ev: ConfDecoder[A],
+      factory: Factory[(String, A), CC[String, A]],
       classTag: ClassTag[A]
-  ): ConfDecoder[Map[String, A]] =
+  ): ConfDecoder[CC[String, A]] =
     ConfDecoder.fromPartial(
       s"Map[String, ${classTag.runtimeClass.getName}]"
     ) {
       case Conf.Obj(values) =>
-        val factory = Map.canBuildFrom[String, A]
         build(values, ev, factory)(_._2, (x, y) => (x._1, y))
     }
 

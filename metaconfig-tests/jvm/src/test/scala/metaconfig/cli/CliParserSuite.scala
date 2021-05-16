@@ -1,5 +1,7 @@
 package metaconfig.cli
 
+import scala.collection.immutable.ListMap
+
 import metaconfig._
 
 class CliParserSuite extends BaseCliParserSuite {
@@ -152,6 +154,38 @@ class CliParserSuite extends BaseCliParserSuite {
         custom = Map(
           "key1" -> "value1",
           "key2" -> "value2"
+        )
+      )
+    )
+  )
+
+  check(
+    "mapCustom2",
+    "--site.custom2.key1" :: "value1" ::
+      "--site.custom2.key2" :: "value2" ::
+      "--site.custom2.key3" :: "value3" ::
+      "--site.custom2.key4" :: "value4" ::
+      "--site.custom2.key5" :: "value5" ::
+      Nil,
+    Options(
+      site = Site(
+        custom2 = ListMap(
+          "key1" -> "value1",
+          "key2" -> "value2",
+          "key3" -> "value3",
+          "key4" -> "value4",
+          "key5" -> "value5"
+        )
+      )
+    ),
+    Options(
+      site = Site(
+        custom2 = ListMap(
+          "key5" -> "value5",
+          "key2" -> "value2",
+          "key3" -> "value3",
+          "key4" -> "value4",
+          "key1" -> "value1"
         )
       )
     )

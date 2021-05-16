@@ -54,9 +54,10 @@ class CliSuite extends munit.FunSuite {
        |--config-path String (default: "fox.conf")
        |--remaining-args List[String] (default: [])
        |--conf Conf (default: {})
-       |--site Site (default: {"foo": "foo", "custom": {}})
+       |--site Site (default: {"foo": "foo", "custom": {}, "custom2": {}})
        |--foo String (default: "foo")
        |--custom Map[String, String] (default: {})
+       |--custom2 ListMap[String, String] (default: {})
        |""".stripMargin
   )
 

@@ -17,7 +17,8 @@ class BaseCliParserSuite extends munit.FunSuite {
   def check(
       name: String,
       args: List[String],
-      expectedOptions: Options
+      expectedOptions: Options,
+      unexpectedOptions: Options = null
   )(implicit loc: munit.Location): Unit = {
     test(name) {
       val conf = Conf.parseCliArgs[Options](args).get
@@ -25,6 +26,8 @@ class BaseCliParserSuite extends munit.FunSuite {
       val obtained = toString(obtainedOptions)
       val expected = toString(expectedOptions)
       assertNoDiff(obtained, expected)
+      if (null != unexpectedOptions)
+        assertNotEquals(obtained, toString(unexpectedOptions))
     }
   }
 
