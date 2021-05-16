@@ -101,6 +101,7 @@ object ConfDecoder {
     stringConfDecoder.flatMap { path =>
       Configured.fromExceptionThrowing(Paths.get(path))
     }
+
   implicit def canBuildFromOption[A](
       implicit ev: ConfDecoder[A],
       classTag: ClassTag[A]
@@ -110,11 +111,21 @@ object ConfDecoder {
         case Conf.Null() => Configured.ok(None)
         case _ => ev.read(conf).map(Some(_))
       }
+
+  // XXX: remove this method when MIMA no longer an issue
+  @deprecated("Use canBuildFromAnyMapWithStringKey instead", "0.9.2")
   implicit def canBuildFromMapWithStringKey[A](
       implicit ev: ConfDecoder[A],
       classTag: ClassTag[A]
   ): ConfDecoder[Map[String, A]] =
-    CanBuildFromDecoder.map[A]
+    CanBuildFromDecoder.map[A, Map]
+
+  implicit def canBuildFromAnyMapWithStringKey[A, CC[_, _]](
+      implicit ev: ConfDecoder[A],
+      factory: Factory[(String, A), CC[String, A]],
+      classTag: ClassTag[A]
+  ): ConfDecoder[CC[String, A]] =
+    CanBuildFromDecoder.map[A, CC]
 
   implicit def canBuildFromConfDecoder[C[_], A](
       implicit ev: ConfDecoder[A],

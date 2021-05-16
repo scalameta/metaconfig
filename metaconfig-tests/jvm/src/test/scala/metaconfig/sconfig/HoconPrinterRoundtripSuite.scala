@@ -10,7 +10,6 @@ class HoconPrinterRoundtripSuite extends munit.ScalaCheckSuite {
     val a = Conf.parseString(conf).get
     val hocon = Conf.printHocon(a)
     val b = Conf.parseString(hocon).get
-    val isEqual = a == b
     assertEquals(a, b)
   }
   def ignore(conf: String): Unit = super.test(conf.ignore) {}
