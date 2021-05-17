@@ -2,8 +2,6 @@ package metaconfig
 
 import scala.util.Failure
 import scala.util.Success
-import metaconfig.Configured.Ok
-import metaconfig.Configured.NotOk
 
 sealed abstract class Configured[+A] extends Product with Serializable {
   import Configured._
