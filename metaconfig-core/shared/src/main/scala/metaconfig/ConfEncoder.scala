@@ -1,6 +1,5 @@
 package metaconfig
 
-import scala.language.higherKinds
 import java.nio.file.Path
 
 trait ConfEncoder[A] { self =>

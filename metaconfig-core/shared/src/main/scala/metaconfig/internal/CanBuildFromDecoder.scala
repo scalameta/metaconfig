@@ -1,7 +1,5 @@
 package metaconfig.internal
 
-import scala.language.higherKinds
-
 import scala.collection.compat._
 import scala.reflect.ClassTag
 import metaconfig.Conf
