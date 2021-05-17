@@ -22,11 +22,9 @@ trait ConfDecoder[A] { self =>
   final def orElse(other: ConfDecoder[A]): ConfDecoder[A] =
     ConfDecoder.orElse(this, other)
   final def flatMap[TT](f: A => Configured[TT]): ConfDecoder[TT] =
-    new ConfDecoder[TT] {
-      override def read(any: Conf): Configured[TT] = self.read(any) match {
-        case Ok(x) => f(x)
-        case NotOk(x) => Configured.NotOk(x)
-      }
+    self.read(_) match {
+      case Ok(x) => f(x)
+      case NotOk(x) => Configured.NotOk(x)
     }
 
   /**
@@ -61,24 +59,13 @@ object ConfDecoder {
   def instanceExpect[T](expect: String)(
       f: PartialFunction[Conf, Configured[T]]
   )(implicit ev: ClassTag[T]): ConfDecoder[T] =
-    new ConfDecoder[T] {
-      override def read(any: Conf): Configured[T] =
-        f.applyOrElse(
-          any,
-          (x: Conf) => {
-            NotOk(ConfError.typeMismatch(expect, x))
-          }
-        )
-    }
+    f.applyOrElse(_, (x: Conf) => NotOk(ConfError.typeMismatch(expect, x)))
 
-  def constant[T](value: T): ConfDecoder[T] = new ConfDecoder[T] {
-    override def read(conf: Conf): Configured[T] = Configured.ok(value)
-  }
+  def constant[T](value: T): ConfDecoder[T] =
+    _ => Configured.ok(value)
 
   implicit val confDecoder: ConfDecoder[Conf] =
-    new ConfDecoder[Conf] {
-      override def read(conf: Conf): Configured[Conf] = Configured.Ok(conf)
-    }
+    Configured.Ok(_)
   implicit val intConfDecoder: ConfDecoder[Int] =
     instanceExpect[Int]("Number") {
       case Conf.Num(x) => Ok(x.toInt)
@@ -106,12 +93,11 @@ object ConfDecoder {
       implicit ev: ConfDecoder[A],
       classTag: ClassTag[A]
   ): ConfDecoder[Option[A]] =
-    new ConfDecoder[Option[A]] {
-      override def read(conf: Conf): Configured[Option[A]] = conf match {
+    (conf: Conf) =>
+      conf match {
         case Conf.Null() => Configured.ok(None)
         case _ => ev.read(conf).map(Some(_))
       }
-    }
   implicit def canBuildFromMapWithStringKey[A](
       implicit ev: ConfDecoder[A],
       classTag: ClassTag[A]
@@ -126,16 +112,14 @@ object ConfDecoder {
     CanBuildFromDecoder.list[C, A]
 
   def orElse[A](a: ConfDecoder[A], b: ConfDecoder[A]): ConfDecoder[A] =
-    new ConfDecoder[A] {
-      override def read(conf: Conf): Configured[A] =
-        a.read(conf) match {
-          case ok @ Configured.Ok(_) => ok
-          case Configured.NotOk(notOk) =>
-            b.read(conf) match {
-              case ok2 @ Configured.Ok(_) => ok2
-              case Configured.NotOk(notOk2) =>
-                notOk.combine(notOk2).notOk
-            }
-        }
-    }
+    (conf: Conf) =>
+      a.read(conf) match {
+        case ok @ Configured.Ok(_) => ok
+        case Configured.NotOk(notOk) =>
+          b.read(conf) match {
+            case ok2 @ Configured.Ok(_) => ok2
+            case Configured.NotOk(notOk2) =>
+              notOk.combine(notOk2).notOk
+          }
+      }
 }
