@@ -191,6 +191,17 @@ fileDecoder.read(Conf.fromString(".scalafmt.conf"))
 fileDecoder.read(Conf.fromString(".foobar"))
 ```
 
+## ConfDecoderEx and ConfDecoderExT
+
+Similar to `ConfDecoder` but its `read` method takes an initial state as a parameter
+rather than as part of the decoder instance definition. `ConfDecoderEx[A]` is an alias
+for `ConfDecoderExT[A, A]`.
+
+### Decoding collections
+
+If a decoder for type `T` is defined, the package defines implicits to derive
+decoders for `Option[T]`, `Seq[T]` and `Map[String, T]`.
+
 ## ConfEncoder
 
 To convert a class instance into `Conf` use `ConfEncoder[T]`. It's possible to
@@ -240,6 +251,10 @@ val bijectiveString = ConfCodec.StringCodec.bimap[Bijective](_.name, Bijective(_
 bijectiveString.write(Bijective("write"))
 bijectiveString.read(Conf.Str("write"))
 ```
+
+## ConfCodecEx and ConfCodecExT
+
+Similar to `ConfCodec` but derives from `ConfDecoderExT` instead of `ConfDecoder`.
 
 ## ConfError
 
@@ -321,6 +336,8 @@ true when you have documentation to keep up-to-date as well.
 ```scala mdoc:silent:nest
 implicit val decoder: ConfDecoder[User] =
   generic.deriveDecoder[User](User("John", 42)).noTypos
+implicit val decoderEx: ConfDecoderEx[User] =
+  generic.deriveDecoderEx[User](User("Jane", 24)).noTypos
 ```
 
 ```scala mdoc
@@ -336,6 +353,14 @@ ConfDecoder[User].read(Conf.parseString("""
 name = John
 age = Old
 """))
+ConfDecoderEx[User].read(
+  Some(User(name = "Jack", age = 33)),
+  Conf.parseString("name = John")
+)
+ConfDecoderEx[User].read(
+  None,
+  Conf.parseString("name = John")
+)
 ```
 
 Sometimes automatic derivation fails, for example if your class contains fields
@@ -347,7 +372,7 @@ case class Funky(file: File)
 implicit val surface = generic.deriveSurface[Funky]
 ```
 
-This will fail wiith a fail cryptic compile error
+This will fail with a fail cryptic compile error
 
 ```scala mdoc:fail
 implicit val decoder = generic.deriveDecoder[Funky](Funky(new File("")))

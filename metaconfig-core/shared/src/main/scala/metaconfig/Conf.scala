@@ -114,6 +114,20 @@ object Conf {
     val empty: Obj = Obj()
     def apply(values: (String, Conf)*): Obj = Obj(values.toList)
   }
+
+  def getEx[A](state: A, conf: Conf, path: Seq[String])(
+      implicit ev: ConfDecoderEx[A]
+  ): Configured[A] =
+    ConfGet.getKey(conf, path) match {
+      case None => Configured.Ok(state)
+      case Some(subconf) => ev.read(Some(state), subconf)
+    }
+
+  def getSettingEx[A](state: A, conf: Conf, setting: Setting)(
+      implicit ev: ConfDecoderEx[A]
+  ): Configured[A] =
+    getEx(state, conf, setting.name +: setting.alternativeNames)
+
 }
 
 object ConfOps {

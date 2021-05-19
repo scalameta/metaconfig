@@ -11,4 +11,9 @@ package object generic {
     macro metaconfig.internal.Macros.deriveConfEncoderImpl[T]
   def deriveCodec[T](default: T): ConfCodec[T] =
     macro metaconfig.internal.Macros.deriveConfCodecImpl[T]
+
+  def deriveDecoderEx[T](default: T): ConfDecoderEx[T] =
+    macro metaconfig.internal.Macros.deriveConfDecoderExImpl[T]
+  def deriveCodecEx[T](default: T): ConfCodecEx[T] =
+    macro metaconfig.internal.Macros.deriveConfCodecExImpl[T]
 }
