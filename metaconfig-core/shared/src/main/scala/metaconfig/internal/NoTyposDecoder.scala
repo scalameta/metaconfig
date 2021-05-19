@@ -2,6 +2,7 @@ package metaconfig.internal
 
 import metaconfig.Conf
 import metaconfig.ConfDecoder
+import metaconfig.ConfDecoderExT
 import metaconfig.ConfError
 import metaconfig.Configured
 import metaconfig.generic.Settings
@@ -33,5 +34,13 @@ class NoTyposDecoder[A: Settings](underlying: ConfDecoder[A])
 
   override def read(conf: Conf): Configured[A] =
     NoTyposDecoder.checkTypos(conf, underlying.read(conf))
+
+}
+
+class NoTyposDecoderEx[S, A: Settings](underlying: ConfDecoderExT[S, A])
+    extends ConfDecoderExT[S, A] {
+
+  override def read(state: Option[S], conf: Conf): Configured[A] =
+    NoTyposDecoder.checkTypos(conf, underlying.read(state, conf))
 
 }

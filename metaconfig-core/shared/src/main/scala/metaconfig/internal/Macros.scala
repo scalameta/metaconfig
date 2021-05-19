@@ -40,6 +40,16 @@ class Macros(val c: blackbox.Context) {
      """
   }
 
+  def deriveConfCodecExImpl[T: c.WeakTypeTag](default: Tree): Tree = {
+    val T = assumeClass[T]
+    q"""
+      new _root_.metaconfig.ConfCodecEx[$T](
+        _root_.metaconfig.generic.deriveEncoder[$T],
+        _root_.metaconfig.generic.deriveDecoderEx[$T]($default)
+      )
+     """
+  }
+
   def deriveConfEncoderImpl[T: c.WeakTypeTag]: Tree = {
     val T = assumeClass[T]
     val params = this.params(T)
@@ -124,6 +134,10 @@ class Macros(val c: blackbox.Context) {
   def deriveConfDecoderExImpl[T: c.WeakTypeTag](default: Tree): Tree = {
     val T = assumeClass[T]
     val Tclass = T.typeSymbol.asClass
+    val optionT = weakTypeOf[Option[T]]
+    val resT = weakTypeOf[ConfDecoderEx[T]]
+    val retvalT = weakTypeOf[Configured[T]]
+
     val settings = c.inferImplicitValue(weakTypeOf[Settings[T]])
     if (settings == null || settings.isEmpty) {
       c.abort(
@@ -135,7 +149,16 @@ class Macros(val c: blackbox.Context) {
     }
     val paramss = Tclass.primaryConstructor.asMethod.paramLists
     if (paramss.isEmpty || paramss.head.isEmpty)
-      return q"_root_.metaconfig.ConfDecoder.constant($default)"
+      return q"""
+        new $resT {
+          def read(
+            state: $optionT,
+            conf: _root_.metaconfig.Conf
+          ): $retvalT = {
+            Configured.Ok(state.getOrElse($default))
+          }
+        }
+      """
 
     val (head :: params) :: Nil = paramss
     def next(param: Symbol): Tree = {
@@ -143,7 +166,7 @@ class Macros(val c: blackbox.Context) {
       val name = param.name.decodedName.toString
       val getter = T.member(param.name)
       val fallback = q"tmp.$getter"
-      q"conf.getSettingOrElse[$P](settings.unsafeGet($name), $fallback)"
+      q"Conf.getSettingEx[$P]($fallback, conf, settings.unsafeGet($name))"
     }
     val product = params.foldLeft(next(head)) {
       case (accum, param) => q"$accum.product(${next(param)})"
@@ -168,12 +191,13 @@ class Macros(val c: blackbox.Context) {
     val ctor = q"new $T(..$args)"
 
     q"""
-      new ${weakTypeOf[ConfDecoder[T]]} {
+      new $resT {
         def read(
+          state: $optionT,
           conf: _root_.metaconfig.Conf
-        ): ${weakTypeOf[Configured[T]]} = {
+        ): $retvalT = {
           val settings = $settings
-          val tmp = $default
+          val tmp = state.getOrElse($default)
           $product.map { t => $ctor }
         }
       }

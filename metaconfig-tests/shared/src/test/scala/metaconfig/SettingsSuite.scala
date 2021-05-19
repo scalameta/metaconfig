@@ -76,8 +76,13 @@ class SettingsSuite extends munit.FunSuite {
       flat,
       """a 31
         |b.param 82
-        |c.c "nested2"
-        |c.b.param 82""".stripMargin
+        |c.a "nested2"
+        |c.b.param 82
+        |d [{"a": "n1", "b": {"param": 2}, "c": {"k1": {"param": 1}}}]
+        |e.a "nested3"
+        |e.b.a "nested2"
+        |e.b.b.param 82
+        |""".stripMargin
     )
   }
 }
