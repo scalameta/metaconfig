@@ -12,20 +12,26 @@ object NoTyposDecoder {
     if (underlying.isInstanceOf[NoTyposDecoder[_]]) underlying
     else new NoTyposDecoder[A](underlying)
 
-}
-
-class NoTyposDecoder[A](underlying: ConfDecoder[A])(implicit ev: Settings[A])
-    extends ConfDecoder[A] {
-
-  def read(conf: Conf): Configured[A] =
+  private[internal] def checkTypos[A](conf: Conf, otherwise: => Configured[A])(
+      implicit ev: Settings[A]
+  ): Configured[A] =
     ConfDecoder.readWithPartial("Object") {
-      case conf @ Conf.Obj(values) =>
+      case Conf.Obj(values) =>
         val names = ev.allNames
         val typos = values.collect {
           case (key, obj) if !names.contains(key) =>
             key -> obj.pos
         }
-        if (typos.isEmpty) underlying.read(conf)
+        if (typos.isEmpty) otherwise
         else ConfError.invalidFields(typos, ev.settings.map(_.name)).notOk
     }(conf)
+
+}
+
+class NoTyposDecoder[A: Settings](underlying: ConfDecoder[A])
+    extends ConfDecoder[A] {
+
+  override def read(conf: Conf): Configured[A] =
+    NoTyposDecoder.checkTypos(conf, underlying.read(conf))
+
 }
