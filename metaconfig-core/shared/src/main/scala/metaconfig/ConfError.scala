@@ -201,7 +201,30 @@ object ConfError {
     apply(results.collect { case Configured.NotOk(x) => x })
 
   def apply(errors: Seq[ConfError]): Option[ConfError] = {
-    if (errors.isEmpty) None
-    else Some(errors.foldLeft(empty)(_ combine _))
+    def seqToOpt[T](values: Seq[T])(f: (T, Seq[T]) => T): Option[T] =
+      values.headOption.map { head =>
+        val tail = values.tail
+        if (tail.isEmpty) head else f(head, tail)
+      }
+    seqToOpt(errors) {
+      case (head, tail) =>
+        new ConfError(head.stackTrace) {
+          override def extra: List[String] =
+            head.extra ++ tail.flatMap(x => x.stackTrace :: x.extra)
+          override def typeMismatch: Option[TypeMismatch] =
+            errors.view.flatMap(_.typeMismatch).headOption
+          override def isParseError: Boolean = errors.exists(_.isParseError)
+          override def isMissingField: Boolean = errors.exists(_.isMissingField)
+
+          override def cause: Option[Throwable] =
+            seqToOpt(errors.flatMap {
+              _.cause match {
+                case Some(c: CompositeException) => c.all
+                case x => x
+              }
+            }) { case (head, tail) => CompositeException(head, tail.toList) }
+        }
+    }
   }
+
 }
