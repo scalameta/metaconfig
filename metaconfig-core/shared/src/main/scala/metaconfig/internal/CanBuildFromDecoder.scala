@@ -49,10 +49,7 @@ object CanBuildFromDecoder {
         case Ok(decoded) => successB += ab2c(value, decoded)
       }
     }
-    ConfError(errorB.result()) match {
-      case Some(x) => NotOk(x)
-      case None => Ok(successB.result())
-    }
+    Configured(successB.result(), errorB.result(): _*)
   }
 
 }

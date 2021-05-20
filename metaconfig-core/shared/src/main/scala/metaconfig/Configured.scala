@@ -49,6 +49,10 @@ sealed abstract class Configured[+A] extends Product with Serializable {
   def isNotOk: Boolean = !isOk
 }
 object Configured {
+  def apply[T](error: Option[ConfError], value: => T): Configured[T] =
+    error.fold(ok(value))(notOk)
+  def apply[T](value: => T, errors: ConfError*): Configured[T] =
+    apply(ConfError(errors), value)
   @deprecated("No longer supported", "0.8.1")
   def traverse[T](cs: List[Configured[T]]): Configured[List[T]] = {
     cs.foldLeft(ok(List.empty[T])) {
