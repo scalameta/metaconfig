@@ -7,11 +7,10 @@ lazy val V = new {
 }
 val scala212 = "2.12.13"
 val scala213 = "2.13.5"
-val ScalaVersions = List(scala212, scala213)
+val ScalaVersions = List(scala213, scala212)
 inThisBuild(
   List(
     useSuperShell := false,
-    scalaVersion := scala212,
     scalacOptions += "-Yrangepos",
     organization := "com.geirsson",
     version ~= { old => old.replace('+', '-') },
