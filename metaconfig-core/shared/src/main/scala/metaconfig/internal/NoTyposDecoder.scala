@@ -24,7 +24,7 @@ object NoTyposDecoder {
             key -> obj.pos
         }
         ConfError
-          .invalidFieldsOpt(typos, ev.settings.map(_.name))
+          .invalidFieldsOpt(typos, ev.nonHiddenNames)
           .fold(otherwise)(_.notOk)
     }(conf)
 
