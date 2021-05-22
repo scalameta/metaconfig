@@ -52,6 +52,9 @@ final class Settings[T](
       } yield deprecation).headOption
   }
   def names: List[String] = settings.map(_.name)
+  def nonHiddenNames: List[String] = settings.flatMap { x =>
+    if (x.isHidden) None else Some(x.name)
+  }
   def allNames: List[String] =
     for {
       setting <- settings

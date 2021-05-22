@@ -83,8 +83,8 @@ class HelpCommand(
   }
 
   def notRecognized(subcommand: String, app: CliApp): Int = {
-    val closestSubcommand =
-      Levenshtein.closestCandidate(subcommand, app.commands.map(_.name))
+    val commands = app.commands.filter(!_.isHidden).map(_.name)
+    val closestSubcommand = Levenshtein.closestCandidate(subcommand, commands)
     val didYouMean = closestSubcommand match {
       case None => ""
       case Some(candidate) =>

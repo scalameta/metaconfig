@@ -287,7 +287,7 @@ class CliParserSuite extends BaseCliParserSuite {
     "skip hidden",
     "--hidden1" :: "10" :: Nil,
     """|found argument '--hidden1' which wasn't expected, or isn't valid in this context.
-       |	Did you mean '--hidden'?
+       |	Did you mean '--in'?
        |""".stripMargin
   )
 

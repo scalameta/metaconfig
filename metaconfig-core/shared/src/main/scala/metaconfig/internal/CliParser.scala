@@ -97,7 +97,7 @@ class CliParser[T](
             settings.settings.find(_.isCatchInvalidFlags) match {
               case None =>
                 val closestCandidate =
-                  Levenshtein.closestCandidate(camel, settings.names)
+                  Levenshtein.closestCandidate(camel, settings.nonHiddenNames)
                 val didYouMean = closestCandidate match {
                   case None =>
                     ""
