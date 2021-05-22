@@ -23,8 +23,9 @@ object NoTyposDecoder {
           case (key, obj) if !names.contains(key) =>
             key -> obj.pos
         }
-        if (typos.isEmpty) otherwise
-        else ConfError.invalidFields(typos, ev.settings.map(_.name)).notOk
+        ConfError
+          .invalidFieldsOpt(typos, ev.settings.map(_.name))
+          .fold(otherwise)(_.notOk)
     }(conf)
 
 }

@@ -173,13 +173,26 @@ object ConfError {
   def invalidFields(
       invalid: Iterable[String],
       valid: Iterable[String]
-  ): ConfError = {
-    invalidFields(invalid.map(i => i -> Position.None), valid)
+  ): ConfError =
+    invalidFieldsOpt(invalid, valid).getOrElse(empty)
+
+  def invalidFieldsOpt(
+      invalid: Iterable[String],
+      valid: Iterable[String]
+  ): Option[ConfError] = {
+    invalidFieldsOpt(invalid.map(i => i -> Position.None), valid)
   }
+
   def invalidFields(
       invalid: Iterable[(String, Position)],
       valid: Iterable[String]
-  )(implicit dummy: DummyImplicit): ConfError = {
+  )(implicit dummy: DummyImplicit): ConfError =
+    invalidFieldsOpt(invalid, valid).getOrElse(empty)
+
+  def invalidFieldsOpt(
+      invalid: Iterable[(String, Position)],
+      valid: Iterable[String]
+  )(implicit dummy: DummyImplicit): Option[ConfError] = {
     val candidates = valid.toSeq
     val errors = invalid.toList.map {
       case (field, pos) =>
@@ -194,7 +207,7 @@ object ConfError {
           s"found option '$field' which wasn't expected, or isn't valid in this context.$didYouMean"
         ).atPos(pos)
     }
-    errors.foldLeft(ConfError.empty)(_ combine _)
+    apply(errors)
   }
 
   def fromResults(results: Seq[Configured[_]]): Option[ConfError] =
