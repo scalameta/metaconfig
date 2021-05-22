@@ -27,10 +27,10 @@ should get helpful error messages when they mistype a setting name.</p>
 <li><a href="https://github.com/pureconfig/pureconfig">https://github.com/pureconfig/pureconfig</a></li>
 </ul>
 <h2><a class="anchor" aria-hidden="true" id="getting-started"></a><a href="#getting-started" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Getting started</h2>
-<pre><code class="hljs css language-scala">libraryDependencies += <span class="hljs-string">"com.geirsson"</span> %% <span class="hljs-string">"metaconfig-core"</span> % <span class="hljs-string">"0.9.12"</span>
+<pre><code class="hljs css language-scala">libraryDependencies += <span class="hljs-string">"com.geirsson"</span> %% <span class="hljs-string">"metaconfig-core"</span> % <span class="hljs-string">"0.9.12-1-05b8f324-SNAPSHOT"</span>
 
 <span class="hljs-comment">// Use https://github.com/lightbend/config to parse HOCON</span>
-libraryDependencies += <span class="hljs-string">"com.geirsson"</span> %% <span class="hljs-string">"metaconfig-typesafe-config"</span> % <span class="hljs-string">"0.9.12"</span>
+libraryDependencies += <span class="hljs-string">"com.geirsson"</span> %% <span class="hljs-string">"metaconfig-typesafe-config"</span> % <span class="hljs-string">"0.9.12-1-05b8f324-SNAPSHOT"</span>
 </code></pre>
 <p>Use this import to access the metaconfig API</p>
 <pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> metaconfig._
@@ -240,7 +240,7 @@ age = "Susan"
   <span class="hljs-keyword">if</span> (file.exists()) <span class="hljs-type">Configured</span>.ok(file)
   <span class="hljs-keyword">else</span> <span class="hljs-type">ConfError</span>.fileDoesNotExist(file).notOk
 }
-<span class="hljs-comment">// fileDecoder: ConfDecoder[java.io.File] = metaconfig.ConfDecoder$$anonfun$flatMap$2@736c1259</span>
+<span class="hljs-comment">// fileDecoder: ConfDecoder[java.io.File] = metaconfig.ConfDecoder$$anonfun$flatMap$2@6c65a759</span>
 fileDecoder.read(<span class="hljs-type">Conf</span>.fromString(<span class="hljs-string">".scalafmt.conf"</span>))
 <span class="hljs-comment">// res11: Configured[java.io.File] = Ok(value = .scalafmt.conf)</span>
 fileDecoder.read(<span class="hljs-type">Conf</span>.fromString(<span class="hljs-string">".foobar"</span>))
@@ -283,7 +283,7 @@ decoders for <code>Option[T]</code>, <code>Seq[T]</code> and <code>Map[String, T
 automatically derive a <code>ConfEncoder[T]</code> instance for any case class with
 <code>generic.deriveEncoder</code>.</p>
 <pre><code class="hljs css language-scala"><span class="hljs-keyword">implicit</span> <span class="hljs-keyword">val</span> encoder = generic.deriveEncoder[<span class="hljs-type">User</span>]
-<span class="hljs-comment">// encoder: ConfEncoder[User] = repl.MdocSession$App$$anon$1@2e5b7cae</span>
+<span class="hljs-comment">// encoder: ConfEncoder[User] = repl.MdocSession$App$$anon$1@3324cabf</span>
 
 <span class="hljs-type">ConfEncoder</span>[<span class="hljs-type">User</span>].write(<span class="hljs-type">User</span>(<span class="hljs-string">"John"</span>, <span class="hljs-number">42</span>))
 <span class="hljs-comment">// res13: Conf = Obj(</span>
@@ -634,7 +634,7 @@ message.</p>
 <h2><a class="anchor" aria-hidden="true" id="docs"></a><a href="#docs" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Docs</h2>
 <p>To generate documentation for you configuration, add a dependency to the
 following module</p>
-<pre><code class="hljs css language-scala">libraryDependencies += <span class="hljs-string">"com.geirsson"</span> %% <span class="hljs-string">"metaconfig-docs"</span> % <span class="hljs-string">"0.9.12"</span>
+<pre><code class="hljs css language-scala">libraryDependencies += <span class="hljs-string">"com.geirsson"</span> %% <span class="hljs-string">"metaconfig-docs"</span> % <span class="hljs-string">"0.9.12-1-05b8f324-SNAPSHOT"</span>
 </code></pre>
 <p>First define your configuration</p>
 <pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> metaconfig._
@@ -704,171 +704,4 @@ flat.map { <span class="hljs-keyword">case</span> (setting, defaultValue) =&gt;
 <span class="hljs-comment">// ==============</span>
 <span class="hljs-comment">// Setting home.country of type String has default value "Iceland""""</span>
 </code></pre>
-<h2><a class="anchor" aria-hidden="true" id="json"></a><a href="#json" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>JSON</h2>
-<p>To parse JSON instead of HOCON use the <code>metaconfig-json</code> module.</p>
-<pre><code class="hljs css language-scala"><span class="hljs-comment">// JVM-only</span>
-libraryDependencies += <span class="hljs-string">"com.geirsson"</span> %% <span class="hljs-string">"metaconfig-json"</span> % <span class="hljs-string">"0.9.12"</span>
-</code></pre>
-<p>To parse JSON into <code>metaconfig.Conf</code></p>
-<pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> metaconfig.json.parser
-<span class="hljs-keyword">import</span> metaconfig._
-</code></pre>
-<pre><code class="hljs css language-scala">Conf.parseString("""
-{
-  "a": 1,
-  "b": [
-    2,
-    3,
-    true,
-    null
-  ]
-}
-""")
-// res45: Configured[Conf] = Ok(
-//   value = Obj(
-//     values = List(
-//       ("a", Num(value = 1.0)),
-//       (
-//         "b",
-//         Lst(
-//           values = List(
-//             Num(value = 2.0),
-//             Num(value = 3.0),
-//             Bool(value = true),
-//             null
-//           )
-//         )
-//       )
-//     )
-//   )
-// )
-</code></pre>
-<p>The JSON parser supports comments and trailing commas</p>
-<pre><code class="hljs css language-scala">Conf.parseString("""
-{
-  // NOTE: don't set this to false!
-  "important": true,
-  "dependencies": [
-    "a",
-    "b", // TODO: get rid of this dependency at some point
-  ],
-}
-""")
-// res46: Configured[Conf] = Ok(
-//   value = Obj(
-//     values = List(
-//       ("important", Bool(value = true)),
-//       ("dependencies", Lst(values = List(Str(value = "a"), Str(value = "b"))))
-//     )
-//   )
-// )
-</code></pre>
-<h2><a class="anchor" aria-hidden="true" id="json-schema"></a><a href="#json-schema" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>JSON Schema</h2>
-<p>It's possible to automatically generate a JSON schema</p>
-<pre><code class="hljs css language-scala"><span class="hljs-keyword">val</span> js = metaconfig.<span class="hljs-type">JsonSchema</span>.generate(
-  title = <span class="hljs-string">"My User App"</span>,
-  description = <span class="hljs-string">"My User APP description"</span>,
-  url = <span class="hljs-type">Some</span>(<span class="hljs-string">"http://my.user.app/schema.json"</span>),
-  <span class="hljs-keyword">default</span> = <span class="hljs-type">User</span>()
-)
-<span class="hljs-comment">// js: ujson.Value = Obj(</span>
-<span class="hljs-comment">//   value = LinkedHashMap(</span>
-<span class="hljs-comment">//     "$id" -&gt; Str(value = "http://my.user.app/schema.json"),</span>
-<span class="hljs-comment">//     "title" -&gt; Str(value = "My User App"),</span>
-<span class="hljs-comment">//     "description" -&gt; Str(value = "My User APP description"),</span>
-<span class="hljs-comment">//     "type" -&gt; Str(value = "object"),</span>
-<span class="hljs-comment">//     "properties" -&gt; Obj(</span>
-<span class="hljs-comment">//       value = LinkedHashMap(</span>
-<span class="hljs-comment">//         "name" -&gt; Obj(</span>
-<span class="hljs-comment">//           value = LinkedHashMap(</span>
-<span class="hljs-comment">//             "title" -&gt; Str(value = "name"),</span>
-<span class="hljs-comment">//             "description" -&gt; Str(value = "Name description"),</span>
-<span class="hljs-comment">//             "default" -&gt; Str(value = "John"),</span>
-<span class="hljs-comment">//             "required" -&gt; false,</span>
-<span class="hljs-comment">//             "type" -&gt; Str(value = "string")</span>
-<span class="hljs-comment">//           )</span>
-<span class="hljs-comment">//         ),</span>
-<span class="hljs-comment">//         "age" -&gt; Obj(</span>
-<span class="hljs-comment">//           value = LinkedHashMap(</span>
-<span class="hljs-comment">//             "title" -&gt; Str(value = "age"),</span>
-<span class="hljs-comment">//             "description" -&gt; Str(value = "Age description"),</span>
-<span class="hljs-comment">//             "default" -&gt; Num(value = 42.0),</span>
-<span class="hljs-comment">//             "required" -&gt; false,</span>
-<span class="hljs-comment">//             "type" -&gt; Str(value = "number")</span>
-<span class="hljs-comment">//           )</span>
-<span class="hljs-comment">//         ),</span>
-<span class="hljs-comment">//         "home" -&gt; Obj(</span>
-<span class="hljs-comment">//           value = LinkedHashMap(</span>
-<span class="hljs-comment">//             "title" -&gt; Str(value = "home"),</span>
-<span class="hljs-comment">//             "description" -&gt; null,</span>
-<span class="hljs-comment">//             "default" -&gt; Obj(</span>
-<span class="hljs-comment">//               value = LinkedHashMap(</span>
-<span class="hljs-comment">//                 "address" -&gt; Str(value = "Lakelands 2"),</span>
-<span class="hljs-comment">//                 "country" -&gt; Str(value = "Iceland")</span>
-<span class="hljs-comment">//               )</span>
-<span class="hljs-comment">//             ),</span>
-<span class="hljs-comment">//             "required" -&gt; false,</span>
-<span class="hljs-comment">//             "type" -&gt; Str(value = "object"),</span>
-<span class="hljs-comment">//             "properties" -&gt; Obj(</span>
-<span class="hljs-comment">//               value = LinkedHashMap(</span>
-<span class="hljs-comment">//                 "address" -&gt; Obj(</span>
-<span class="hljs-comment">//                   value = LinkedHashMap(</span>
-<span class="hljs-comment">//                     "title" -&gt; Str(value = "address"),</span>
-<span class="hljs-comment">//                     "description" -&gt; Str(value = "Address description"),</span>
-<span class="hljs-comment">//                     "default" -&gt; Str(value = "Lakelands 2"),</span>
-<span class="hljs-comment">//                     "required" -&gt; false,</span>
-<span class="hljs-comment">//                     "type" -&gt; Str(value = "string")</span>
-<span class="hljs-comment">//                   )</span>
-<span class="hljs-comment">//                 ),</span>
-<span class="hljs-comment">// ...</span>
-ujson.write(js, indent = <span class="hljs-number">2</span>)
-<span class="hljs-comment">// res47: String = """{</span>
-<span class="hljs-comment">//   "$id": "http://my.user.app/schema.json",</span>
-<span class="hljs-comment">//   "title": "My User App",</span>
-<span class="hljs-comment">//   "description": "My User APP description",</span>
-<span class="hljs-comment">//   "type": "object",</span>
-<span class="hljs-comment">//   "properties": {</span>
-<span class="hljs-comment">//     "name": {</span>
-<span class="hljs-comment">//       "title": "name",</span>
-<span class="hljs-comment">//       "description": "Name description",</span>
-<span class="hljs-comment">//       "default": "John",</span>
-<span class="hljs-comment">//       "required": false,</span>
-<span class="hljs-comment">//       "type": "string"</span>
-<span class="hljs-comment">//     },</span>
-<span class="hljs-comment">//     "age": {</span>
-<span class="hljs-comment">//       "title": "age",</span>
-<span class="hljs-comment">//       "description": "Age description",</span>
-<span class="hljs-comment">//       "default": 42,</span>
-<span class="hljs-comment">//       "required": false,</span>
-<span class="hljs-comment">//       "type": "number"</span>
-<span class="hljs-comment">//     },</span>
-<span class="hljs-comment">//     "home": {</span>
-<span class="hljs-comment">//       "title": "home",</span>
-<span class="hljs-comment">//       "description": null,</span>
-<span class="hljs-comment">//       "default": {</span>
-<span class="hljs-comment">//         "address": "Lakelands 2",</span>
-<span class="hljs-comment">//         "country": "Iceland"</span>
-<span class="hljs-comment">//       },</span>
-<span class="hljs-comment">//       "required": false,</span>
-<span class="hljs-comment">//       "type": "object",</span>
-<span class="hljs-comment">//       "properties": {</span>
-<span class="hljs-comment">//         "address": {</span>
-<span class="hljs-comment">//           "title": "address",</span>
-<span class="hljs-comment">//           "description": "Address description",</span>
-<span class="hljs-comment">//           "default": "Lakelands 2",</span>
-<span class="hljs-comment">//           "required": false,</span>
-<span class="hljs-comment">//           "type": "string"</span>
-<span class="hljs-comment">//         },</span>
-<span class="hljs-comment">//         "country": {</span>
-<span class="hljs-comment">//           "title": "country",</span>
-<span class="hljs-comment">//           "description": "Country description",</span>
-<span class="hljs-comment">//           "default": "Iceland",</span>
-<span class="hljs-comment">//           "required": false,</span>
-<span class="hljs-comment">//           "type": "string"</span>
-<span class="hljs-comment">//         }</span>
-<span class="hljs-comment">//       }</span>
-<span class="hljs-comment">//     }</span>
-<span class="hljs-comment">//   }</span>
-<span class="hljs-comment">// }"""</span>
-</code></pre>
-</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#getting-started">Getting started</a></li><li><a href="#conf">Conf</a></li><li><a href="#confparse">Conf.parse</a></li><li><a href="#confprinthocon">Conf.printHocon</a></li><li><a href="#confpatch">Conf.patch</a></li><li><a href="#confdecoder">ConfDecoder</a></li><li><a href="#confdecoderex-and-confdecoderext">ConfDecoderEx and ConfDecoderExT</a><ul class="toc-headings"><li><a href="#decoding-collections">Decoding collections</a></li></ul></li><li><a href="#confencoder">ConfEncoder</a></li><li><a href="#confcodec">ConfCodec</a></li><li><a href="#confcodecex-and-confcodecext">ConfCodecEx and ConfCodecExT</a></li><li><a href="#conferror">ConfError</a></li><li><a href="#configured">Configured</a></li><li><a href="#genericderivesurface">generic.deriveSurface</a></li><li><a href="#genericderivedecoder">generic.deriveDecoder</a><ul class="toc-headings"><li><a href="#limitations">Limitations</a></li></ul></li><li><a href="#deprecatedname">@DeprecatedName</a></li><li><a href="#confparsecliargs">Conf.parseCliArgs</a></li><li><a href="#settingstoclihelp">Settings.toCliHelp</a></li><li><a href="#inline">@Inline</a></li><li><a href="#docs">Docs</a></li><li><a href="#json">JSON</a></li><li><a href="#json-schema">JSON Schema</a></li></ul></nav></div><footer class="nav-footer" id="footer" style="background-color:#290040"><section class="sitemap"><a href="/metaconfig/" class="nav-home"><img src="/metaconfig/img/scalameta-logo.png" alt="Metaconfig" width="66" height="58"/></a><div><h5>Metaconfig Docs</h5><a href="/metaconfig/docs/getting-started.html">Getting started</a></div><div><h5>Community</h5><a href="https://github.com/scalameta/metaconfig" target="_blank"><img src="https://img.shields.io/github/stars/scalameta/metaconfig.svg?color=%23087e8b&amp;label=stars&amp;logo=github&amp;style=social"/></a><a href="https://discord.gg/RFpSVth" target="_blank"><img src="https://img.shields.io/discord/632642981228314653?logo=discord&amp;style=social"/></a><a href="https://gitter.im/scalameta/metaconfig" target="_blank"><img src="https://img.shields.io/gitter/room/scalameta/metaconfig.svg?logo=gitter&amp;style=social"/></a><a href="https://twitter.com/scalameta" target="_blank"><img src="https://img.shields.io/twitter/follow/scalameta.svg?logo=twitter&amp;style=social"/></a></div></section><section class="copyright">Copyright © 2021 Scalameta</section></footer></div></body></html>
+</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#getting-started">Getting started</a></li><li><a href="#conf">Conf</a></li><li><a href="#confparse">Conf.parse</a></li><li><a href="#confprinthocon">Conf.printHocon</a></li><li><a href="#confpatch">Conf.patch</a></li><li><a href="#confdecoder">ConfDecoder</a></li><li><a href="#confdecoderex-and-confdecoderext">ConfDecoderEx and ConfDecoderExT</a><ul class="toc-headings"><li><a href="#decoding-collections">Decoding collections</a></li></ul></li><li><a href="#confencoder">ConfEncoder</a></li><li><a href="#confcodec">ConfCodec</a></li><li><a href="#confcodecex-and-confcodecext">ConfCodecEx and ConfCodecExT</a></li><li><a href="#conferror">ConfError</a></li><li><a href="#configured">Configured</a></li><li><a href="#genericderivesurface">generic.deriveSurface</a></li><li><a href="#genericderivedecoder">generic.deriveDecoder</a><ul class="toc-headings"><li><a href="#limitations">Limitations</a></li></ul></li><li><a href="#deprecatedname">@DeprecatedName</a></li><li><a href="#confparsecliargs">Conf.parseCliArgs</a></li><li><a href="#settingstoclihelp">Settings.toCliHelp</a></li><li><a href="#inline">@Inline</a></li><li><a href="#docs">Docs</a></li></ul></nav></div><footer class="nav-footer" id="footer" style="background-color:#290040"><section class="sitemap"><a href="/metaconfig/" class="nav-home"><img src="/metaconfig/img/scalameta-logo.png" alt="Metaconfig" width="66" height="58"/></a><div><h5>Metaconfig Docs</h5><a href="/metaconfig/docs/getting-started.html">Getting started</a></div><div><h5>Community</h5><a href="https://github.com/scalameta/metaconfig" target="_blank"><img src="https://img.shields.io/github/stars/scalameta/metaconfig.svg?color=%23087e8b&amp;label=stars&amp;logo=github&amp;style=social"/></a><a href="https://discord.gg/RFpSVth" target="_blank"><img src="https://img.shields.io/discord/632642981228314653?logo=discord&amp;style=social"/></a><a href="https://gitter.im/scalameta/metaconfig" target="_blank"><img src="https://img.shields.io/gitter/room/scalameta/metaconfig.svg?logo=gitter&amp;style=social"/></a><a href="https://twitter.com/scalameta" target="_blank"><img src="https://img.shields.io/twitter/follow/scalameta.svg?logo=twitter&amp;style=social"/></a></div></section><section class="copyright">Copyright © 2021 Scalameta</section></footer></div></body></html>
