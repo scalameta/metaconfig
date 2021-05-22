@@ -27,10 +27,10 @@ should get helpful error messages when they mistype a setting name.</p>
 <li><a href="https://github.com/pureconfig/pureconfig">https://github.com/pureconfig/pureconfig</a></li>
 </ul>
 <h2><a class="anchor" aria-hidden="true" id="getting-started"></a><a href="#getting-started" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Getting started</h2>
-<pre><code class="hljs css language-scala">libraryDependencies += <span class="hljs-string">"com.geirsson"</span> %% <span class="hljs-string">"metaconfig-core"</span> % <span class="hljs-string">"0.9.11-21-d76a0cb2-SNAPSHOT"</span>
+<pre><code class="hljs css language-scala">libraryDependencies += <span class="hljs-string">"com.geirsson"</span> %% <span class="hljs-string">"metaconfig-core"</span> % <span class="hljs-string">"0.9.11-26-e28748af-SNAPSHOT"</span>
 
 <span class="hljs-comment">// Use https://github.com/lightbend/config to parse HOCON</span>
-libraryDependencies += <span class="hljs-string">"com.geirsson"</span> %% <span class="hljs-string">"metaconfig-typesafe-config"</span> % <span class="hljs-string">"0.9.11-21-d76a0cb2-SNAPSHOT"</span>
+libraryDependencies += <span class="hljs-string">"com.geirsson"</span> %% <span class="hljs-string">"metaconfig-typesafe-config"</span> % <span class="hljs-string">"0.9.11-26-e28748af-SNAPSHOT"</span>
 </code></pre>
 <p>Use this import to access the metaconfig API</p>
 <pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> metaconfig._
@@ -240,7 +240,7 @@ age = "Susan"
   <span class="hljs-keyword">if</span> (file.exists()) <span class="hljs-type">Configured</span>.ok(file)
   <span class="hljs-keyword">else</span> <span class="hljs-type">ConfError</span>.fileDoesNotExist(file).notOk
 }
-<span class="hljs-comment">// fileDecoder: ConfDecoder[java.io.File] = metaconfig.ConfDecoder$$anonfun$flatMap$2@3b024033</span>
+<span class="hljs-comment">// fileDecoder: ConfDecoder[java.io.File] = metaconfig.ConfDecoder$$anonfun$flatMap$2@389a983d</span>
 fileDecoder.read(<span class="hljs-type">Conf</span>.fromString(<span class="hljs-string">".scalafmt.conf"</span>))
 <span class="hljs-comment">// res11: Configured[java.io.File] = Ok(value = .scalafmt.conf)</span>
 fileDecoder.read(<span class="hljs-type">Conf</span>.fromString(<span class="hljs-string">".foobar"</span>))
@@ -248,12 +248,42 @@ fileDecoder.read(<span class="hljs-type">Conf</span>.fromString(<span class="hlj
 <span class="hljs-comment">//   error = File /home/runner/work/metaconfig/metaconfig/.foobar does not exist.</span>
 <span class="hljs-comment">// )</span>
 </code></pre>
+<h2><a class="anchor" aria-hidden="true" id="confdecoderex-and-confdecoderext"></a><a href="#confdecoderex-and-confdecoderext" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>ConfDecoderEx and ConfDecoderExT</h2>
+<p>Similar to <code>ConfDecoder</code> but its <code>read</code> method takes an initial state as a parameter
+rather than as part of the decoder instance definition. <code>ConfDecoderEx[A]</code> is an alias
+for <code>ConfDecoderExT[A, A]</code>.</p>
+<h3><a class="anchor" aria-hidden="true" id="decoding-collections"></a><a href="#decoding-collections" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Decoding collections</h3>
+<p>If a decoder for type <code>T</code> is defined, the package defines implicits to derive
+decoders for <code>Option[T]</code>, <code>Seq[T]</code> and <code>Map[String, T]</code>.</p>
+<p>There's also a special for <em>extending</em> collections rather than redefining them
+(works only for <code>ConfDecoderEx</code>, not the original <code>ConfDecoder</code>):</p>
+<pre><code class="hljs"><span class="hljs-comment">// sets list</span>
+<span class="hljs-selector-tag">a</span> = [ ... ]
+<span class="hljs-comment">// sets map</span>
+<span class="hljs-selector-tag">a</span> = {
+  <span class="hljs-selector-tag">b</span> { ... }
+  c { ... }
+}
+
+<span class="hljs-comment">// extends list</span>
+<span class="hljs-selector-tag">a</span> = {
+  <span class="hljs-comment">// must be the only key</span>
+  <span class="hljs-string">"+"</span> = [ ... ]
+}
+<span class="hljs-comment">// extends map</span>
+<span class="hljs-selector-tag">a</span> = {
+  <span class="hljs-comment">// must be the only key</span>
+  <span class="hljs-string">"+"</span> = {
+    d { ... }
+  }
+}
+</code></pre>
 <h2><a class="anchor" aria-hidden="true" id="confencoder"></a><a href="#confencoder" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>ConfEncoder</h2>
 <p>To convert a class instance into <code>Conf</code> use <code>ConfEncoder[T]</code>. It's possible to
 automatically derive a <code>ConfEncoder[T]</code> instance for any case class with
 <code>generic.deriveEncoder</code>.</p>
 <pre><code class="hljs css language-scala"><span class="hljs-keyword">implicit</span> <span class="hljs-keyword">val</span> encoder = generic.deriveEncoder[<span class="hljs-type">User</span>]
-<span class="hljs-comment">// encoder: ConfEncoder[User] = repl.MdocSession$App$$anon$1@112ca753</span>
+<span class="hljs-comment">// encoder: ConfEncoder[User] = repl.MdocSession$App$$anon$1@52fb729e</span>
 
 <span class="hljs-type">ConfEncoder</span>[<span class="hljs-type">User</span>].write(<span class="hljs-type">User</span>(<span class="hljs-string">"John"</span>, <span class="hljs-number">42</span>))
 <span class="hljs-comment">// res13: Conf = Obj(</span>
@@ -286,6 +316,8 @@ automatically derive a <code>ConfEncoder[T]</code> instance for any case class w
 bijectiveString.read(<span class="hljs-type">Conf</span>.<span class="hljs-type">Str</span>(<span class="hljs-string">"write"</span>))
 <span class="hljs-comment">// res17: Configured[Bijective] = Ok(value = Bijective(name = "write"))</span>
 </code></pre>
+<h2><a class="anchor" aria-hidden="true" id="confcodecex-and-confcodecext"></a><a href="#confcodecex-and-confcodecext" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>ConfCodecEx and ConfCodecExT</h2>
+<p>Similar to <code>ConfCodec</code> but derives from <code>ConfDecoderExT</code> instead of <code>ConfDecoder</code>.</p>
 <h2><a class="anchor" aria-hidden="true" id="conferror"></a><a href="#conferror" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>ConfError</h2>
 <p><code>ConfError</code> is a helper to produce readable and potentially aggregated error
 messages.</p>
@@ -367,6 +399,8 @@ requirement from metaconfig.</p>
 true when you have documentation to keep up-to-date as well.</p>
 <pre><code class="hljs css language-scala"><span class="hljs-keyword">implicit</span> <span class="hljs-keyword">val</span> decoder: <span class="hljs-type">ConfDecoder</span>[<span class="hljs-type">User</span>] =
   generic.deriveDecoder[<span class="hljs-type">User</span>](<span class="hljs-type">User</span>(<span class="hljs-string">"John"</span>, <span class="hljs-number">42</span>)).noTypos
+<span class="hljs-keyword">implicit</span> <span class="hljs-keyword">val</span> decoderEx: <span class="hljs-type">ConfDecoderEx</span>[<span class="hljs-type">User</span>] =
+  generic.deriveDecoderEx[<span class="hljs-type">User</span>](<span class="hljs-type">User</span>(<span class="hljs-string">"Jane"</span>, <span class="hljs-number">24</span>)).noTypos
 </code></pre>
 <pre><code class="hljs css language-scala">ConfDecoder[User].read(Conf.parseString("""
 name = Susan
@@ -396,6 +430,16 @@ age = Old
 // ^
 // 
 // )
+ConfDecoderEx[User].read(
+  Some(User(name = "Jack", age = 33)),
+  Conf.parseString("name = John")
+)
+// res30: Configured[User] = Ok(value = User(name = "John", age = 33))
+ConfDecoderEx[User].read(
+  None,
+  Conf.parseString("name = John")
+)
+// res31: Configured[User] = Ok(value = User(name = "John", age = 24))
 </code></pre>
 <p>Sometimes automatic derivation fails, for example if your class contains fields
 that have no <code>ConfDecoder</code> instance</p>
@@ -404,7 +448,7 @@ that have no <code>ConfDecoder</code> instance</p>
 <span class="hljs-keyword">implicit</span> <span class="hljs-keyword">val</span> surface = generic.deriveSurface[<span class="hljs-type">Funky</span>]
 <span class="hljs-comment">// surface: Surface[Funky] = Surface(List(List(Field(name="file",tpe="File",annotations=List(@TabCompleteAsPath()),underlying=List()))))</span>
 </code></pre>
-<p>This will fail wiith a fail cryptic compile error</p>
+<p>This will fail with a fail cryptic compile error</p>
 <pre><code class="hljs css language-scala"><span class="hljs-keyword">implicit</span> <span class="hljs-keyword">val</span> decoder = generic.deriveDecoder[<span class="hljs-type">Funky</span>](<span class="hljs-type">Funky</span>(<span class="hljs-keyword">new</span> <span class="hljs-type">File</span>(<span class="hljs-string">""</span>)))
 <span class="hljs-comment">// error: decoder is already defined as value decoder</span>
 <span class="hljs-comment">// implicit val decoder = generic.deriveDecoder[Funky](Funky(new File("")))</span>
@@ -447,15 +491,15 @@ to continue supporting the old name even if you go ahead with the rename.</p>
 <span class="hljs-keyword">implicit</span> <span class="hljs-keyword">val</span> decoder = generic.deriveDecoder[<span class="hljs-type">EvolvingConfig</span>](<span class="hljs-type">EvolvingConfig</span>(<span class="hljs-literal">true</span>)).noTypos
 </code></pre>
 <pre><code class="hljs css language-scala">decoder.read(<span class="hljs-type">Conf</span>.<span class="hljs-type">Obj</span>(<span class="hljs-string">"goodName"</span> -&gt; <span class="hljs-type">Conf</span>.fromBoolean(<span class="hljs-literal">false</span>)))
-<span class="hljs-comment">// res31: Configured[EvolvingConfig] = Ok(</span>
+<span class="hljs-comment">// res33: Configured[EvolvingConfig] = Ok(</span>
 <span class="hljs-comment">//   value = EvolvingConfig(isGoodName = false)</span>
 <span class="hljs-comment">// )</span>
 decoder.read(<span class="hljs-type">Conf</span>.<span class="hljs-type">Obj</span>(<span class="hljs-string">"isGoodName"</span> -&gt; <span class="hljs-type">Conf</span>.fromBoolean(<span class="hljs-literal">false</span>)))
-<span class="hljs-comment">// res32: Configured[EvolvingConfig] = Ok(</span>
+<span class="hljs-comment">// res34: Configured[EvolvingConfig] = Ok(</span>
 <span class="hljs-comment">//   value = EvolvingConfig(isGoodName = false)</span>
 <span class="hljs-comment">// )</span>
 decoder.read(<span class="hljs-type">Conf</span>.<span class="hljs-type">Obj</span>(<span class="hljs-string">"gooodName"</span> -&gt; <span class="hljs-type">Conf</span>.fromBoolean(<span class="hljs-literal">false</span>)))
-<span class="hljs-comment">// res33: Configured[EvolvingConfig] = NotOk(</span>
+<span class="hljs-comment">// res35: Configured[EvolvingConfig] = NotOk(</span>
 <span class="hljs-comment">//   error = found option 'gooodName' which wasn't expected, or isn't valid in this context.</span>
 <span class="hljs-comment">//  Did you mean 'isGoodName'?</span>
 <span class="hljs-comment">// )</span>
@@ -503,7 +547,7 @@ decoder.read(<span class="hljs-type">Conf</span>.<span class="hljs-type">Obj</sp
 <h2><a class="anchor" aria-hidden="true" id="settingstoclihelp"></a><a href="#settingstoclihelp" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Settings.toCliHelp</h2>
 <p>Generate a --help message with a <code>Settings[T]</code>.</p>
 <pre><code class="hljs css language-scala"><span class="hljs-type">Settings</span>[<span class="hljs-type">App</span>].toCliHelp(<span class="hljs-keyword">default</span> = <span class="hljs-type">App</span>())
-<span class="hljs-comment">// res34: String = """--target: String = "out"   The directory to output files</span>
+<span class="hljs-comment">// res36: String = """--target: String = "out"   The directory to output files</span>
 <span class="hljs-comment">// --verbose: Boolean = false Print out debugging diagnostics</span>
 <span class="hljs-comment">// --files: List[String] = [] The input files for app"""</span>
 </code></pre>
@@ -542,7 +586,7 @@ It is not necessary to prefix cli args with the name of <code>@Inline</code> fie
 example above, it's possible to pass in <code>--out target</code> instead of
 <code>--common.out target</code> to override the common output directory.</p>
 <pre><code class="hljs css language-scala"><span class="hljs-type">Conf</span>.parseCliArgs[<span class="hljs-type">NameApp</span>](<span class="hljs-type">List</span>(<span class="hljs-string">"--out"</span>, <span class="hljs-string">"/tmp"</span>, <span class="hljs-string">"--cwd"</span>, <span class="hljs-string">"working-dir"</span>))
-<span class="hljs-comment">// res35: Configured[Conf] = Ok(</span>
+<span class="hljs-comment">// res37: Configured[Conf] = Ok(</span>
 <span class="hljs-comment">//   value = Obj(</span>
 <span class="hljs-comment">//     values = List(</span>
 <span class="hljs-comment">//       (</span>
@@ -574,7 +618,7 @@ example above, it's possible to pass in <code>--out target</code> instead of
 <span class="hljs-comment">//   )</span>
 <span class="hljs-comment">// )</span>
 conf.get.as[<span class="hljs-type">AgeApp</span>].get
-<span class="hljs-comment">// res36: AgeApp = AgeApp(</span>
+<span class="hljs-comment">// res38: AgeApp = AgeApp(</span>
 <span class="hljs-comment">//   age = 0,</span>
 <span class="hljs-comment">//   common = Common(cwd = "working-dir", out = "target")</span>
 <span class="hljs-comment">// )</span>
@@ -583,14 +627,14 @@ conf.get.as[<span class="hljs-type">AgeApp</span>].get
 nested fields inside the type of the <code>@Inline</code> field are shown in the --help
 message.</p>
 <pre><code class="hljs css language-scala"><span class="hljs-type">Settings</span>[<span class="hljs-type">NameApp</span>].toCliHelp(<span class="hljs-keyword">default</span> = <span class="hljs-type">NameApp</span>())
-<span class="hljs-comment">// res37: String = """--name: String = "John" The user's name</span>
+<span class="hljs-comment">// res39: String = """--name: String = "John" The user's name</span>
 <span class="hljs-comment">// --cwd: String = ""      The working directory</span>
 <span class="hljs-comment">// --out: String = ""      The output directory"""</span>
 </code></pre>
 <h2><a class="anchor" aria-hidden="true" id="docs"></a><a href="#docs" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Docs</h2>
 <p>To generate documentation for you configuration, add a dependency to the
 following module</p>
-<pre><code class="hljs css language-scala">libraryDependencies += <span class="hljs-string">"com.geirsson"</span> %% <span class="hljs-string">"metaconfig-docs"</span> % <span class="hljs-string">"0.9.11-21-d76a0cb2-SNAPSHOT"</span>
+<pre><code class="hljs css language-scala">libraryDependencies += <span class="hljs-string">"com.geirsson"</span> %% <span class="hljs-string">"metaconfig-docs"</span> % <span class="hljs-string">"0.9.11-26-e28748af-SNAPSHOT"</span>
 </code></pre>
 <p>First define your configuration</p>
 <pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> metaconfig._
@@ -618,14 +662,14 @@ following module</p>
 </code></pre>
 <p>To generate html documentation, pass in a default value</p>
 <pre><code class="hljs css language-scala">docs.<span class="hljs-type">Docs</span>.html(<span class="hljs-type">User</span>())
-<span class="hljs-comment">// res39: String = "&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Name&lt;/th&gt;&lt;th&gt;Type&lt;/th&gt;&lt;th&gt;Description&lt;/th&gt;&lt;th&gt;Default value&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td&gt;&lt;code&gt;name&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&lt;code&gt;String&lt;/code&gt;&lt;/td&gt;&lt;td&gt;Name description&lt;/td&gt;&lt;td&gt;&amp;quot;John&amp;quot;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;code&gt;age&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&lt;code&gt;Int&lt;/code&gt;&lt;/td&gt;&lt;td&gt;Age description&lt;/td&gt;&lt;td&gt;42&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;code&gt;home.address&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&lt;code&gt;String&lt;/code&gt;&lt;/td&gt;&lt;td&gt;Address description&lt;/td&gt;&lt;td&gt;&amp;quot;Lakelands 2&amp;quot;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;code&gt;home.country&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&lt;code&gt;String&lt;/code&gt;&lt;/td&gt;&lt;td&gt;Country description&lt;/td&gt;&lt;td&gt;&amp;quot;Iceland&amp;quot;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;"</span>
+<span class="hljs-comment">// res41: String = "&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Name&lt;/th&gt;&lt;th&gt;Type&lt;/th&gt;&lt;th&gt;Description&lt;/th&gt;&lt;th&gt;Default value&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td&gt;&lt;code&gt;name&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&lt;code&gt;String&lt;/code&gt;&lt;/td&gt;&lt;td&gt;Name description&lt;/td&gt;&lt;td&gt;&amp;quot;John&amp;quot;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;code&gt;age&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&lt;code&gt;Int&lt;/code&gt;&lt;/td&gt;&lt;td&gt;Age description&lt;/td&gt;&lt;td&gt;42&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;code&gt;home.address&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&lt;code&gt;String&lt;/code&gt;&lt;/td&gt;&lt;td&gt;Address description&lt;/td&gt;&lt;td&gt;&amp;quot;Lakelands 2&amp;quot;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;code&gt;home.country&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&lt;code&gt;String&lt;/code&gt;&lt;/td&gt;&lt;td&gt;Country description&lt;/td&gt;&lt;td&gt;&amp;quot;Iceland&amp;quot;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;"</span>
 </code></pre>
 <p>The output will look like this when rendered in a markdown or html document</p>
 <table><thead><tr><th>Name</th><th>Type</th><th>Description</th><th>Default value</th></tr></thead><tbody><tr><td><code>name</code></td><td><code>String</code></td><td>Name description</td><td>&quot;John&quot;</td></tr><tr><td><code>age</code></td><td><code>Int</code></td><td>Age description</td><td>42</td></tr><tr><td><code>home.address</code></td><td><code>String</code></td><td>Address description</td><td>&quot;Lakelands 2&quot;</td></tr><tr><td><code>home.country</code></td><td><code>String</code></td><td>Country description</td><td>&quot;Iceland&quot;</td></tr></tbody></table>
 <p>The <code>Docs.html</code> method does nothing magical, it's possible to implement custom
 renderings by inspecting <code>Settings[T]</code> directly.</p>
 <pre><code class="hljs css language-scala"><span class="hljs-type">Settings</span>[<span class="hljs-type">User</span>].settings
-<span class="hljs-comment">// res41: List[Setting] = List(</span>
+<span class="hljs-comment">// res43: List[Setting] = List(</span>
 <span class="hljs-comment">//   Setting(Field(name="name",tpe="String",annotations=List(@Description(Name description)),underlying=List())),</span>
 <span class="hljs-comment">//   Setting(Field(name="age",tpe="Int",annotations=List(@Description(Age description)),underlying=List())),</span>
 <span class="hljs-comment">//   Setting(Field(name="home",tpe="Home",annotations=List(),underlying=List(List(Field(name="address",tpe="String",annotations=List(@Description(Address description)),underlying=List()), Field(name="country",tpe="String",annotations=List(@Description(Country description)),underlying=List())))))</span>
@@ -652,7 +696,7 @@ renderings by inspecting <code>Settings[T]</code> directly.</p>
 flat.map { <span class="hljs-keyword">case</span> (setting, defaultValue) =&gt;
   <span class="hljs-string">s"Setting <span class="hljs-subst">${setting.name}</span> of type <span class="hljs-subst">${setting.tpe}</span> has default value <span class="hljs-subst">$defaultValue</span>"</span>
 }.mkString(<span class="hljs-string">"\n==============\n"</span>)
-<span class="hljs-comment">// res42: String = """Setting name of type String has default value "John"</span>
+<span class="hljs-comment">// res44: String = """Setting name of type String has default value "John"</span>
 <span class="hljs-comment">// ==============</span>
 <span class="hljs-comment">// Setting age of type Int has default value 42</span>
 <span class="hljs-comment">// ==============</span>
@@ -663,7 +707,7 @@ flat.map { <span class="hljs-keyword">case</span> (setting, defaultValue) =&gt;
 <h2><a class="anchor" aria-hidden="true" id="json"></a><a href="#json" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>JSON</h2>
 <p>To parse JSON instead of HOCON use the <code>metaconfig-json</code> module.</p>
 <pre><code class="hljs css language-scala"><span class="hljs-comment">// JVM-only</span>
-libraryDependencies += <span class="hljs-string">"com.geirsson"</span> %% <span class="hljs-string">"metaconfig-json"</span> % <span class="hljs-string">"0.9.11-21-d76a0cb2-SNAPSHOT"</span>
+libraryDependencies += <span class="hljs-string">"com.geirsson"</span> %% <span class="hljs-string">"metaconfig-json"</span> % <span class="hljs-string">"0.9.11-26-e28748af-SNAPSHOT"</span>
 </code></pre>
 <p>To parse JSON into <code>metaconfig.Conf</code></p>
 <pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> metaconfig.json.parser
@@ -680,7 +724,7 @@ libraryDependencies += <span class="hljs-string">"com.geirsson"</span> %% <span 
   ]
 }
 """)
-// res43: Configured[Conf] = Ok(
+// res45: Configured[Conf] = Ok(
 //   value = Obj(
 //     values = List(
 //       ("a", Num(value = 1.0)),
@@ -710,7 +754,7 @@ libraryDependencies += <span class="hljs-string">"com.geirsson"</span> %% <span 
   ],
 }
 """)
-// res44: Configured[Conf] = Ok(
+// res46: Configured[Conf] = Ok(
 //   value = Obj(
 //     values = List(
 //       ("important", Bool(value = true)),
@@ -778,7 +822,7 @@ libraryDependencies += <span class="hljs-string">"com.geirsson"</span> %% <span 
 <span class="hljs-comment">//                 ),</span>
 <span class="hljs-comment">// ...</span>
 ujson.write(js, indent = <span class="hljs-number">2</span>)
-<span class="hljs-comment">// res45: String = """{</span>
+<span class="hljs-comment">// res47: String = """{</span>
 <span class="hljs-comment">//   "$id": "http://my.user.app/schema.json",</span>
 <span class="hljs-comment">//   "title": "My User App",</span>
 <span class="hljs-comment">//   "description": "My User APP description",</span>
@@ -827,4 +871,4 @@ ujson.write(js, indent = <span class="hljs-number">2</span>)
 <span class="hljs-comment">//   }</span>
 <span class="hljs-comment">// }"""</span>
 </code></pre>
-</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#getting-started">Getting started</a></li><li><a href="#conf">Conf</a></li><li><a href="#confparse">Conf.parse</a></li><li><a href="#confprinthocon">Conf.printHocon</a></li><li><a href="#confpatch">Conf.patch</a></li><li><a href="#confdecoder">ConfDecoder</a></li><li><a href="#confencoder">ConfEncoder</a></li><li><a href="#confcodec">ConfCodec</a></li><li><a href="#conferror">ConfError</a></li><li><a href="#configured">Configured</a></li><li><a href="#genericderivesurface">generic.deriveSurface</a></li><li><a href="#genericderivedecoder">generic.deriveDecoder</a><ul class="toc-headings"><li><a href="#limitations">Limitations</a></li></ul></li><li><a href="#deprecatedname">@DeprecatedName</a></li><li><a href="#confparsecliargs">Conf.parseCliArgs</a></li><li><a href="#settingstoclihelp">Settings.toCliHelp</a></li><li><a href="#inline">@Inline</a></li><li><a href="#docs">Docs</a></li><li><a href="#json">JSON</a></li><li><a href="#json-schema">JSON Schema</a></li></ul></nav></div><footer class="nav-footer" id="footer" style="background-color:#290040"><section class="sitemap"><a href="/metaconfig/" class="nav-home"><img src="/metaconfig/img/scalameta-logo.png" alt="Metaconfig" width="66" height="58"/></a><div><h5>Metaconfig Docs</h5><a href="/metaconfig/docs/getting-started.html">Getting started</a></div><div><h5>Community</h5><a href="https://github.com/scalameta/metaconfig" target="_blank"><img src="https://img.shields.io/github/stars/scalameta/metaconfig.svg?color=%23087e8b&amp;label=stars&amp;logo=github&amp;style=social"/></a><a href="https://discord.gg/RFpSVth" target="_blank"><img src="https://img.shields.io/discord/632642981228314653?logo=discord&amp;style=social"/></a><a href="https://gitter.im/scalameta/metaconfig" target="_blank"><img src="https://img.shields.io/gitter/room/scalameta/metaconfig.svg?logo=gitter&amp;style=social"/></a><a href="https://twitter.com/scalameta" target="_blank"><img src="https://img.shields.io/twitter/follow/scalameta.svg?logo=twitter&amp;style=social"/></a></div></section><section class="copyright">Copyright © 2021 Scalameta</section></footer></div></body></html>
+</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#getting-started">Getting started</a></li><li><a href="#conf">Conf</a></li><li><a href="#confparse">Conf.parse</a></li><li><a href="#confprinthocon">Conf.printHocon</a></li><li><a href="#confpatch">Conf.patch</a></li><li><a href="#confdecoder">ConfDecoder</a></li><li><a href="#confdecoderex-and-confdecoderext">ConfDecoderEx and ConfDecoderExT</a><ul class="toc-headings"><li><a href="#decoding-collections">Decoding collections</a></li></ul></li><li><a href="#confencoder">ConfEncoder</a></li><li><a href="#confcodec">ConfCodec</a></li><li><a href="#confcodecex-and-confcodecext">ConfCodecEx and ConfCodecExT</a></li><li><a href="#conferror">ConfError</a></li><li><a href="#configured">Configured</a></li><li><a href="#genericderivesurface">generic.deriveSurface</a></li><li><a href="#genericderivedecoder">generic.deriveDecoder</a><ul class="toc-headings"><li><a href="#limitations">Limitations</a></li></ul></li><li><a href="#deprecatedname">@DeprecatedName</a></li><li><a href="#confparsecliargs">Conf.parseCliArgs</a></li><li><a href="#settingstoclihelp">Settings.toCliHelp</a></li><li><a href="#inline">@Inline</a></li><li><a href="#docs">Docs</a></li><li><a href="#json">JSON</a></li><li><a href="#json-schema">JSON Schema</a></li></ul></nav></div><footer class="nav-footer" id="footer" style="background-color:#290040"><section class="sitemap"><a href="/metaconfig/" class="nav-home"><img src="/metaconfig/img/scalameta-logo.png" alt="Metaconfig" width="66" height="58"/></a><div><h5>Metaconfig Docs</h5><a href="/metaconfig/docs/getting-started.html">Getting started</a></div><div><h5>Community</h5><a href="https://github.com/scalameta/metaconfig" target="_blank"><img src="https://img.shields.io/github/stars/scalameta/metaconfig.svg?color=%23087e8b&amp;label=stars&amp;logo=github&amp;style=social"/></a><a href="https://discord.gg/RFpSVth" target="_blank"><img src="https://img.shields.io/discord/632642981228314653?logo=discord&amp;style=social"/></a><a href="https://gitter.im/scalameta/metaconfig" target="_blank"><img src="https://img.shields.io/gitter/room/scalameta/metaconfig.svg?logo=gitter&amp;style=social"/></a><a href="https://twitter.com/scalameta" target="_blank"><img src="https://img.shields.io/twitter/follow/scalameta.svg?logo=twitter&amp;style=social"/></a></div></section><section class="copyright">Copyright © 2021 Scalameta</section></footer></div></body></html>
