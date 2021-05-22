@@ -54,19 +54,19 @@ object Conf {
   def parseFile(
       file: File
   )(implicit parser: MetaconfigParser): Configured[Conf] =
-    parseInput(Input.File(file))
+    Input.File(file).parse
   def parseString(
       string: String
   )(implicit parser: MetaconfigParser): Configured[Conf] =
-    parseInput(Input.String(string))
+    Input.String(string).parse
   def parseString(filename: String, string: String)(
       implicit parser: MetaconfigParser
   ): Configured[Conf] =
-    parseInput(Input.VirtualFile(filename, string))
+    Input.VirtualFile(filename, string).parse
   def parseInput(
       input: Input
   )(implicit parser: MetaconfigParser): Configured[Conf] =
-    parser.fromInput(input)
+    input.parse
 
   /** Pretty-print this value as a HOCON string. */
   def printHocon[T: ConfEncoder](value: T): String = {
