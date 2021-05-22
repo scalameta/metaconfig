@@ -160,6 +160,7 @@ class SubcommandSuite extends FunSuite {
   checkError(
     List("test", "--max=40"),
     """|error: found argument '--max' which wasn't expected, or isn't valid in this context.
+       |	Did you mean '--max-count'?
        |""".stripMargin
   )
   checkError(
