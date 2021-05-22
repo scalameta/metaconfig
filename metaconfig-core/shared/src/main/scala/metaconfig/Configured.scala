@@ -49,10 +49,13 @@ sealed abstract class Configured[+A] extends Product with Serializable {
   def isNotOk: Boolean = !isOk
 }
 object Configured {
-  def apply[T](error: Option[ConfError], value: => T): Configured[T] =
+  def apply[T](value: => T, error: Option[ConfError]): Configured[T] =
     error.fold(ok(value))(notOk)
   def apply[T](value: => T, errors: ConfError*): Configured[T] =
-    apply(ConfError(errors), value)
+    apply(value, ConfError(errors))
+  def fold[T](value: Option[T], error: => ConfError): Configured[T] =
+    value.fold(notOk[T](error))(ok)
+
   @deprecated("No longer supported", "0.8.1")
   def traverse[T](cs: List[Configured[T]]): Configured[List[T]] = {
     cs.foldLeft(ok(List.empty[T])) {
@@ -86,4 +89,11 @@ object Configured {
     @inline
     def combine(other: NotOk): NotOk = combine(other.error)
   }
+
+  implicit def toOption[A](value: Configured[_ <: A]): Option[A] =
+    value match {
+      case Ok(v) => Some(v)
+      case _ => None
+    }
+
 }
