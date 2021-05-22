@@ -99,17 +99,6 @@ lazy val coreJVM = core.jvm
 lazy val coreJS = core.js
 lazy val coreNative = core.native
 
-lazy val json = project
-  .in(file("metaconfig-json"))
-  .settings(
-    sharedSettings,
-    moduleName := "metaconfig-json",
-    libraryDependencies ++= List(
-      "com.lihaoyi" %%% "upickle" % "1.3.11"
-    )
-  )
-  .dependsOn(coreJVM)
-
 lazy val typesafe = project
   .in(file("metaconfig-typesafe-config"))
   .settings(
@@ -186,7 +175,7 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   )
   .jvmConfigure(
     _.enablePlugins(GraalVMNativeImagePlugin)
-      .dependsOn(json, typesafe, sconfigJVM, docs)
+      .dependsOn(typesafe, sconfigJVM, docs)
   )
   .dependsOn(core)
 lazy val testsJVM = tests.jvm
@@ -209,6 +198,6 @@ lazy val docs = project
       baseDirectory.in(ThisBuild).value / "website" / "target" / "docs",
     mdocExtraArguments := List("--no-link-hygiene")
   )
-  .dependsOn(coreJVM, json, typesafe, sconfigJVM)
+  .dependsOn(coreJVM, typesafe, sconfigJVM)
   .enablePlugins(DocusaurusPlugin)
   .disablePlugins(MimaPlugin)
