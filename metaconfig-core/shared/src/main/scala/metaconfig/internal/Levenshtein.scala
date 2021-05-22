@@ -13,7 +13,17 @@ object Levenshtein {
       else None // Don't return candidate when difference is large.
     }
     val result = candidatesWithRatio.sortBy(_._2).headOption.map(_._1)
-    result
+    result.orElse(prefixCandidate(query, candidates))
+  }
+
+  private def prefixCandidate(
+      query: String,
+      candidates: Seq[String]
+  ): Option[String] = {
+    val prefixCandidates = candidates.flatMap { candidate =>
+      if (candidate.startsWith(query)) Some(candidate) else None
+    }
+    Option(prefixCandidates).filter(_.length == 1).map(_.head)
   }
 
   /** Levenshtein distance. Implementation based on Wikipedia's algorithm. */
