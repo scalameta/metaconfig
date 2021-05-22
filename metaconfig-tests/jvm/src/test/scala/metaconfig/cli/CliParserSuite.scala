@@ -287,7 +287,6 @@ class CliParserSuite extends BaseCliParserSuite {
     "skip hidden",
     "--hidden1" :: "10" :: Nil,
     """|found argument '--hidden1' which wasn't expected, or isn't valid in this context.
-       |	Did you mean '--in'?
        |""".stripMargin
   )
 
@@ -295,7 +294,7 @@ class CliParserSuite extends BaseCliParserSuite {
     "match decoding",
     "--decoding" :: "10" :: Nil,
     """|found argument '--decoding' which wasn't expected, or isn't valid in this context.
-       |	Did you mean '--in'?
+       |	Did you mean '--encoding'?
        |""".stripMargin
   )
 
@@ -303,7 +302,7 @@ class CliParserSuite extends BaseCliParserSuite {
     "match decodung",
     "--decodung" :: "10" :: Nil,
     """|found argument '--decodung' which wasn't expected, or isn't valid in this context.
-       |	Did you mean '--conf'?
+       |	Did you mean '--encoding'?
        |""".stripMargin
   )
 
@@ -311,7 +310,7 @@ class CliParserSuite extends BaseCliParserSuite {
     "match decodingg",
     "--decodingg" :: "10" :: Nil,
     """|found argument '--decodingg' which wasn't expected, or isn't valid in this context.
-       |	Did you mean '--in'?
+       |	Did you mean '--encoding'?
        |""".stripMargin
   )
 
@@ -319,7 +318,6 @@ class CliParserSuite extends BaseCliParserSuite {
     "match decoddung",
     "--decoddung" :: "10" :: Nil,
     """|found argument '--decoddung' which wasn't expected, or isn't valid in this context.
-       |	Did you mean '--conf'?
        |""".stripMargin
   )
 
@@ -327,7 +325,6 @@ class CliParserSuite extends BaseCliParserSuite {
     "match decodding1",
     "--decodding1" :: "10" :: Nil,
     """|found argument '--decodding1' which wasn't expected, or isn't valid in this context.
-       |	Did you mean '--in'?
        |""".stripMargin
   )
 
@@ -335,7 +332,6 @@ class CliParserSuite extends BaseCliParserSuite {
     "match decodunk",
     "--decodunk" :: "10" :: Nil,
     """|found argument '--decodunk' which wasn't expected, or isn't valid in this context.
-       |	Did you mean '--conf'?
        |""".stripMargin
   )
 
