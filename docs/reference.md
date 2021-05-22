@@ -202,6 +202,31 @@ for `ConfDecoderExT[A, A]`.
 If a decoder for type `T` is defined, the package defines implicits to derive
 decoders for `Option[T]`, `Seq[T]` and `Map[String, T]`.
 
+There's also a special for _extending_ collections rather than redefining them
+(works only for `ConfDecoderEx`, not the original `ConfDecoder`):
+```
+// sets list
+a = [ ... ]
+// sets map
+a = {
+  b { ... }
+  c { ... }
+}
+
+// extends list
+a = {
+  // must be the only key
+  "+" = [ ... ]
+}
+// extends map
+a = {
+  // must be the only key
+  "+" = {
+    d { ... }
+  }
+}
+```
+
 ## ConfEncoder
 
 To convert a class instance into `Conf` use `ConfEncoder[T]`. It's possible to

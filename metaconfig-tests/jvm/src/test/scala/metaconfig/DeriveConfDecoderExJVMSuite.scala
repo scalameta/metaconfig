@@ -31,12 +31,18 @@ class DeriveConfDecoderExJVMSuite extends munit.FunSuite {
         |    k3 { param = 3 }
         |  }
         |}
+        |d {
+        |  "+" = [{
+        |    b { param = 40 }
+        |  }]
+        |}
         |""".stripMargin,
       Nested(
         a = 14,
         c = Nested2(a = "n2", b = OneParam(4), c = Map("k3" -> OneParam(3))),
         d = Seq(
-          Nested2("n1", OneParam(2), Map("k1" -> OneParam(1)))
+          Nested2("n1", OneParam(2), Map("k1" -> OneParam(1))),
+          Nested2(b = OneParam(40))
         )
       ),
       Nested(
@@ -54,6 +60,11 @@ class DeriveConfDecoderExJVMSuite extends munit.FunSuite {
         |  a = "xxx"
         |  b {
         |    b { param = 3 }
+        |    c {
+        |      "+" = {
+        |        k3 { param = 33 }
+        |      }
+        |    }
         |  }
         |}
         |""".stripMargin,
@@ -63,7 +74,7 @@ class DeriveConfDecoderExJVMSuite extends munit.FunSuite {
           b = Nested2(
             a = "zzz",
             b = OneParam(3),
-            c = Map("k2" -> OneParam(2))
+            c = Map("k2" -> OneParam(2), "k3" -> OneParam(33))
           )
         )
       ),
