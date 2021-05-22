@@ -6,18 +6,16 @@ object Levenshtein {
       query: String,
       candidates: Seq[String]
   ): Option[String] = {
-    if (candidates.isEmpty) {
-      None
-    } else {
-      val candidate = candidates.sortBy(distance(query)).head
-      val maxLength = query.length() + candidate.length()
+    val candidatesWithRatio = candidates.flatMap { candidate =>
       val minDifference = math.abs(query.length() - candidate.length())
       val difference = distance(candidate)(query).toDouble - minDifference
       val ratio = difference.toDouble /
         math.min(query.length(), candidate.length())
-      if (ratio < 0.4) Some(candidate)
+      if (ratio < 0.4) Some((candidate, ratio))
       else None // Don't return candidate when difference is large.
     }
+    val result = candidatesWithRatio.sortBy(_._2).headOption.map(_._1)
+    result
   }
 
   /** Levenshtein distance. Implementation based on Wikipedia's algorithm. */
