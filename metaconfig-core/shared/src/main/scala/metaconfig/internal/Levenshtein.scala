@@ -7,10 +7,8 @@ object Levenshtein {
       candidates: Seq[String]
   ): Option[String] = {
     val candidatesWithRatio = candidates.flatMap { candidate =>
-      val minDifference = math.abs(query.length() - candidate.length())
-      val difference = distance(candidate)(query).toDouble - minDifference
-      val ratio = difference.toDouble /
-        math.min(query.length(), candidate.length())
+      val levDist = distance(candidate)(query).toDouble
+      val ratio = levDist / math.max(query.length(), candidate.length())
       if (ratio < 0.4) Some((candidate, ratio))
       else None // Don't return candidate when difference is large.
     }
