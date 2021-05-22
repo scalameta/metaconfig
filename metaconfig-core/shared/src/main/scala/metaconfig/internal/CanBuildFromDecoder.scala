@@ -6,8 +6,6 @@ import metaconfig.Conf
 import metaconfig.ConfDecoder
 import metaconfig.ConfError
 import metaconfig.Configured
-import metaconfig.Configured.NotOk
-import metaconfig.Configured.Ok
 
 object CanBuildFromDecoder {
 
@@ -44,10 +42,7 @@ object CanBuildFromDecoder {
     val errorB = List.newBuilder[ConfError]
     successB.sizeHint(values.length)
     values.foreach { value =>
-      ev.read(a2conf(value)) match {
-        case NotOk(e) => errorB += e
-        case Ok(decoded) => successB += ab2c(value, decoded)
-      }
+      ev.read(a2conf(value)).foreach(errorB += _)(successB += ab2c(value, _))
     }
     Configured(successB.result(), errorB.result(): _*)
   }

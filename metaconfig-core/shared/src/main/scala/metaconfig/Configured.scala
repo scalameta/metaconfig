@@ -48,12 +48,23 @@ sealed abstract class Configured[+A] extends Product with Serializable {
   def isOk: Boolean = this match { case Ok(_) => true; case _ => false }
   def isNotOk: Boolean = !isOk
 }
-object Configured {
+
+trait ConfiguredLowPriorityImplicits {
+
+  implicit def toOption[A](value: Configured[_ <: A]): Option[A] =
+    value match {
+      case Configured.Ok(v) => Some(v)
+      case _ => None
+    }
+
+}
+
+object Configured extends ConfiguredLowPriorityImplicits {
   def apply[T](value: => T, error: Option[ConfError]): Configured[T] =
     error.fold(ok(value))(notOk)
   def apply[T](value: => T, errors: ConfError*): Configured[T] =
     apply(value, ConfError(errors))
-  def fold[T](value: Option[T], error: => ConfError): Configured[T] =
+  def opt[T](value: Option[T])(error: => ConfError): Configured[T] =
     value.fold(notOk[T](error))(ok)
 
   @deprecated("No longer supported", "0.8.1")
@@ -90,10 +101,20 @@ object Configured {
     def combine(other: NotOk): NotOk = combine(other.error)
   }
 
-  implicit def toOption[A](value: Configured[_ <: A]): Option[A] =
-    value match {
-      case Ok(v) => Some(v)
-      case _ => None
-    }
+  implicit class ConfiguredImplicit[A](value: Configured[A]) {
+
+    def getOrRecover(fa: ConfError => A): A =
+      fold(fa)(identity)
+
+    def fold[B](fa: ConfError => B)(fb: A => B): B =
+      value match {
+        case Configured.Ok(value) => fb(value)
+        case Configured.NotOk(error) => fa(error)
+      }
+
+    def foreach(fa: ConfError => Unit)(fb: A => Unit): Unit =
+      fold(fa)(fb)
+
+  }
 
 }

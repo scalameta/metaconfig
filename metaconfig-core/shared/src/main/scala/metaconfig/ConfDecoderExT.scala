@@ -194,10 +194,8 @@ object ConfDecoderExT {
     val errorB = List.newBuilder[ConfError]
     successB.sizeHint(values.length)
     values.foreach { value =>
-      ev.read(state, a2conf(value)) match {
-        case Configured.NotOk(e) => errorB += e
-        case Configured.Ok(decoded) => successB += ab2c(value, decoded)
-      }
+      val res = ev.read(state, a2conf(value))
+      res.foreach(errorB += _)(successB += ab2c(value, _))
     }
     Configured(successB.result(), errorB.result(): _*)
   }
