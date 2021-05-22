@@ -110,6 +110,17 @@ object ConfDecoderExT {
     fromPartial(
       s"Map[String, ${classTag.runtimeClass.getName}]"
     ) {
+      case (stateOpt, Conf.Obj(List(("+", Conf.Obj(values))))) =>
+        val res =
+          buildFrom(none, values, ev, factory)(_._2, (x, y) => (x._1, y))
+        res.map { x =>
+          stateOpt.fold(x) { state =>
+            val builder = factory.newBuilder
+            builder ++= state
+            builder ++= x
+            builder.result()
+          }
+        }
       case (_, Conf.Obj(values)) =>
         buildFrom(none, values, ev, factory)(_._2, (x, y) => (x._1, y))
     }
@@ -136,6 +147,15 @@ object ConfDecoderExT {
     fromPartial(
       s"List[${classTag.runtimeClass.getName}]"
     ) {
+      case (stateOpt, Conf.Obj(List(("+", Conf.Lst(values))))) =>
+        buildFrom(none, values, ev, factory)(identity, (_, x) => x).map { x =>
+          stateOpt.fold(x) { state =>
+            val builder = factory.newBuilder
+            builder ++= state
+            builder ++= x
+            builder.result()
+          }
+        }
       case (_, Conf.Lst(values)) =>
         buildFrom(none, values, ev, factory)(identity, (_, x) => x)
     }
