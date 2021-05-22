@@ -7,8 +7,6 @@ import fansi.Str
 import fansi.Color
 import java.nio.file.Paths
 import metaconfig.Conf
-import metaconfig.Configured.Ok
-import metaconfig.Configured.NotOk
 import metaconfig.Configured
 
 case class CliApp(
@@ -40,16 +38,13 @@ case class CliApp(
       case subcommand :: tail =>
         commands.find(_.matchesName(subcommand)) match {
           case Some(command) =>
-            val conf = Conf.parseCliArgs[command.Value](tail)(command.settings)
-            val configured: Configured[command.Value] =
-              conf.andThen(_.as[command.Value](command.decoder))
-            configured match {
-              case Ok(value) =>
-                command.run(value, app)
-              case NotOk(error) =>
-                error.all.foreach { message => app.error(message) }
-                1
-            }
+            val configured: Configured[command.Value] = Conf
+              .parseCliArgs[command.Value](tail)(command.settings)
+              .andThen(_.as[command.Value](command.decoder))
+            configured.fold { error =>
+              error.all.foreach { message => app.error(message) }
+              1
+            }(command.run(_, app))
           case None =>
             HelpCommand.notRecognized(subcommand, app)
         }
