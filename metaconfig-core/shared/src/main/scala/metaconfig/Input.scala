@@ -98,4 +98,16 @@ object Input {
     }
   }
 
+  implicit class InputImplicits(input: Input) {
+
+    def parse(implicit metaconfigParser: MetaconfigParser): Configured[Conf] =
+      metaconfigParser.fromInput(input)
+
+    def parse(
+        path: Option[Predef.String]
+    )(implicit parser: MetaconfigParser): Configured[Conf] =
+      path.fold(parse)(x => ConfDynamic(parse).selectDynamic(x).asConf)
+
+  }
+
 }
