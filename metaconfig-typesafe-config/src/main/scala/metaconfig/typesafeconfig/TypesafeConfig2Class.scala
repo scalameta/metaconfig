@@ -32,7 +32,7 @@ object TypesafeConfig2Class {
       input: Input,
       config: () => Config
   ): Configured[Conf] = {
-    val cache = mutable.Map.empty[Input, Array[Int]]
+    val cache = mutable.Map.empty[OriginId, Input]
     def loop(value: ConfigValue): Conf = {
       val conf = value match {
         case obj: ConfigObject =>
@@ -53,36 +53,73 @@ object TypesafeConfig2Class {
               )
           }
       }
-      getPositionOpt(value.origin, input) match {
+      getPositionOpt(value.origin, cache) match {
         case Some(pos) => conf.withPos(pos)
         case None => conf
       }
     }
     try {
-      Configured.Ok(loop(config().resolve().root))
+      val resolved = config().resolve().root()
+      cache += OriginId(resolved.origin) -> input
+      Configured.Ok(loop(resolved))
     } catch {
       case e: ConfigException.Parse =>
         Configured.NotOk(
-          ConfError.parseError(getPosition(e.origin, input), e.getMessage)
+          ConfError.parseError(getPosition(e.origin, cache), e.getMessage)
         )
     }
   }
 
   private def getPosition(
       originOrNull: ConfigOrigin,
-      input: Input
+      cache: mutable.Map[OriginId, Input]
   ): Position =
-    getPositionOpt(originOrNull, input).getOrElse(Position.None)
+    getPositionOpt(originOrNull, cache).getOrElse(Position.None)
 
   private def getPositionOpt(
       originOrNull: ConfigOrigin,
-      input: Input
+      cache: mutable.Map[OriginId, Input]
   ): Option[Position] =
     for {
       origin <- Option(originOrNull)
-      linePlus1 <- Option(origin.lineNumber)
-      line = linePlus1 - 1
-      start = input.lineToOffset(line)
+      input <- cache.updateWith(OriginId(origin)) { maybeCurrent =>
+        maybeCurrent
+          .orElse(
+            Option(origin.url)
+              .map(url => Input.File(new java.io.File(url.toURI)))
+          )
+      }
+      linePlus1 = origin.lineNumber
+      start = input.lineToOffset(linePlus1 - 1)
     } yield Position.Range(input, start, start)
 
+  private case class OriginId private (id: String)
+  private object OriginId {
+    def apply(origin: ConfigOrigin): OriginId =
+      OriginId(
+        origin
+          .withLineNumber(-1) // strip potential line suffix
+          // use description instead of the nullable filename() or url(),
+          // so that we can have an identifier to map to the main input
+          // when using ConfigFactory.parseString(string)
+          // https://github.com/lightbend/config/blob/f92a4ee/config/src/main/java/com/typesafe/config/impl/Parseable.java#L467
+          .description()
+      )
+  }
+
+  implicit private class Scala213MapBackport[K, V](map: mutable.Map[K, V]) {
+    // https://github.com/scala/scala/blob/744651d/src/library/scala/collection/mutable/Map.scala#L106-L127
+    def updateWith(
+        key: K
+    )(remappingFunction: Option[V] => Option[V]): Option[V] = {
+      val previousValue = map.get(key)
+      val nextValue = remappingFunction(previousValue)
+      (previousValue, nextValue) match {
+        case (None, None) => // do nothing
+        case (Some(_), None) => map.remove(key)
+        case (_, Some(v)) => map.update(key, v)
+      }
+      nextValue
+    }
+  }
 }
