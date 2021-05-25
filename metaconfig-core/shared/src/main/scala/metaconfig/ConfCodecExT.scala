@@ -1,7 +1,5 @@
 package metaconfig
 
-import metaconfig.generic.Settings
-
 class ConfCodecExT[S, A](
     encoder: ConfEncoder[A],
     decoder: ConfDecoderExT[S, A]
@@ -13,13 +11,6 @@ class ConfCodecExT[S, A](
 
   def bimap[B](in: B => A, out: A => B): ConfCodecExT[S, B] =
     new ConfCodecExT[S, B](encoder.contramap(in), decoder.map(out))
-
-  def noTypos(implicit settings: Settings[A]): ConfCodecExT[S, A] = {
-    val noTyposDecoder = decoder.noTypos
-    if (noTyposDecoder eq decoder) this
-    else new ConfCodecExT(encoder, noTyposDecoder)
-  }
-
 }
 
 object ConfCodecExT {

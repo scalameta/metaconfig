@@ -102,7 +102,7 @@ class DeriveConfDecoderExSuite extends munit.FunSuite {
   }
 
   test("no param") {
-    val decoder = generic.deriveDecoderEx[NoParam](NoParam())
+    val decoder = generic.deriveDecoderEx[NoParam](NoParam(), true)
     val obtained = decoder.read(None, Obj("param" -> Num(2))).get
     val expected = NoParam()
     assert(obtained == expected)

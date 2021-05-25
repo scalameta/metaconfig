@@ -6,8 +6,6 @@ import scala.reflect.ClassTag
 import java.nio.file.Path
 import java.nio.file.Paths
 
-import metaconfig.internal.NoTyposDecoderEx
-
 trait ConfDecoderExT[-S, A] {
 
   def read(state: Option[S], conf: Conf): Configured[A]
@@ -177,10 +175,6 @@ object ConfDecoderExT {
         self.read(state, conf).recoverWith { x =>
           other.read(state, conf).recoverWith(x.combine)
         }
-
-    def noTypos(implicit settings: generic.Settings[A]): ConfDecoderExT[S, A] =
-      if (self.isInstanceOf[NoTyposDecoderEx[_, _]]) self
-      else new NoTyposDecoderEx[S, A](self)
 
   }
 

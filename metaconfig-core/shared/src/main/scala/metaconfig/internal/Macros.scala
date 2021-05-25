@@ -40,12 +40,15 @@ class Macros(val c: blackbox.Context) {
      """
   }
 
-  def deriveConfCodecExImpl[T: c.WeakTypeTag](default: Tree): Tree = {
+  def deriveConfCodecExImpl[T: c.WeakTypeTag](
+      default: Tree,
+      typosAllowed: c.Expr[Boolean]
+  ): Tree = {
     val T = assumeClass[T]
     q"""
       new _root_.metaconfig.ConfCodecEx[$T](
         _root_.metaconfig.generic.deriveEncoder[$T],
-        _root_.metaconfig.generic.deriveDecoderEx[$T]($default)
+        _root_.metaconfig.generic.deriveDecoderEx[$T]($default, $typosAllowed)
       )
      """
   }
@@ -131,7 +134,10 @@ class Macros(val c: blackbox.Context) {
     """
   }
 
-  def deriveConfDecoderExImpl[T: c.WeakTypeTag](default: Tree): Tree = {
+  def deriveConfDecoderExImpl[T: c.WeakTypeTag](
+      default: Tree,
+      typosAllowed: c.Expr[Boolean]
+  ): Tree = {
     val T = assumeClass[T]
     val Tclass = T.typeSymbol.asClass
     val optionT = weakTypeOf[Option[T]]
@@ -191,7 +197,7 @@ class Macros(val c: blackbox.Context) {
     val ctor = q"new $T(..$args)"
 
     q"""
-      new $resT {
+      if ($typosAllowed) new $resT {
         def read(
           state: $optionT,
           conf: _root_.metaconfig.Conf
@@ -199,6 +205,20 @@ class Macros(val c: blackbox.Context) {
           val settings = $settings
           val tmp = state.getOrElse($default)
           $product.map { t => $ctor }
+        }
+      }
+      else new $resT {
+        def read(
+          state: $optionT,
+          conf: _root_.metaconfig.Conf
+        ): $retvalT = {
+          val settings = $settings
+          _root_.metaconfig.internal.NoTyposDecoder.checkTypos(
+            conf, {
+              val tmp = state.getOrElse($default)
+              $product.map { t => $ctor }
+            }
+          )(settings)
         }
       }
     """
