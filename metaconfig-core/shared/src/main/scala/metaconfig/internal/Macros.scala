@@ -78,15 +78,9 @@ class Macros(val c: blackbox.Context) {
   def deriveConfDecoderImpl[T: c.WeakTypeTag](default: Tree): Tree = {
     val T = assumeClass[T]
     val Tclass = T.typeSymbol.asClass
-    val settings = c.inferImplicitValue(weakTypeOf[Settings[T]])
-    if (settings == null || settings.isEmpty) {
-      c.abort(
-        c.enclosingPosition,
-        s"Missing implicit for ${weakTypeOf[Settings[T]]}]. " +
-          s"Hint, add `implicit val surface: ${weakTypeOf[Surface[T]]}` " +
-          s"to the companion ${T.companion.typeSymbol}"
-      )
-    }
+    val settings = Option(c.inferImplicitValue(weakTypeOf[Settings[T]]))
+      .filter(_.nonEmpty)
+      .getOrElse(q"_root_.metaconfig.generic.Settings(${deriveSurfaceImpl[T]})")
     val paramss = Tclass.primaryConstructor.asMethod.paramLists
     if (paramss.isEmpty || paramss.head.isEmpty)
       return q"_root_.metaconfig.ConfDecoder.constant($default)"
@@ -144,15 +138,9 @@ class Macros(val c: blackbox.Context) {
     val resT = weakTypeOf[ConfDecoderEx[T]]
     val retvalT = weakTypeOf[Configured[T]]
 
-    val settings = c.inferImplicitValue(weakTypeOf[Settings[T]])
-    if (settings == null || settings.isEmpty) {
-      c.abort(
-        c.enclosingPosition,
-        s"Missing implicit for ${weakTypeOf[Settings[T]]}]. " +
-          s"Hint, add `implicit val surface: ${weakTypeOf[Surface[T]]}` " +
-          s"to the companion ${T.companion.typeSymbol}"
-      )
-    }
+    val settings = Option(c.inferImplicitValue(weakTypeOf[Settings[T]]))
+      .filter(_.nonEmpty)
+      .getOrElse(q"_root_.metaconfig.generic.Settings(${deriveSurfaceImpl[T]})")
     val paramss = Tclass.primaryConstructor.asMethod.paramLists
     if (paramss.isEmpty || paramss.head.isEmpty)
       return q"""
@@ -225,9 +213,7 @@ class Macros(val c: blackbox.Context) {
   }
 
   def deriveSurfaceImpl[T: c.WeakTypeTag]: Tree = {
-    val T = weakTypeOf[T]
-    if (!T.typeSymbol.isClass || !T.typeSymbol.asClass.isCaseClass)
-      c.abort(c.enclosingPosition, s"$T must be a case class")
+    val T = assumeClass[T]
     val Tclass = T.typeSymbol.asClass
     val ctor = Tclass.primaryConstructor.asMethod
     val argss = ctor.paramLists.map { params =>

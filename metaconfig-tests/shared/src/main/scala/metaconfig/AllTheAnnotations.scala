@@ -37,7 +37,6 @@ object AllTheAnnotations {
 
 case class OneParam(param: Int = 82)
 object OneParam {
-  implicit val surface: Surface[OneParam] = generic.deriveSurface[OneParam]
   implicit val codec: ConfCodec[OneParam] =
     generic.deriveCodec[OneParam](OneParam())
   implicit val decoderEx: ConfDecoderEx[OneParam] =
@@ -46,7 +45,6 @@ object OneParam {
 
 case class HasOption(b: Option[Int] = None)
 object HasOption {
-  implicit val surface: Surface[HasOption] = generic.deriveSurface[HasOption]
   implicit val decoder: ConfDecoder[HasOption] =
     generic.deriveDecoder[HasOption](HasOption())
   implicit val decoderEx: ConfDecoderEx[HasOption] =
@@ -74,7 +72,6 @@ case class IsIterable(
     b: Iterable[String] = Iterable.empty
 )
 object IsIterable {
-  implicit val surface: Surface[IsIterable] = generic.deriveSurface[IsIterable]
   implicit val decoder: ConfDecoder[IsIterable] =
     generic.deriveDecoder[IsIterable](IsIterable())
   implicit val decoderEx: ConfDecoderEx[IsIterable] =
@@ -89,7 +86,6 @@ case class Nested2(
     c: Map[String, OneParam] = Map("k2" -> OneParam(2))
 )
 object Nested2 {
-  implicit val surface: Surface[Nested2] = generic.deriveSurface[Nested2]
   implicit val codec: ConfCodec[Nested2] =
     generic.deriveCodec[Nested2](Nested2())
   implicit val decoderEx: ConfDecoderEx[Nested2] =
@@ -101,7 +97,6 @@ case class Nested3(
     b: Nested2 = Nested2()
 )
 object Nested3 {
-  implicit val surface: Surface[Nested3] = generic.deriveSurface[Nested3]
   implicit val codec: ConfCodec[Nested3] =
     generic.deriveCodec[Nested3](Nested3())
   implicit val decoderEx: ConfDecoderEx[Nested3] =
@@ -116,7 +111,6 @@ case class Nested(
     e: Nested3 = Nested3()
 )
 object Nested {
-  implicit val surface: Surface[Nested] = generic.deriveSurface[Nested]
   implicit val codec: ConfCodec[Nested] = generic.deriveCodec[Nested](Nested())
   implicit val decoderEx: ConfDecoderEx[Nested] =
     generic.deriveDecoderEx[Nested](Nested(), false)

@@ -4,6 +4,7 @@ import metaconfig.annotation.Deprecated
 import metaconfig.annotation.DeprecatedName
 import metaconfig.annotation.ExtraName
 import metaconfig.generic.Settings
+import metaconfig.generic.Surface
 
 class SettingsSuite extends munit.FunSuite {
 
@@ -68,6 +69,9 @@ class SettingsSuite extends munit.FunSuite {
   }
 
   test("flat") {
+    implicit val surfaceNested2 = generic.deriveSurface[Nested2]
+    implicit val surfaceNested3 = generic.deriveSurface[Nested3]
+    implicit val surfaceNested = generic.deriveSurface[Nested]
     val flat = Settings[Nested]
       .flat(ConfEncoder[Nested].writeObj(Nested()))
       .map { case (s, c) => s"${s.name} $c" }
