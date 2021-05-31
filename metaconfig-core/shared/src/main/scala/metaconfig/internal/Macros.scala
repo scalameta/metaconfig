@@ -284,7 +284,11 @@ class Macros(val c: blackbox.Context) {
         annot.tree
     }
     val result =
-      q"new ${weakTypeOf[Surface[T]]}($args, _root_.scala.List.apply(..$classAnnotations))"
+      if (classAnnotations.isEmpty) {
+        q"new ${weakTypeOf[Surface[T]]}($args)"
+      } else {
+        q"new ${weakTypeOf[Surface[T]]}($args, _root_.scala.List.apply(..$classAnnotations))"
+      }
     c.untypecheck(result)
   }
 
