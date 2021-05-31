@@ -7,7 +7,4 @@ coursier fetch \
   com.geirsson:metaconfig-typesafe-config_2.12:$version \
   com.geirsson:metaconfig-typesafe-config_2.13:$version \
   com.geirsson:metaconfig-typesafe-config_2.12:$version \
-  com.geirsson:metaconfig-json_2.12:$version \
-  com.geirsson:metaconfig-json_2.13:$version \
-  com.geirsson:metaconfig-json_2.12:$version \
   -r sonatype:public
