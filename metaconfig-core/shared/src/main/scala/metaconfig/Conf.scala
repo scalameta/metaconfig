@@ -107,7 +107,7 @@ object Conf {
     ): Configured[Option[T]] =
       ConfGet
         .getKey(this, path +: extraNames)
-        .map(value => ev.read(value).map(Some(_)))
+        .map(ev.read(_).map(Some(_)))
         .getOrElse(Configured.Ok(None))
   }
   object Obj {
@@ -118,10 +118,9 @@ object Conf {
   def getEx[A](state: A, conf: Conf, path: Seq[String])(
       implicit ev: ConfDecoderEx[A]
   ): Configured[A] =
-    ConfGet.getKey(conf, path) match {
-      case None => Configured.Ok(state)
-      case Some(subconf) => ev.read(Some(state), subconf)
-    }
+    ConfGet
+      .getKey(conf, path)
+      .fold(Configured.ok(state))(ev.read(Some(state), _))
 
   def getSettingEx[A](state: A, conf: Conf, setting: Setting)(
       implicit ev: ConfDecoderEx[A]
