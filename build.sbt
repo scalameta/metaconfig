@@ -3,10 +3,10 @@ import sbtcrossproject.CrossPlugin.autoImport.crossProject
 import com.typesafe.tools.mima.core._
 
 lazy val V = new {
-  def munit = "0.7.23"
+  def munit = "0.7.26"
 }
-val scala212 = "2.12.13"
-val scala213 = "2.13.5"
+val scala212 = "2.12.14"
+val scala213 = "2.13.6"
 val ScalaVersions = List(scala213, scala212)
 inThisBuild(
   List(
@@ -152,7 +152,7 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .jvmSettings(
     mainClass in GraalVMNativeImage := Some("metaconfig.tests.ExampleMain"),
     sources.in(Compile, doc) := Seq.empty,
-    libraryDependencies += "com.github.alexarchambault" %%% "scalacheck-shapeless_1.14" % "1.2.5",
+    libraryDependencies += "com.github.alexarchambault" %%% "scalacheck-shapeless_1.15" % "1.3.0",
     graalVMNativeImageOptions ++= {
       val reflectionFile =
         Keys.sourceDirectory.in(Compile).value./("graal")./("reflection.json")
