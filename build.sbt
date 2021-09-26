@@ -7,7 +7,7 @@ lazy val V = new {
 }
 val scala212 = "2.12.15"
 val scala213 = "2.13.6"
-val scala3 = "3.1.0-RC2"
+val scala3 = "3.0.2"
 val ScalaVersions = List(scala213, scala212, scala3)
 inThisBuild(
   List(
@@ -219,7 +219,8 @@ lazy val docs = project
   .in(file("metaconfig-docs"))
   .settings(
     sharedSettings,
-    crossScalaVersions := ScalaVersions,
+    scalaVersion := scala213,
+    crossScalaVersions := ScalaVersions.filter(_ != scala3),
     moduleName := "metaconfig-docs",
     libraryDependencies ++= List(
       "com.lihaoyi" %% "scalatags" % "0.9.4"
