@@ -13,7 +13,7 @@ class CliParser[T](
     toInline: Map[String, Setting]
 ) {
   import CliParser._
-  def loop(
+  private def loop(
       curr: Conf.Obj,
       xs: List[String],
       s: State

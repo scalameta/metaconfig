@@ -51,11 +51,11 @@ sealed abstract class Configured[+A] extends Product with Serializable {
 
 trait ConfiguredLowPriorityImplicits {
 
-  implicit def toOption[A](value: Configured[_ <: A]): Option[A] =
-    value match {
-      case Configured.Ok(v) => Some(v)
-      case _ => None
-    }
+  // implicit def toOption[A](value: Configured[A]): Option[A] =
+  //   value match {
+  //     case Configured.Ok(v) => Some(v)
+  //     case _ => None
+  //   }
 
 }
 

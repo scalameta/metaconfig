@@ -22,7 +22,7 @@ object ConfEncoder {
   def instance[A](f: A => Conf): ConfEncoder[A] = f(_)
 
   private val GenericConfEncoder: ConfEncoder[Conf] =
-    identity
+    instance(identity)
 
   // Invariant type-classes don't work unfortunately so we do this work by hand.
   implicit def ConfEncoder[T <: Conf]: ConfEncoder[T] =

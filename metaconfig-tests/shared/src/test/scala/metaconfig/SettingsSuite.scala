@@ -28,8 +28,8 @@ class SettingsSuite extends munit.FunSuite {
 
   test("extraNames") {
     assertEquals(
-      s1.extraNames,
-      List(
+      s1.extraNames.toSet,
+      Set(
         "extraName",
         "extraName2"
       )
@@ -38,8 +38,8 @@ class SettingsSuite extends munit.FunSuite {
 
   test("deprecatedNames") {
     assertEquals(
-      s1.deprecatedNames,
-      List(
+      s1.deprecatedNames.toSet,
+      Set(
         DeprecatedName("deprecatedName", "Use x instead", "2.0"),
         DeprecatedName("deprecatedName2", "Use y instead", "3.0")
       )
@@ -48,8 +48,8 @@ class SettingsSuite extends munit.FunSuite {
 
   test("exampleValues") {
     assertEquals(
-      s1.exampleValues,
-      List("value", "value2")
+      s1.exampleValues.toSet,
+      Set("value", "value2")
     )
   }
 

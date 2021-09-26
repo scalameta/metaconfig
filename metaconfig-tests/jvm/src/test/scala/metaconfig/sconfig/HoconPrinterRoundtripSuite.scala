@@ -34,6 +34,6 @@ class HoconPrinterRoundtripSuite extends munit.ScalaCheckSuite {
   )
 
   property("roundtrip") {
-    forAll { conf: ConfShow => assertRoundtrip(conf.str) }
+    forAll { (conf: ConfShow) => assertRoundtrip(conf.str) }
   }
 }

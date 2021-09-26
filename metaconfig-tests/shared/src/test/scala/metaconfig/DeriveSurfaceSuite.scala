@@ -85,8 +85,8 @@ class DeriveSurfaceSuite extends munit.FunSuite {
       TPrint.make { implicit colors => "[" + ev.render + " ...]" }
     implicit val surface = generic.deriveSurface[CustomTypePrinting]
     val a :: b :: c :: Nil = Settings[CustomTypePrinting].settings
-    assert(a.tpe == "number")
-    assert(b.tpe == "(number)")
-    assert(c.tpe == "[String ...]")
+    assertEquals(a.tpe, "number")
+    assertEquals(b.tpe, "(number)")
+    assertEquals(c.tpe, "[String ...]")
   }
 }
