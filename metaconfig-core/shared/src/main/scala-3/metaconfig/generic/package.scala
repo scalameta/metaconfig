@@ -215,8 +215,6 @@ private[generic] def deriveSurfaceImpl[T: Type](using q: Quotes) =
         case other => report.error(at.tycon.show); ???
     case other => other
 
-  println(target.show)
-
   val cls = target.classSymbol.get
   val argss = cls.primaryConstructor.paramSymss
     .filter(paramList => paramList.forall(!_.isTypeParam))
