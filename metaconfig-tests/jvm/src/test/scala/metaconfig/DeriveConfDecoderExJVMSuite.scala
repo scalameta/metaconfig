@@ -10,8 +10,6 @@ class DeriveConfDecoderExJVMSuite extends munit.FunSuite {
     cfg.andThen(decoder.read(Option(in), _)) match {
       case Configured.NotOk(err) => fail(err.toString)
       case Configured.Ok(obtained) =>
-        // TODO: assertEquals here fails Scala 3 compilation.
-        // something something variance something?
         assertEquals[Any, Any](obtained, out)
     }
   }
