@@ -222,9 +222,8 @@ private[generic] def deriveSurfaceImpl[T: Type](using q: Quotes) =
           val isConf = derivesFrom[metaconfig.Conf]
           val isMap = derivesFrom[Map[?, ?]]
           val isIterable = derivesFrom[Iterable[?]] 
-
           val repeated =
-            if isIterable then List('{ new metaconfig.annotation.Repeated })
+            if isIterable && !isMap then List('{ new metaconfig.annotation.Repeated })
             else Nil
 
           val dynamic =
