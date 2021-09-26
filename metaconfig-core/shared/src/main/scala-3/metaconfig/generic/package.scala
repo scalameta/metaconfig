@@ -40,24 +40,19 @@ private[generic] def deriveEncoderImpl[T](using tp: Type[T])(using q: Quotes) =
   val encoders               = params[T]
   val fields                 = paramNames[T]
   val ev: Expr[Mirror.Of[T]] = Expr.summon[Mirror.Of[T]].get
-  ev match
-    case '{
-          $m: Mirror.ProductOf[T] { type MirroredElemTypes = elementTypes }
-        } =>
-      '{
-        new metaconfig.ConfEncoder[T]:
-          override def write(value: T): metaconfig.Conf =
-            val prod = value.asInstanceOf[Product]
-            new metaconfig.Conf.Obj(
-              $fields.zip($encoders).zipWithIndex.map {
-                case ((name, enc), idx) =>
-                  name -> enc
-                    .asInstanceOf[ConfEncoder[Any]]
-                    .write(prod.productElement(idx))
-              }
-            )
-      }
-  end match
+  '{
+    new metaconfig.ConfEncoder[T]:
+      override def write(value: T): metaconfig.Conf =
+        val prod = value.asInstanceOf[Product]
+        new metaconfig.Conf.Obj(
+          $fields.zip($encoders).zipWithIndex.map {
+            case ((name, enc), idx) =>
+              name -> enc
+                .asInstanceOf[ConfEncoder[Any]]
+                .write(prod.productElement(idx))
+          }
+        )
+  }
 end deriveEncoderImpl
 
 private[generic] def deriveConfDecoderImpl[T: Type](default: Expr[T])(using q: Quotes) =
@@ -200,12 +195,18 @@ end deriveConfDecoderExImpl
 
 private[generic] def deriveSurfaceImpl[T: Type](using q: Quotes) =
   import q.reflect.*
-  assumeCaseClass[T]
+  val target = TypeRepr.of[T] match
+    case at: AppliedType => 
+      at.tycon.asType match
+        case '[t] => assumeCaseClass[t]; at.tycon
+        case other => report.error(at.tycon.show); ???
+    case other => other
 
-  val cls   = TypeRepr.of[T].classSymbol.get
-  val bases = TypeTree.of[T].tpe.baseClasses
-  val argss = cls.primaryConstructor.paramSymss.map { params =>
-    val fields = params.map { param =>
+  println(target.show)
+
+  val cls = target.classSymbol.get
+  val argss = cls.primaryConstructor.paramSymss.filter(paramList => paramList.forall(!_.isTypeParam)).map { params =>
+    val fields = params.flatMap { param =>
       param.tree match
         case vd: ValDef =>
 
@@ -260,10 +261,12 @@ private[generic] def deriveSurfaceImpl[T: Type](using q: Quotes) =
                 val renderer = Expr.summon[pprint.TPrint[t]].get
                 '{$renderer.render}
 
+
           val fieldExpr = '{
             new Field($fieldName, $tpeString, $finalAnnots, $underlying)
           }
-          fieldExpr
+          Some(fieldExpr)
+        case other => None
     }
 
     Expr.ofList(fields)
