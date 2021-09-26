@@ -1,4 +1,5 @@
 package metaconfig.generic
+
 import metaconfig.*
 
 import scala.quoted.*
@@ -14,22 +15,25 @@ inline def deriveEncoder[T]: metaconfig.ConfEncoder[T] =
 inline def deriveDecoder[T](inline default: T): metaconfig.ConfDecoder[T] =
   ${ deriveConfDecoderImpl[T]('default) }
 
-inline def deriveDecoderEx[T](inline default: T): metaconfig.ConfDecoderExT[T, T] =
+inline def deriveDecoderEx[T](
+    inline default: T
+): metaconfig.ConfDecoderExT[T, T] =
   ${ deriveConfDecoderExImpl[T]('default) }
 
 inline def deriveSurface[T]: Surface[T] =
   ${ deriveSurfaceImpl[T] }
 
-inline def deriveCodec[T](inline default: T): metaconfig.ConfCodec[T] = 
-  ${ deriveCodecImpl[T]('default)}
+inline def deriveCodec[T](inline default: T): metaconfig.ConfCodec[T] =
+  ${ deriveCodecImpl[T]('default) }
 
-private[generic] def deriveCodecImpl[T: Type](default: Expr[T])(using Quotes) = 
+private[generic] def deriveCodecImpl[T: Type](default: Expr[T])(using Quotes) =
   val encoder = deriveEncoderImpl[T]
   val decoder = deriveConfDecoderImpl[T](default)
 
   '{
     ConfCodec.EncoderDecoderToCodec[T](
-      $encoder, $decoder
+      $encoder,
+      $decoder
     )
   }
 
@@ -45,17 +49,18 @@ private[generic] def deriveEncoderImpl[T](using tp: Type[T])(using q: Quotes) =
       override def write(value: T): metaconfig.Conf =
         val prod = value.asInstanceOf[Product]
         new metaconfig.Conf.Obj(
-          $fields.zip($encoders).zipWithIndex.map {
-            case ((name, enc), idx) =>
-              name -> enc
-                .asInstanceOf[ConfEncoder[Any]]
-                .write(prod.productElement(idx))
+          $fields.zip($encoders).zipWithIndex.map { case ((name, enc), idx) =>
+            name -> enc
+              .asInstanceOf[ConfEncoder[Any]]
+              .write(prod.productElement(idx))
           }
         )
   }
 end deriveEncoderImpl
 
-private[generic] def deriveConfDecoderImpl[T: Type](default: Expr[T])(using q: Quotes) =
+private[generic] def deriveConfDecoderImpl[T: Type](default: Expr[T])(using
+    q: Quotes
+) =
   import q.reflect.*
   assumeCaseClass[T]
 
@@ -123,7 +128,9 @@ private[generic] def deriveConfDecoderImpl[T: Type](default: Expr[T])(using q: Q
   end if
 end deriveConfDecoderImpl
 
-private[generic] def deriveConfDecoderExImpl[T: Type](default: Expr[T])(using q: Quotes) =
+private[generic] def deriveConfDecoderExImpl[T: Type](default: Expr[T])(using
+    q: Quotes
+) =
   import q.reflect.*
   assumeCaseClass[T]
 
@@ -140,9 +147,10 @@ private[generic] def deriveConfDecoderExImpl[T: Type](default: Expr[T])(using q:
   def next(p: ValDef): Expr[(Conf, T) => Configured[Any]] =
     p.tpt.tpe.asType match
       case '[t] =>
-        val name     = Expr(p.name)
-        val getter   = clsTpt.classSymbol.get.declaredField(p.name)
-        val fallback = (from: Expr[Any]) => Select(from.asTerm, getter).asExprOf[t]
+        val name   = Expr(p.name)
+        val getter = clsTpt.classSymbol.get.declaredField(p.name)
+        val fallback = (from: Expr[Any]) =>
+          Select(from.asTerm, getter).asExprOf[t]
         val dec = Expr
           .summon[ConfDecoderEx[t]]
           .getOrElse {
@@ -154,14 +162,19 @@ private[generic] def deriveConfDecoderExImpl[T: Type](default: Expr[T])(using q:
           }
 
         '{ (conf, from) =>
-          Conf.getSettingEx[t](${fallback('{from})}, conf, $settings.unsafeGet($name))(using $dec)
+          Conf.getSettingEx[t](
+            ${ fallback('{ from }) },
+            conf,
+            $settings.unsafeGet($name)
+          )(using $dec)
         }
 
-  if paramss.head.isEmpty then '{ 
-    new ConfDecoderEx[T]:
-      def read(state: Option[T], conf: Conf) = 
-        Configured.Ok(state.getOrElse($default))
-  }
+  if paramss.head.isEmpty then
+    '{
+      new ConfDecoderEx[T]:
+        def read(state: Option[T], conf: Conf) =
+          Configured.Ok(state.getOrElse($default))
+    }
   else
     val (head :: params) :: Nil = paramss
     val vds = paramss.head.map(_.tree).collect { case vd: ValDef =>
@@ -187,7 +200,7 @@ private[generic] def deriveConfDecoderExImpl[T: Type](default: Expr[T])(using q:
 
     '{
       new ConfDecoderExT[T, T]:
-        def read(state: Option[T], conf: Conf): Configured[T] = 
+        def read(state: Option[T], conf: Conf): Configured[T] =
           $merged(conf, state.getOrElse($default))
     }
   end if
@@ -196,93 +209,96 @@ end deriveConfDecoderExImpl
 private[generic] def deriveSurfaceImpl[T: Type](using q: Quotes) =
   import q.reflect.*
   val target = TypeRepr.of[T] match
-    case at: AppliedType => 
+    case at: AppliedType =>
       at.tycon.asType match
-        case '[t] => assumeCaseClass[t]; at.tycon
+        case '[t]  => assumeCaseClass[t]; at.tycon
         case other => report.error(at.tycon.show); ???
     case other => other
 
   println(target.show)
 
   val cls = target.classSymbol.get
-  val argss = cls.primaryConstructor.paramSymss.filter(paramList => paramList.forall(!_.isTypeParam)).map { params =>
-    val fields = params.flatMap { param =>
-      param.tree match
-        case vd: ValDef =>
+  val argss = cls.primaryConstructor.paramSymss
+    .filter(paramList => paramList.forall(!_.isTypeParam))
+    .map { params =>
+      val fields = params.flatMap { param =>
+        param.tree match
+          case vd: ValDef =>
+            inline def derivesFrom[A: Type]: Boolean =
+              vd.tpt.tpe.derivesFrom(TypeRepr.of[A].typeSymbol)
 
-          inline def derivesFrom[A: Type]: Boolean = 
-            vd.tpt.tpe.derivesFrom(TypeRepr.of[A].typeSymbol)
+            val baseAnnots = param.annotations.collect {
+              case annot
+                  if annot.tpe.derivesFrom(
+                    TypeRepr.of[StaticAnnotation].typeSymbol
+                  ) =>
+                annot.asExprOf[StaticAnnotation]
+            }
+            val isConf     = derivesFrom[metaconfig.Conf]
+            val isMap      = derivesFrom[Map[?, ?]]
+            val isIterable = derivesFrom[Iterable[?]]
+            val repeated =
+              if isIterable && !isMap then
+                List('{ new metaconfig.annotation.Repeated })
+              else Nil
 
-          val baseAnnots = param.annotations.collect {
-            case annot
-                if annot.tpe.derivesFrom(
-                  TypeRepr.of[StaticAnnotation].typeSymbol
-                ) =>
-              annot.asExprOf[StaticAnnotation]
-          }
-          val isConf = derivesFrom[metaconfig.Conf]
-          val isMap = derivesFrom[Map[?, ?]]
-          val isIterable = derivesFrom[Iterable[?]] 
-          val repeated =
-            if isIterable && !isMap then List('{ new metaconfig.annotation.Repeated })
-            else Nil
+            val dynamic =
+              if isMap || isConf then
+                List('{ new metaconfig.annotation.Dynamic })
+              else Nil
 
-          val dynamic =
-            if isMap || isConf then List('{ new metaconfig.annotation.Dynamic })
-            else Nil
+            val flag =
+              if vd.tpt.tpe.derivesFrom(TypeRepr.of[Boolean].typeSymbol) then
+                List('{ new metaconfig.annotation.Flag })
+              else Nil
 
-          val flag =
-            if vd.tpt.tpe.derivesFrom(TypeRepr.of[Boolean].typeSymbol) then
-              List('{ new metaconfig.annotation.Flag })
-            else Nil
+            val tabCompletePath: List[Expr[StaticAnnotation]] =
+              if derivesFrom[Path] || derivesFrom[File] then
+                List('{ new metaconfig.annotation.TabCompleteAsPath })
+              else Nil
 
-          val tabCompletePath: List[Expr[StaticAnnotation]] =
-            if derivesFrom[Path] || derivesFrom[File]
-            then List('{ new metaconfig.annotation.TabCompleteAsPath })
-            else Nil
+            val finalAnnots =
+              Expr.ofList(
+                repeated ++ dynamic ++ flag ++ tabCompletePath ++ baseAnnots
+              )
 
-          val finalAnnots =
-            Expr.ofList(
-              repeated ++ dynamic ++ flag ++ tabCompletePath ++ baseAnnots
-            )
+            val fieldType = vd.tpt.tpe
 
-          val fieldType = vd.tpt.tpe
+            val underlying: Expr[List[List[Field]]] = vd.tpt.tpe.asType match
+              case '[t] =>
+                Expr.summon[Surface[t]] match
+                  case None    => '{ Nil }
+                  case Some(e) => '{ $e.fields }
 
-          val underlying: Expr[List[List[Field]]] = vd.tpt.tpe.asType match
-            case '[t] =>
-              Expr.summon[Surface[t]] match
-                case None    => '{ Nil }
-                case Some(e) => '{ $e.fields }
+            val fieldName = Expr(vd.name)
+            val tpeString =
+              fieldType.asType match
+                case '[t] =>
+                  val renderer = Expr.summon[pprint.TPrint[t]].get
+                  '{ $renderer.render }
 
-          val fieldName = Expr(vd.name)
-          val tpeString = 
-            fieldType.asType match
-              case '[t] => 
-                val renderer = Expr.summon[pprint.TPrint[t]].get
-                '{$renderer.render}
+            val fieldExpr = '{
+              new Field($fieldName, $tpeString, $finalAnnots, $underlying)
+            }
+            Some(fieldExpr)
+          case other => None
+      }
 
-
-          val fieldExpr = '{
-            new Field($fieldName, $tpeString, $finalAnnots, $underlying)
-          }
-          Some(fieldExpr)
-        case other => None
+      Expr.ofList(fields)
     }
 
-    Expr.ofList(fields)
+  val args = Expr.ofList(argss)
+  val classAnnotations = Expr.ofList {
+    cls.annotations.collect {
+      case annot
+          if annot.tpe.derivesFrom(
+            TypeRepr.of[StaticAnnotation].typeSymbol
+          ) =>
+        annot.asExprOf[StaticAnnotation]
+    }
   }
 
-  val args = Expr.ofList(argss)
-  val classAnnotations = Expr.ofList {cls.annotations.collect {
-    case annot
-        if annot.tpe.derivesFrom(
-          TypeRepr.of[StaticAnnotation].typeSymbol
-        ) =>
-      annot.asExprOf[StaticAnnotation]
-  }}
-
-
-  '{new Surface[T]($args, $classAnnotations)}
+  '{ new Surface[T]($args, $classAnnotations) }
 end deriveSurfaceImpl
 
 private[generic] def assumeCaseClass[T: Type](using q: Quotes) =
