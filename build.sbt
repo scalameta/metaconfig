@@ -27,8 +27,6 @@ inThisBuild(
       "olafurpg@gmail.com",
       url("https://geirsson.com")
     ),
-    scalaVersion := ScalaVersions.head,
-    crossScalaVersions := ScalaVersions,
     resolvers += Resolver.sonatypeRepo("snapshots")
   )
 )
@@ -46,6 +44,7 @@ addCommandAlias(
   "native-image",
   "; tests/graalvm-native-image:packageBin ; taskready"
 )
+
 commands += Command.command("taskready") { s =>
   import scala.sys.process._
   "afplay /System/Library/Sounds/Hero.aiff".!
@@ -78,7 +77,9 @@ lazy val sharedSettings = List[Setting[_]](
   mimaBinaryIssueFilters ++= List[ProblemFilter](
     languageAgnosticCompatibilityPolicy
   ),
-  mimaPreviousArtifacts := Set("com.geirsson" %% moduleName.value % "0.9.10")
+  mimaPreviousArtifacts := Set("com.geirsson" %% moduleName.value % "0.9.10"),
+  crossScalaVersions := ScalaVersions,
+  scalaVersion := scala213
 )
 
 skip.in(publish) := true
@@ -92,7 +93,6 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     libraryDependencies ++= List(
       "org.typelevel" %%% "paiges-core" % "0.4.2",
       "org.scala-lang.modules" %%% "scala-collection-compat" % "2.5.0"
-      /* scalaOrganization.value % "scala-reflect" % scalaVersion.value % Provided */
     ) :+ (CrossVersion.partialVersion(scalaVersion.value) match {
       case Some((2, 11)) => "com.lihaoyi" %%% "pprint" % "0.5.4"
       case _ => "com.lihaoyi" %%% "pprint" % "0.6.6"
@@ -118,7 +118,7 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     crossScalaVersions -= scala3
   )
 
-lazy val coreJVM: Project = core.jvm
+lazy val coreJVM = core.jvm
 lazy val coreJS = core.js
 lazy val coreNative = core.native
 
@@ -211,6 +211,7 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     crossScalaVersions -= scala3
   )
   .dependsOn(core)
+
 lazy val testsJVM = tests.jvm
 lazy val testsJS = tests.js
 lazy val testsNative = tests.native
@@ -219,12 +220,14 @@ lazy val docs = project
   .in(file("metaconfig-docs"))
   .settings(
     sharedSettings,
-    scalaVersion := scala213,
-    crossScalaVersions := ScalaVersions.filter(_ != scala3),
+    crossScalaVersions -= scala3,
+    libraryDependencies ++= List(
+      "org.scalameta" %%% "munit-scalacheck" % V.munit
+    ),
     moduleName := "metaconfig-docs",
     libraryDependencies ++= List(
       "com.lihaoyi" %% "scalatags" % "0.9.4"
-    ),
+    ).filter(_ => scalaVersion.value.startsWith("2.")),
     mdocVariables := Map(
       "VERSION" -> version.value.replaceFirst("\\+.*", ""),
       "SCALA_VERSION" -> scalaVersion.value
