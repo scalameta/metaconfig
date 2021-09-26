@@ -17,7 +17,6 @@ case class AllTheAnnotations(
     @DeprecatedName("deprecatedName", "Use x instead", "2.0")
     @DeprecatedName("deprecatedName2", "Use y instead", "3.0")
     @SinceVersion("2.1")
-    @Description("Description")
     @Deprecated("Use newFeature instead", "2.1")
     number: Int = 2,
     string: String = "string",

@@ -52,11 +52,13 @@ object Messages {
         }
       }
       if (!setting.isBoolean) {
-        doc += Doc.space +
-          Doc.text(setting.tpe) +
-          Doc.text(" (default: ") +
-          Doc.text(value.toString()) +
-          Doc.text(")")
+        doc = doc + {
+          Doc.space +
+            Doc.text(setting.tpe) +
+            Doc.text(" (default: ") +
+            Doc.text(value.toString()) +
+            Doc.text(")")
+        }
       }
       setting.description
         .filter(_.nonEmpty)

@@ -3,11 +3,12 @@ import sbtcrossproject.CrossPlugin.autoImport.crossProject
 import com.typesafe.tools.mima.core._
 
 lazy val V = new {
-  def munit = "0.7.26"
+  def munit = "0.7.29"
 }
-val scala212 = "2.12.14"
+val scala212 = "2.12.15"
 val scala213 = "2.13.6"
-val ScalaVersions = List(scala213, scala212)
+val scala3 = "3.1.0-RC2"
+val ScalaVersions = List(scala213, scala212, scala3)
 inThisBuild(
   List(
     useSuperShell := false,
@@ -89,13 +90,32 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     sharedSettings,
     moduleName := "metaconfig-core",
     libraryDependencies ++= List(
-      "org.typelevel" %%% "paiges-core" % "0.4.1",
-      "org.scala-lang.modules" %%% "scala-collection-compat" % "2.4.3",
-      scalaOrganization.value % "scala-reflect" % scalaVersion.value % Provided,
-      "com.lihaoyi" %%% "pprint" % "0.6.4"
-    )
+      "org.typelevel" %%% "paiges-core" % "0.4.2",
+      "org.scala-lang.modules" %%% "scala-collection-compat" % "2.5.0"
+      /* scalaOrganization.value % "scala-reflect" % scalaVersion.value % Provided */
+    ) :+ (CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, 11)) => "com.lihaoyi" %%% "pprint" % "0.5.4"
+      case _ => "com.lihaoyi" %%% "pprint" % "0.6.6"
+    })
   )
-lazy val coreJVM = core.jvm
+  .settings(
+    libraryDependencies += {
+      if (scalaVersion.value.startsWith("3."))
+        "org.scala-lang" % "scala-reflect" % scala213
+      else "org.scala-lang" % "scala-reflect" % scalaVersion.value
+    },
+    Compile / unmanagedSourceDirectories ++= {
+      // TODO: why isn't sbt-crossproject adding epoch scala version
+      // sources? it should
+      if(scalaVersion.value.startsWith("2"))
+        Seq((ThisBuild / baseDirectory).value / "metaconfig-core" / "shared" / "src" / "main" / "scala-2")
+      else Seq.empty
+    }
+  ).nativeSettings(
+    crossScalaVersions -= scala3
+  )
+
+lazy val coreJVM: Project = core.jvm
 lazy val coreJS = core.js
 lazy val coreNative = core.native
 
@@ -116,18 +136,19 @@ lazy val sconfig = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     moduleName := "metaconfig-sconfig",
     description := "Integration for HOCON using ekrich/sconfig.",
     libraryDependencies ++= List(
-      "org.ekrich" %%% "sconfig" % "1.4.2"
+      "org.ekrich" %%% "sconfig" % "1.4.4"
     )
   )
   .jsSettings(
     libraryDependencies ++= List(
-      "org.ekrich" %%% "sjavatime" % "1.1.3"
+      "org.ekrich" %%% "sjavatime" % "1.1.5"
     )
   )
   .nativeSettings(
     libraryDependencies ++= List(
       "org.ekrich" %%% "sjavatime" % "1.1.3"
-    )
+    ),
+    crossScalaVersions -= scala3
   )
   .dependsOn(core)
 lazy val sconfigJVM = sconfig.jvm
@@ -152,7 +173,7 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .jvmSettings(
     mainClass in GraalVMNativeImage := Some("metaconfig.tests.ExampleMain"),
     sources.in(Compile, doc) := Seq.empty,
-    libraryDependencies += "com.github.alexarchambault" %%% "scalacheck-shapeless_1.15" % "1.3.0",
+    /* libraryDependencies += "com.github.alexarchambault" %%% "scalacheck-shapeless_1.15" % "1.3.0", */
     graalVMNativeImageOptions ++= {
       val reflectionFile =
         Keys.sourceDirectory.in(Compile).value./("graal")./("reflection.json")
@@ -175,7 +196,10 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   )
   .jvmConfigure(
     _.enablePlugins(GraalVMNativeImagePlugin)
-      .dependsOn(typesafe, sconfigJVM, docs)
+      .dependsOn(typesafe, sconfigJVM)
+  )
+  .nativeSettings(
+    crossScalaVersions -= scala3
   )
   .dependsOn(core)
 lazy val testsJVM = tests.jvm
@@ -186,6 +210,7 @@ lazy val docs = project
   .in(file("metaconfig-docs"))
   .settings(
     sharedSettings,
+    crossScalaVersions := ScalaVersions,
     moduleName := "metaconfig-docs",
     libraryDependencies ++= List(
       "com.lihaoyi" %% "scalatags" % "0.9.4"

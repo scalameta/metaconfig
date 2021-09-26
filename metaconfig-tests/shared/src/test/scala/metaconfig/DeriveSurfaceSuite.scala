@@ -41,37 +41,37 @@ class DeriveSurfaceSuite extends munit.FunSuite {
     assertNoDiff(number.name, "number")
   }
 
-  case class TypeParam[T](value: T)
-  object TypeParam {
-    implicit def surface[T]: Surface[TypeParam[T]] =
-      generic.deriveSurface[TypeParam[T]]
-  }
-  test("tparam") {
-    implicit val is: Surface[Int] = new Surface[Int](Nil)
-    val surface = TypeParam.surface[Int]
-    val List(value :: Nil) = surface.fields
-    assertNoDiff(value.name, "value")
-    assertNoDiff(value.tpe, "T")
-  }
+  // case class TypeParam[T](value: T)
+  // object TypeParam {
+  //   implicit def surface[T]: Surface[TypeParam[T]] =
+  //     generic.deriveSurface[TypeParam[T]]
+  // }
+  // test("tparam") {
+  //   implicit val is: Surface[Int] = new Surface[Int](Nil)
+  //   val surface = TypeParam.surface[Int]
+  //   val List(value :: Nil) = surface.fields
+  //   assertNoDiff(value.name, "value")
+  //   assertNoDiff(value.tpe, "T")
+  // }
 
-  case class AllRepeated[T](
-      notIterable: String,
-      a: Iterable[T],
-      b: List[Int],
-      c: Set[String]
-  )
-  object AllRepeated {
-    implicit def surface[T]: Surface[AllRepeated[T]] =
-      generic.deriveSurface[AllRepeated[T]]
-  }
+  // case class AllRepeated[T](
+  //     notIterable: String,
+  //     a: Iterable[T],
+  //     b: List[Int],
+  //     c: Set[String]
+  // )
+  // object AllRepeated {
+  //   implicit def surface[T]: Surface[AllRepeated[T]] =
+  //     generic.deriveSurface[AllRepeated[T]]
+  // }
 
-  test("@Repeated") {
-    val settings = Settings[AllRepeated[Int]]
-    assert(settings.settings.length == 4)
-    val notIterable :: tail = settings.settings
-    assert(!notIterable.isRepeated)
-    tail.foreach { setting => assert(setting.isRepeated, setting.name) }
-  }
+  // test("@Repeated") {
+  //   val settings = Settings[AllRepeated[Int]]
+  //   assert(settings.settings.length == 4)
+  //   val notIterable :: tail = settings.settings
+  //   assert(!notIterable.isRepeated)
+  //   tail.foreach { setting => assert(setting.isRepeated, setting.name) }
+  // }
 
   case class CustomTypePrinting(a: Int, b: Option[Int], c: List[String])
   test("tprint") {
