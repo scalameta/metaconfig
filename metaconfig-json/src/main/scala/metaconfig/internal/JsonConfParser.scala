@@ -6,8 +6,7 @@ import metaconfig.Position
 import ujson._
 import upickle.core.{Visitor, ObjArrVisitor}
 
-final class JsonConfParser[J](input: Input)
-    extends CharParser[J] {
+final class JsonConfParser[J](input: Input) extends CharParser[J] {
   var line = 0
   val chars = input.chars
   val wrapped: CharBuffer = CharBuffer.wrap(chars)
@@ -21,7 +20,10 @@ final class JsonConfParser[J](input: Input)
     }
   }
 
-  override def readDataIntoBuffer(buffer: Array[Char], bufferOffset: Int): (Array[Char], Boolean, Int) = ???
+  override def readDataIntoBuffer(
+      buffer: Array[Char],
+      bufferOffset: Int
+  ): (Array[Char], Boolean, Int) = ???
 
   private def trailingComma(i: Int): Int = at(i) match {
     case ',' =>

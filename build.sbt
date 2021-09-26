@@ -107,11 +107,14 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     Compile / unmanagedSourceDirectories ++= {
       // TODO: why isn't sbt-crossproject adding epoch scala version
       // sources? it should
-      if(scalaVersion.value.startsWith("2"))
-        Seq((ThisBuild / baseDirectory).value / "metaconfig-core" / "shared" / "src" / "main" / "scala-2")
+      if (scalaVersion.value.startsWith("2"))
+        Seq(
+          (ThisBuild / baseDirectory).value / "metaconfig-core" / "shared" / "src" / "main" / "scala-2"
+        )
       else Seq.empty
     }
-  ).nativeSettings(
+  )
+  .nativeSettings(
     crossScalaVersions -= scala3
   )
 
@@ -173,10 +176,13 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .jvmSettings(
     mainClass in GraalVMNativeImage := Some("metaconfig.tests.ExampleMain"),
     sources.in(Compile, doc) := Seq.empty,
-    libraryDependencies ++= 
-      {if(scalaVersion.value.startsWith("2."))
-      Seq("com.github.alexarchambault" %%% "scalacheck-shapeless_1.15" % "1.3.0")
-      else Seq.empty},
+    libraryDependencies ++= {
+      if (scalaVersion.value.startsWith("2."))
+        Seq(
+          "com.github.alexarchambault" %%% "scalacheck-shapeless_1.15" % "1.3.0"
+        )
+      else Seq.empty
+    },
     graalVMNativeImageOptions ++= {
       val reflectionFile =
         Keys.sourceDirectory.in(Compile).value./("graal")./("reflection.json")
