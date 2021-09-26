@@ -173,7 +173,10 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .jvmSettings(
     mainClass in GraalVMNativeImage := Some("metaconfig.tests.ExampleMain"),
     sources.in(Compile, doc) := Seq.empty,
-    /* libraryDependencies += "com.github.alexarchambault" %%% "scalacheck-shapeless_1.15" % "1.3.0", */
+    libraryDependencies ++= 
+      {if(scalaVersion.value.startsWith("2."))
+      Seq("com.github.alexarchambault" %%% "scalacheck-shapeless_1.15" % "1.3.0")
+      else Seq.empty},
     graalVMNativeImageOptions ++= {
       val reflectionFile =
         Keys.sourceDirectory.in(Compile).value./("graal")./("reflection.json")
@@ -196,7 +199,7 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   )
   .jvmConfigure(
     _.enablePlugins(GraalVMNativeImagePlugin)
-      .dependsOn(typesafe, sconfigJVM)
+      .dependsOn(typesafe, sconfigJVM, docs)
   )
   .nativeSettings(
     crossScalaVersions -= scala3
