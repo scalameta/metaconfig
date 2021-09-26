@@ -142,14 +142,14 @@ def deriveConfDecoderExImpl[T: Type](default: Expr[T])(using q: Quotes) =
 
   val paramss = TypeRepr.of[T].classSymbol.get.primaryConstructor.paramSymss
 
-  def next(p: ValDef): Expr[Conf => Configured[Any]] =
+  def next(p: ValDef): Expr[(Conf, T) => Configured[Any]] =
     p.tpt.tpe.asType match
       case '[t] =>
         val name     = Expr(p.name)
         val getter   = clsTpt.classSymbol.get.declaredField(p.name)
-        val fallback = Select(default.asTerm, getter).asExprOf[t]
+        val fallback = (from: Expr[Any]) => Select(from.asTerm, getter).asExprOf[t]
         val dec = Expr
-          .summon[ConfDecoder[t]]
+          .summon[ConfDecoderEx[t]]
           .getOrElse {
             report.error(
               "Could not find an implicit decoder for type" +
@@ -158,14 +158,15 @@ def deriveConfDecoderExImpl[T: Type](default: Expr[T])(using q: Quotes) =
             ???
           }
 
-        '{ conf =>
-          conf.getSettingOrElse[t](
-            $settings.unsafeGet($name),
-            $fallback
-          )(using $dec)
+        '{ (conf, from) =>
+          Conf.getSettingEx[t](${fallback('{from})}, conf, $settings.unsafeGet($name))(using $dec)
         }
 
-  if paramss.head.isEmpty then '{ ConfDecoderExT.constant($default) }
+  if paramss.head.isEmpty then '{ 
+    new ConfDecoderEx[T]:
+      def read(state: Option[T], conf: Conf) = 
+        Configured.Ok(state.getOrElse($default))
+  }
   else
     val (head :: params) :: Nil = paramss
     val vds = paramss.head.map(_.tree).collect { case vd: ValDef =>
@@ -175,10 +176,10 @@ def deriveConfDecoderExImpl[T: Type](default: Expr[T])(using q: Quotes) =
     val mir = Expr.summon[Mirror.ProductOf[T]].get
 
     val parameters = Expr.ofList(vds)
-    val merged = '{ (conf: Conf) =>
+    val merged = '{ (conf: Conf, from: T) =>
       $parameters
         .map { f =>
-          f(conf).map(Array.apply(_))
+          f(conf, from).map(Array.apply(_))
         }
         .reduceLeft((acc, nx) =>
           acc.product(nx).map { x =>
@@ -191,7 +192,8 @@ def deriveConfDecoderExImpl[T: Type](default: Expr[T])(using q: Quotes) =
 
     '{
       new ConfDecoderExT[T, T]:
-        def read(state: Option[T], conf: Conf): Configured[T] = $merged(conf)
+        def read(state: Option[T], conf: Conf): Configured[T] = 
+          $merged(conf, state.getOrElse($default))
     }
   end if
 end deriveConfDecoderExImpl

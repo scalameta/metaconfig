@@ -199,7 +199,7 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   )
   .jvmConfigure(
     _.enablePlugins(GraalVMNativeImagePlugin)
-      .dependsOn(typesafe, sconfigJVM, docs)
+      .dependsOn(typesafe, sconfigJVM)
   )
   .nativeSettings(
     crossScalaVersions -= scala3
