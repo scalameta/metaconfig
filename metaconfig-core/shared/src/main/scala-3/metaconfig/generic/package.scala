@@ -60,7 +60,7 @@ private[generic] def deriveEncoderImpl[T](using tp: Type[T])(using q: Quotes) =
   end match
 end deriveEncoderImpl
 
-def deriveConfDecoderImpl[T: Type](default: Expr[T])(using q: Quotes) =
+private[generic] def deriveConfDecoderImpl[T: Type](default: Expr[T])(using q: Quotes) =
   import q.reflect.*
   assumeCaseClass[T]
 
@@ -128,7 +128,7 @@ def deriveConfDecoderImpl[T: Type](default: Expr[T])(using q: Quotes) =
   end if
 end deriveConfDecoderImpl
 
-def deriveConfDecoderExImpl[T: Type](default: Expr[T])(using q: Quotes) =
+private[generic] def deriveConfDecoderExImpl[T: Type](default: Expr[T])(using q: Quotes) =
   import q.reflect.*
   assumeCaseClass[T]
 
@@ -198,7 +198,7 @@ def deriveConfDecoderExImpl[T: Type](default: Expr[T])(using q: Quotes) =
   end if
 end deriveConfDecoderExImpl
 
-def deriveSurfaceImpl[T: Type](using q: Quotes) =
+private[generic] def deriveSurfaceImpl[T: Type](using q: Quotes) =
   import q.reflect.*
   assumeCaseClass[T]
 
@@ -255,7 +255,11 @@ def deriveSurfaceImpl[T: Type](using q: Quotes) =
                 case Some(e) => '{ $e.fields }
 
           val fieldName = Expr(vd.name)
-          val tpeString = Expr(fieldType.show(using Printer.TypeReprShortCode))
+          val tpeString = 
+            fieldType.asType match
+              case '[t] => 
+                val renderer = Expr.summon[pprint.TPrint[t]].get
+                '{$renderer.render}
 
           val fieldExpr = '{
             new Field($fieldName, $tpeString, $finalAnnots, $underlying)
@@ -279,16 +283,13 @@ def deriveSurfaceImpl[T: Type](using q: Quotes) =
   '{new Surface[T]($args, $classAnnotations)}
 end deriveSurfaceImpl
 
-def getParams(m: Symbol)(using q: Quotes) =
-  import q.reflect.*
-
-def assumeCaseClass[T: Type](using q: Quotes) =
+private[generic] def assumeCaseClass[T: Type](using q: Quotes) =
   import q.reflect.*
   val sym         = TypeTree.of[T].symbol
   val isCaseClass = sym.isClassDef && sym.flags.is(Flags.Case)
   if !isCaseClass then report.error(s"${Type.show[T]} must be a case class")
 
-def params[T: Type](using q: Quotes) =
+private[generic] def params[T: Type](using q: Quotes) =
   import q.reflect.*
   val fields  = TypeTree.of[T].symbol.caseFields
   val encoder = TypeRepr.of[ConfEncoder]
@@ -309,12 +310,6 @@ def params[T: Type](using q: Quotes) =
   }
 
 end params
-
-private[generic] def printImpl[T: Type](e: Expr[T])(using Quotes) = 
-  import quotes.reflect.*
-  Expr(e.show)
-  
-
 
 private[generic] def paramNames[T: Type](using q: Quotes) =
   import q.reflect.*
