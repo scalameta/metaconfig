@@ -9,6 +9,8 @@ val scala212 = "2.12.15"
 val scala213 = "2.13.6"
 val scala3 = "3.0.2"
 val ScalaVersions = List(scala213, scala212, scala3)
+val Scala2Versions = List(scala213, scala212)
+
 inThisBuild(
   List(
     useSuperShell := false,
@@ -115,7 +117,8 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     }
   )
   .nativeSettings(
-    crossScalaVersions -= scala3
+    crossScalaVersions := Scala2Versions,
+    scalaVersion := scala213
   )
 
 lazy val coreJVM = core.jvm
