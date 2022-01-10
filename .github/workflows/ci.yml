@@ -29,4 +29,3 @@ jobs:
       - run: ./bin/scalafmt --check
       - run: sbt scalafixCheckAll
       - run: sbt coreJVM/mimaReportBinaryIssues
-      - run: sbt docs/docusaurusCreateSite
