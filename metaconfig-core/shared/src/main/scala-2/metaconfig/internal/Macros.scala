@@ -269,7 +269,7 @@ class Macros(val c: blackbox.Context) {
 
         val field = q"""new ${weakTypeOf[Field]}(
            ${param.name.decodedName.toString},
-           $tpeString.render,
+           $tpeString.render.render,
            _root_.scala.List.apply(..$finalAnnots),
            $underlying
          )"""

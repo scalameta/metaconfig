@@ -3,6 +3,7 @@ package metaconfig
 import java.io.File
 import metaconfig.generic.Settings
 import metaconfig.generic.Surface
+import pprint.TPrintColors
 
 class DeriveSurfaceSuite extends munit.FunSuite {
 
@@ -76,13 +77,20 @@ class DeriveSurfaceSuite extends munit.FunSuite {
   case class CustomTypePrinting(a: Int, b: Option[Int], c: List[String])
   test("tprint") {
     import pprint.TPrint
-    implicit val intPrint = TPrint.literal[Int]("number")
+    implicit val intPrint = new TPrint[Int] {
+      def render(implicit tpc: TPrintColors): fansi.Str = fansi.Str("number")
+    }
     implicit def optionPrint[T](implicit ev: TPrint[T]): TPrint[Option[T]] =
-      TPrint.make { implicit colors => "(" + ev.render + ")" }
+      new TPrint[Option[T]] {
+        def render(implicit tpc: TPrintColors): fansi.Str =
+          "(" + ev.render + ")"
+      }
     implicit def iterablePrint[C[x] <: Iterable[x], T](
         implicit ev: TPrint[T]
-    ): TPrint[C[T]] =
-      TPrint.make { implicit colors => "[" + ev.render + " ...]" }
+    ): TPrint[C[T]] = new TPrint[C[T]] {
+      def render(implicit tpc: TPrintColors): fansi.Str =
+        "[" + ev.render + " ...]"
+    }
     implicit val surface = generic.deriveSurface[CustomTypePrinting]
     val a :: b :: c :: Nil = Settings[CustomTypePrinting].settings
     assertEquals(a.tpe, "number")
