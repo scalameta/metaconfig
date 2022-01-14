@@ -273,7 +273,7 @@ private[generic] def deriveSurfaceImpl[T: Type](using q: Quotes) =
               fieldType.asType match
                 case '[t] =>
                   val renderer = Expr.summon[pprint.TPrint[t]].get
-                  '{ $renderer.render }
+                  '{ $renderer.render.render }
 
             val fieldExpr = '{
               new Field($fieldName, $tpeString, $finalAnnots, $underlying)
