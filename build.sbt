@@ -218,6 +218,7 @@ lazy val docs = project
   .in(file("metaconfig-docs"))
   .settings(
     sharedSettings,
+    publish / skip := true,
     crossScalaVersions -= scala3,
     libraryDependencies ++= List(
       "org.scalameta" %%% "munit-scalacheck" % V.munit
