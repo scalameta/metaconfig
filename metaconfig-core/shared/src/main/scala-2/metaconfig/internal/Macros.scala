@@ -262,7 +262,7 @@ class Macros(val c: blackbox.Context) {
           }
         val tprint = c.internal.typeRef(
           NoPrefix,
-          weakTypeOf[pprint.TPrint[_]].typeSymbol,
+          weakTypeOf[metaconfig.pprint.TPrint[_]].typeSymbol,
           paramTpe :: Nil
         )
         val tpeString = c.inferImplicitValue(tprint)

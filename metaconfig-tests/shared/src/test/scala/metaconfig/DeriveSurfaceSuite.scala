@@ -3,7 +3,7 @@ package metaconfig
 import java.io.File
 import metaconfig.generic.Settings
 import metaconfig.generic.Surface
-import pprint.TPrintColors
+import metaconfig.pprint.TPrintColors
 
 class DeriveSurfaceSuite extends munit.FunSuite {
 
@@ -76,7 +76,7 @@ class DeriveSurfaceSuite extends munit.FunSuite {
 
   case class CustomTypePrinting(a: Int, b: Option[Int], c: List[String])
   test("tprint") {
-    import pprint.TPrint
+    import metaconfig.pprint.TPrint
     implicit val intPrint = new TPrint[Int] {
       def render(implicit tpc: TPrintColors): fansi.Str = fansi.Str("number")
     }
