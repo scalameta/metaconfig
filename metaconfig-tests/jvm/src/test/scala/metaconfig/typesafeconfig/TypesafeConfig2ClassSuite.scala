@@ -95,9 +95,15 @@ class TypesafeConfig2ClassSuite extends munit.FunSuite {
     assertEquals(aPos, Position.None: Position)
 
     val bPos = obtainedObj.field("b").get.pos
-    assertEquals(bPos.lineContent, "b = foo")
+    assertEquals(
+      bPos.lineContent.replace("\n", "").replace("\r", ""),
+      "b = foo"
+    )
 
     val cPos = obtainedObj.field("c").get.pos
-    assertEquals(cPos.lineContent, "c = bar")
+    assertEquals(
+      cPos.lineContent.replace("\n", "").replace("\r", ""),
+      "c = bar"
+    )
   }
 }
