@@ -6,7 +6,7 @@ lazy val V = new {
   def munit = "0.7.29"
 }
 val scala212 = "2.12.15"
-val scala213 = "2.13.6"
+val scala213 = "2.13.8"
 val scala3 = "3.0.2"
 val ScalaVersions = List(scala213, scala212, scala3)
 inThisBuild(
