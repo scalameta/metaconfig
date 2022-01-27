@@ -85,6 +85,25 @@ lazy val sharedSettings = List[Setting[_]](
 skip.in(publish) := true
 disablePlugins(MimaPlugin)
 
+lazy val pprint = crossProject(JVMPlatform, JSPlatform, NativePlatform)
+  .in(file("metaconfig-pprint"))
+  .settings(
+    sharedSettings,
+    moduleName := "metaconfig-pprint",
+    libraryDependencies += "com.lihaoyi" %%% "fansi" % "0.3.0",
+    libraryDependencies ++= {
+      if (scalaVersion.value.startsWith("2."))
+        List(
+          "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+          "org.scala-lang" % "scala-compiler" % scalaVersion.value
+        )
+      else Nil
+    }
+  )
+  .nativeSettings(
+    crossScalaVersions -= scala3
+  )
+
 lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .in(file("metaconfig-core"))
   .settings(
@@ -92,8 +111,7 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     moduleName := "metaconfig-core",
     libraryDependencies ++= List(
       "org.typelevel" %%% "paiges-core" % "0.4.2",
-      "org.scala-lang.modules" %%% "scala-collection-compat" % "2.5.0",
-      "com.lihaoyi" %%% "pprint" % "0.7.1"
+      "org.scala-lang.modules" %%% "scala-collection-compat" % "2.5.0"
     )
   )
   .settings(
@@ -115,6 +133,7 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .nativeSettings(
     crossScalaVersions -= scala3
   )
+  .dependsOn(pprint)
 
 lazy val coreJVM = core.jvm
 lazy val coreJS = core.js
