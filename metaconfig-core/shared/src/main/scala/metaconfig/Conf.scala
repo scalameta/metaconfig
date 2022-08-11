@@ -35,6 +35,9 @@ sealed abstract class Conf extends Product with Serializable {
       default: T
   )(implicit ev: ConfDecoder[T]): Configured[T] =
     ConfGet.getOrElse(this, default, path, extraNames: _*)
+
+  def getNested[T](keys: String*)(implicit ev: ConfDecoder[T]): Configured[T] =
+    ConfGet.getNested(this, keys: _*)
 }
 
 object Conf {
