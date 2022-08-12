@@ -45,23 +45,10 @@ object ConfGet {
     }
   }
 
-  @tailrec
   def getNested[T](conf: Conf, keys: String*)(
       implicit ev: ConfDecoder[T]
   ): Configured[T] =
-    keys.headOption match {
-      case None => ev.read(conf)
-      case Some(key) =>
-        conf match {
-          case obj: Conf.Obj =>
-            obj.values.collectFirst { case (`key`, v) => v } match {
-              case Some(v) => getNested(v, keys.tail: _*)
-              case _ => ConfError.missingField(obj, key).notOk
-            }
-          case _ =>
-            ConfError.typeMismatch(s"Conf.Obj with key '$key'", conf).notOk
-        }
-    }
+    conf.getNestedConf(keys: _*).andThen(ev.read)
 
   // Copy-pasted from scala.meta inputs because it's private.
   // TODO(olafur) expose utility in inputs to get offset from line
