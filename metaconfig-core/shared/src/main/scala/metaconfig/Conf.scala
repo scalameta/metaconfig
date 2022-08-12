@@ -10,6 +10,8 @@ import metaconfig.internal.ConfGet
 import metaconfig.internal.ConfPatch
 import metaconfig.internal.HoconPrinter
 
+import scala.annotation.tailrec
+
 sealed abstract class Conf extends Product with Serializable {
   def dynamic: ConfDynamic = ConfDynamic(Configured.Ok(this))
   def pos: Position = Position.None
@@ -129,6 +131,40 @@ object Conf {
       implicit ev: ConfDecoderEx[A]
   ): Configured[A] =
     getEx(state, conf, setting.name +: setting.alternativeNames)
+
+  implicit class ConfImplicit(conf: Conf) {
+
+    def getEx[A](state: Option[A])(
+        implicit ev: ConfDecoderEx[A]
+    ): Configured[A] =
+      ev.read(state, conf)
+
+    def getExT[A, B](state: Option[A])(
+        implicit ev: ConfDecoderExT[A, B]
+    ): Configured[B] =
+      ev.read(state, conf)
+
+    def getConf(key: String): Configured[Conf] =
+      conf match {
+        case obj: Conf.Obj =>
+          val vOpt = obj.values.collectFirst { case (`key`, v) => v }
+          Configured.opt(vOpt)(ConfError.missingField(obj, key))
+        case _ =>
+          ConfError.typeMismatch(s"Conf.Obj with key '$key'", conf).notOk
+      }
+
+    @tailrec
+    final def getNestedConf(keys: String*): Configured[Conf] =
+      keys.headOption match {
+        case None => Configured.Ok(conf)
+        case Some(key) =>
+          getConf(key) match {
+            case Configured.Ok(v) => v.getNestedConf(keys.tail: _*)
+            case x => x
+          }
+      }
+
+  }
 
 }
 

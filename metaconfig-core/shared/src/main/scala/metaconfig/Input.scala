@@ -106,7 +106,12 @@ object Input {
     def parse(
         path: Option[Predef.String]
     )(implicit parser: MetaconfigParser): Configured[Conf] =
-      path.fold(parse)(x => ConfDynamic(parse).selectDynamic(x).asConf)
+      path.fold(parse)(x => parse.andThen(_.getConf(x)))
+
+    def parse(
+        path: Predef.String*
+    )(implicit parser: MetaconfigParser): Configured[Conf] =
+      parse.andThen(_.getNestedConf(path: _*))
 
   }
 
