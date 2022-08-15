@@ -89,6 +89,29 @@ object ConfDecoderExT {
         case _ => ev.read(state.flatten, conf).map(Some.apply)
       }
 
+  implicit def canBuildEitherT[S, A, B](
+      implicit evA: ConfDecoderExT[S, A],
+      evB: ConfDecoderExT[S, B]
+  ): ConfDecoderExT[S, Either[A, B]] =
+    evA.map[Either[A, B]](Left.apply).orElse(evB.map[Either[A, B]](Right.apply))
+
+  implicit def canBuildEither[A, B](
+      implicit evA: ConfDecoderEx[A],
+      evB: ConfDecoderEx[B]
+  ): ConfDecoderEx[Either[A, B]] =
+    (state, conf) => {
+      @inline def asA(s: Option[A]) = evA.read(s, conf).map(x => Left(x))
+      @inline def asB(s: Option[B]) = evB.read(s, conf).map(x => Right(x))
+      state.fold {
+        asA(None).recoverWithOrCombine(asB(None))
+      } {
+        _.fold(
+          a => asA(Some(a)).recoverWithOrCombine(asB(None)),
+          b => asB(Some(b)).recoverWithOrCombine(asA(None))
+        )
+      }
+    }
+
   implicit def canBuildStringMapT[S, A, CC[_, _]](
       implicit ev: ConfDecoderExT[S, A],
       factory: Factory[(String, A), CC[String, A]],

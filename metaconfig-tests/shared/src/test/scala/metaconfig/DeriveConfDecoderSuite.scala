@@ -103,6 +103,26 @@ class DeriveConfDecoderSuite extends munit.FunSuite {
     assert(obtained == expected)
   }
 
+  test("either") {
+    implicit val decoderOneParam: ConfDecoder[OneParam] =
+      generic.deriveDecoder[OneParam](OneParam()).noTypos
+    implicit val decoderHasOption: ConfDecoder[HasOption] =
+      generic.deriveDecoder[HasOption](HasOption()).noTypos
+    val either = implicitly[ConfDecoder[Either[OneParam, HasOption]]]
+    assertEquals(
+      either.read(Obj("param" -> Num(2))).get,
+      Left(OneParam(2))
+    )
+    assertEquals(
+      either.read(Obj("b" -> Num(2))).get,
+      Right(HasOption(Some(2)))
+    )
+    assertEquals(
+      either.read(Obj("c" -> Num(3))).toEither.left.get.msg,
+      "found option 'c' which wasn't expected, or isn't valid in this context."
+    )
+  }
+
   case class MissingSurface(b: Int)
 
   def checkOption(conf: Conf, expected: HasOption)(
