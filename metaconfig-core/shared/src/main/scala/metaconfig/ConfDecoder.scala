@@ -114,6 +114,12 @@ object ConfDecoder {
         case _ => ev.read(conf).map(Some(_))
       }
 
+  implicit def canBuildEither[A, B](
+      implicit evA: ConfDecoder[A],
+      evB: ConfDecoder[B]
+  ): ConfDecoder[Either[A, B]] =
+    orElse(evA.map(x => Left(x)), evB.map(x => Right(x)))
+
   // XXX: remove this method when MIMA no longer an issue
   @deprecated("Use canBuildFromAnyMapWithStringKey instead", "0.9.2")
   implicit def canBuildFromMapWithStringKey[A](
