@@ -115,6 +115,8 @@ object Configured extends ConfiguredLowPriorityImplicits {
     def foreach(fa: ConfError => Unit)(fb: A => Unit): Unit =
       fold(fa)(fb)
 
+    def recoverWithOrCombine[B >: A](f: => Configured[B]): Configured[B] =
+      value.recoverWith { x => f.recoverWith(x.combine) }
   }
 
 }

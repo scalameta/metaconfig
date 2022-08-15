@@ -174,9 +174,7 @@ object ConfDecoderExT {
 
     def orElse(other: ConfDecoderExT[S, A]): ConfDecoderExT[S, A] =
       (state, conf) =>
-        self.read(state, conf).recoverWith { x =>
-          other.read(state, conf).recoverWith(x.combine)
-        }
+        self.read(state, conf).recoverWithOrCombine(other.read(state, conf))
 
     def noTypos(implicit settings: generic.Settings[A]): ConfDecoderExT[S, A] =
       if (self.isInstanceOf[NoTyposDecoderEx[_, _]]) self
