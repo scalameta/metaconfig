@@ -137,6 +137,6 @@ object ConfDecoder {
     CanBuildFromDecoder.list[C, A]
 
   def orElse[A](a: ConfDecoder[A], b: ConfDecoder[A]): ConfDecoder[A] =
-    conf => a.read(conf).recoverWith(x => b.read(conf).recoverWith(x.combine))
+    conf => a.read(conf).recoverWithOrCombine(b.read(conf))
 
 }
