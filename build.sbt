@@ -27,7 +27,8 @@ inThisBuild(
       "olafurpg@gmail.com",
       url("https://geirsson.com")
     ),
-    resolvers += Resolver.sonatypeRepo("snapshots")
+    resolvers += Resolver.sonatypeRepo("snapshots"),
+    versionScheme := Some("early-semver")
   )
 )
 
@@ -251,7 +252,9 @@ lazy val docs = project
     ),
     mdocOut :=
       baseDirectory.in(ThisBuild).value / "website" / "target" / "docs",
-    mdocExtraArguments := List("--no-link-hygiene")
+    mdocExtraArguments := List("--no-link-hygiene"),
+    // mdoc's metaconfig might (and will eventually) lag behind the current version, causing eviction errors
+    evictionErrorLevel := Level.Warn
   )
   .dependsOn(coreJVM, typesafe, sconfigJVM)
   .enablePlugins(DocusaurusPlugin)
