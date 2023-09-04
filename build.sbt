@@ -7,7 +7,7 @@ lazy val V = new {
 }
 val scala212 = "2.12.15"
 val scala213 = "2.13.8"
-val scala3 = "3.0.2"
+val scala3 = "3.1.3"
 val ScalaVersions = List(scala213, scala212, scala3)
 inThisBuild(
   List(
@@ -91,7 +91,7 @@ lazy val pprint = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .settings(
     sharedSettings,
     moduleName := "metaconfig-pprint",
-    libraryDependencies += "com.lihaoyi" %%% "fansi" % "0.3.0",
+    libraryDependencies += "com.lihaoyi" %%% "fansi" % "0.4.0",
     libraryDependencies ++= {
       if (scalaVersion.value.startsWith("2."))
         List(
