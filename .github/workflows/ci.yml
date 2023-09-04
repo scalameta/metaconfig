@@ -11,10 +11,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-22.04, windows-2019]
         java: [8, 11]
         exclude:
-          - os: windows-latest
+          - os: windows-2019
             java: 8
     steps:
       - uses: actions/checkout@v3
@@ -31,7 +31,7 @@ jobs:
       # it does not matter whether it would be used or not, the amount of all
       # reserved memory cannot exceed the amount of physically available storage.
       - name: Configure Pagefile
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2019'
         uses: al-cheb/configure-pagefile-action@v1.3
         with:
           minimum-size: 4GB
@@ -39,7 +39,7 @@ jobs:
       - name: Test
         run: sbt +test
   checks:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-java@v3
