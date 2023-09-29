@@ -3,7 +3,8 @@ import sbtcrossproject.CrossPlugin.autoImport.crossProject
 import com.typesafe.tools.mima.core._
 
 lazy val V = new {
-  def munit = "0.7.29"
+  def munit = "1.0.0-M10"
+  def scalacheck = "1.17.0"
 }
 val scala212 = "2.12.15"
 val scala213 = "2.13.8"
@@ -186,7 +187,8 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     Compile / packageDoc / publishArtifact := false,
     testFrameworks := List(new TestFramework("munit.Framework")),
     libraryDependencies ++= List(
-      "org.scalameta" %%% "munit-scalacheck" % V.munit
+      "org.scalacheck" %%% "scalacheck" % V.scalacheck,
+      "org.scalameta" %%% "munit-scalacheck" % V.munit % Test
     )
   )
   .jsSettings(
@@ -238,7 +240,8 @@ lazy val docs = project
     sharedSettings,
     crossScalaVersions -= scala3,
     libraryDependencies ++= List(
-      "org.scalameta" %%% "munit-scalacheck" % V.munit
+      "org.scalacheck" %%% "scalacheck" % V.scalacheck,
+      "org.scalameta" %%% "munit-scalacheck" % V.munit % Test
     ),
     moduleName := "metaconfig-docs",
     libraryDependencies ++= List(
