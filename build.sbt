@@ -114,7 +114,7 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     moduleName := "metaconfig-core",
     libraryDependencies ++= List(
       "org.typelevel" %%% "paiges-core" % "0.4.3",
-      "org.scala-lang.modules" %%% "scala-collection-compat" % "2.5.0"
+      "org.scala-lang.modules" %%% "scala-collection-compat" % "2.11.0"
     )
   )
   .settings(
