@@ -9,7 +9,7 @@ object Case {
     while (m.find()) {
       m.appendReplacement(
         sb,
-        m.group().charAt(1).toUpper + m.group().substring(2)
+        m.group().charAt(1).toUpper.toString + m.group().substring(2)
       )
     }
     m.appendTail(sb)

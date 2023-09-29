@@ -82,7 +82,7 @@ object TPrintLowPri {
       val g = cas.global
       val gName = s.name.asInstanceOf[g.Name]
       val lookedUps =
-        for (n <- Stream(gName.toTermName, gName.toTypeName)) yield {
+        for (n <- Iterator(gName.toTermName, gName.toTypeName)) yield {
           cas.callsiteTyper.context
             .lookupSymbol(n, _ => true)
             .symbol
@@ -186,7 +186,7 @@ object TPrintLowPri {
           }
         }
       if (stmts.length == 0) None
-      else Some(stmts.reduceLeft((l, r) => l + "; " + r))
+      else Some(stmts.reduceLeft((l, r) => s"$l; $r"))
     }
 
     tpe match {
@@ -195,8 +195,10 @@ object TPrintLowPri {
         (fansi.Str("_") ++ res, WrapType.NoWrap)
       case ThisType(sym) =>
         (
-          printSymFull(sym) + (if (sym.isPackage || sym.isModuleClass) ""
-                               else ".this.type"),
+          printSymFull(sym).toString +
+            (if (sym.isPackage || sym.isModuleClass)
+               ""
+             else ".this.type"),
           WrapType.NoWrap
         )
 
@@ -273,11 +275,11 @@ object TPrintLowPri {
         )
       case AnnotatedType(annots, tp) =>
         val mapped = annots
-          .map(x => " @" + typePrintImplRec(c)(x.tpe, true))
+          .map(x => " @" + typePrintImplRec(c)(x.tree.tpe, true))
           .reduceLeft((x, y) => x + y)
 
         (
-          typePrintImplRec(c)(tp, true) + mapped,
+          typePrintImplRec(c)(tp, true).toString + mapped,
           WrapType.NoWrap
         )
       case RefinedType(parents, defs) =>
@@ -288,7 +290,7 @@ object TPrintLowPri {
               .map(typePrintImplRec(c)(_, true))
               .reduceLeft[fansi.Str]((l, r) => l ++ " with " ++ r)
         (
-          pre + (if (defs.isEmpty) "" else "{" ++ defs.mkString(";") ++ "}"),
+          pre.toString + (if (defs.isEmpty) "" else "{" ++ defs.mkString(";") ++ "}"),
           WrapType.NoWrap
         )
       case ConstantType(value) =>

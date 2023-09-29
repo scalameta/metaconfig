@@ -7,7 +7,7 @@ lazy val V = new {
 }
 val scala212 = "2.12.15"
 val scala213 = "2.13.8"
-val scala3 = "3.1.3"
+val scala3 = "3.3.1"
 val ScalaVersions = List(scala213, scala212, scala3)
 inThisBuild(
   List(
@@ -27,7 +27,7 @@ inThisBuild(
       "olafurpg@gmail.com",
       url("https://geirsson.com")
     ),
-    resolvers += Resolver.sonatypeRepo("snapshots"),
+    resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
     versionScheme := Some("early-semver")
   )
 )
@@ -78,18 +78,22 @@ lazy val sharedSettings = List[Setting[_]](
   mimaBinaryIssueFilters ++= List[ProblemFilter](
     languageAgnosticCompatibilityPolicy
   ),
-  mimaPreviousArtifacts := Set("com.geirsson" %% moduleName.value % "0.9.10"),
   crossScalaVersions := ScalaVersions,
   scalaVersion := scala213
 )
 
-skip.in(publish) := true
+lazy val mimaSettings = List[Setting[_]](
+  mimaPreviousArtifacts := Set("com.geirsson" %% moduleName.value % "0.9.10")
+)
+
+publish / skip := true
 disablePlugins(MimaPlugin)
 
 lazy val pprint = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .in(file("metaconfig-pprint"))
   .settings(
     sharedSettings,
+    mimaSettings,
     moduleName := "metaconfig-pprint",
     libraryDependencies += "com.lihaoyi" %%% "fansi" % "0.4.0",
     libraryDependencies ++= {
@@ -101,17 +105,15 @@ lazy val pprint = crossProject(JVMPlatform, JSPlatform, NativePlatform)
       else Nil
     }
   )
-  .nativeSettings(
-    crossScalaVersions -= scala3
-  )
 
 lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .in(file("metaconfig-core"))
   .settings(
     sharedSettings,
+    mimaSettings,
     moduleName := "metaconfig-core",
     libraryDependencies ++= List(
-      "org.typelevel" %%% "paiges-core" % "0.4.2",
+      "org.typelevel" %%% "paiges-core" % "0.4.3",
       "org.scala-lang.modules" %%% "scala-collection-compat" % "2.5.0"
     )
   )
@@ -131,9 +133,6 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
       else Seq.empty
     }
   )
-  .nativeSettings(
-    crossScalaVersions -= scala3
-  )
   .dependsOn(pprint)
 
 lazy val coreJVM = core.jvm
@@ -144,6 +143,7 @@ lazy val typesafe = project
   .in(file("metaconfig-typesafe-config"))
   .settings(
     sharedSettings,
+    mimaSettings,
     moduleName := "metaconfig-typesafe-config",
     description := "Integration for HOCON using typesafehub/config.",
     libraryDependencies += "com.typesafe" % "config" % "1.4.1"
@@ -154,6 +154,7 @@ lazy val sconfig = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .in(file("metaconfig-sconfig"))
   .settings(
     sharedSettings,
+    mimaSettings,
     moduleName := "metaconfig-sconfig",
     description := "Integration for HOCON using ekrich/sconfig.",
     libraryDependencies ++= List(
@@ -181,8 +182,8 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .disablePlugins(MimaPlugin)
   .settings(
     sharedSettings,
-    skip in publish := true,
-    publishArtifact.in(Compile, packageDoc) := false,
+    publish / skip := true,
+    Compile / packageDoc / publishArtifact := false,
     testFrameworks := List(new TestFramework("munit.Framework")),
     libraryDependencies ++= List(
       "org.scalameta" %%% "munit-scalacheck" % V.munit
@@ -192,8 +193,8 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
   )
   .jvmSettings(
-    mainClass in GraalVMNativeImage := Some("metaconfig.tests.ExampleMain"),
-    sources.in(Compile, doc) := Seq.empty,
+    GraalVMNativeImage / mainClass := Some("metaconfig.tests.ExampleMain"),
+    Compile / doc / sources := Seq.empty,
     libraryDependencies ++= {
       if (scalaVersion.value.startsWith("2."))
         Seq(
@@ -203,7 +204,7 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     },
     graalVMNativeImageOptions ++= {
       val reflectionFile =
-        Keys.sourceDirectory.in(Compile).value./("graal")./("reflection.json")
+        (Compile / Keys.sourceDirectory).value / "graal" / "reflection.json"
       assert(reflectionFile.exists, "no such file: " + reflectionFile)
       List(
         "-H:+ReportUnsupportedElementsAtRuntime",
@@ -224,9 +225,6 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .jvmConfigure(
     _.enablePlugins(GraalVMNativeImagePlugin)
       .dependsOn(typesafe, sconfigJVM)
-  )
-  .nativeSettings(
-    crossScalaVersions -= scala3
   )
   .dependsOn(core)
 
@@ -250,8 +248,7 @@ lazy val docs = project
       "VERSION" -> version.value.replaceFirst("\\+.*", ""),
       "SCALA_VERSION" -> scalaVersion.value
     ),
-    mdocOut :=
-      baseDirectory.in(ThisBuild).value / "website" / "target" / "docs",
+    mdocOut := (ThisBuild / baseDirectory).value / "website" / "target" / "docs",
     mdocExtraArguments := List("--no-link-hygiene"),
     // mdoc's metaconfig might (and will eventually) lag behind the current version, causing eviction errors
     evictionErrorLevel := Level.Warn
