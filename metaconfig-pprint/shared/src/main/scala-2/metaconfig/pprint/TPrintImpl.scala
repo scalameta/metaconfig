@@ -290,7 +290,8 @@ object TPrintLowPri {
               .map(typePrintImplRec(c)(_, true))
               .reduceLeft[fansi.Str]((l, r) => l ++ " with " ++ r)
         (
-          pre.toString + (if (defs.isEmpty) "" else "{" ++ defs.mkString(";") ++ "}"),
+          pre.toString + (if (defs.isEmpty) ""
+                          else "{" ++ defs.mkString(";") ++ "}"),
           WrapType.NoWrap
         )
       case ConstantType(value) =>

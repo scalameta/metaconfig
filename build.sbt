@@ -232,8 +232,6 @@ lazy val docs = project
       "org.scalameta" %%% "munit-scalacheck" % V.munit % Test
     ),
     moduleName := "metaconfig-docs",
-    libraryDependencies ++= List(
-    ).filter(_ => scalaVersion.value.startsWith("2.")),
     mdocVariables := Map(
       "VERSION" -> version.value.replaceFirst("\\+.*", ""),
       "SCALA_VERSION" -> scalaVersion.value
