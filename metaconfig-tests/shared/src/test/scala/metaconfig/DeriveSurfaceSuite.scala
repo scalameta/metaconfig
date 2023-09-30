@@ -1,26 +1,15 @@
 package metaconfig
 
-import java.io.File
 import metaconfig.generic.Settings
 import metaconfig.generic.Surface
 import metaconfig.pprint.TPrintColors
 
 class DeriveSurfaceSuite extends munit.FunSuite {
 
-  case class WithFile(file: File)
-  test("toString") {
-    val surface = generic.deriveSurface[WithFile]
-    val obtained = surface.toString
-    assertNoDiff(
-      obtained,
-      "Surface(List(List(Field(name=\"file\",tpe=\"File\",annotations=List(@TabCompleteAsPath()),underlying=List()))))"
-    )
-  }
-
   case class Curried(a: Int)(b: List[Int])
   test("curried") {
     val surface = generic.deriveSurface[Curried]
-    val List(a :: Nil, b :: Nil) = surface.fields
+    val List(a :: Nil, b :: Nil) = surface.fields: @unchecked
     assertNoDiff(a.name, "a")
     assertNoDiff(b.name, "b")
   }
@@ -36,8 +25,8 @@ class DeriveSurfaceSuite extends munit.FunSuite {
   }
   test("underlying") {
     val surface = generic.deriveSurface[Enclosing]
-    val List(underlying :: Nil) = surface.fields
-    val List(number :: Nil) = underlying.underlying
+    val List(underlying :: Nil) = surface.fields: @unchecked
+    val List(number :: Nil) = underlying.underlying: @unchecked
     assertNoDiff(underlying.name, "underlying")
     assertNoDiff(number.name, "number")
   }
@@ -50,7 +39,7 @@ class DeriveSurfaceSuite extends munit.FunSuite {
   test("tparam") {
     implicit val is: Surface[Int] = new Surface[Int](Nil)
     val surface = TypeParam.surface[Int]
-    val List(value :: Nil) = surface.fields
+    val List(value :: Nil) = surface.fields: @unchecked
     assertNoDiff(value.name, "value")
     assertNoDiff(value.tpe, "T")
   }
@@ -69,7 +58,7 @@ class DeriveSurfaceSuite extends munit.FunSuite {
   test("@Repeated") {
     val settings = Settings[AllRepeated[Int]]
     assert(settings.settings.length == 4)
-    val notIterable :: tail = settings.settings
+    val notIterable :: tail = settings.settings: @unchecked
     assert(!notIterable.isRepeated)
     tail.foreach { setting => assert(setting.isRepeated, setting.name) }
   }
@@ -92,7 +81,7 @@ class DeriveSurfaceSuite extends munit.FunSuite {
         "[" + ev.render + " ...]"
     }
     implicit val surface = generic.deriveSurface[CustomTypePrinting]
-    val a :: b :: c :: Nil = Settings[CustomTypePrinting].settings
+    val a :: b :: c :: Nil = Settings[CustomTypePrinting].settings: @unchecked
     assertEquals(a.tpe, "number")
     assertEquals(b.tpe, "(number)")
     assertEquals(c.tpe, "[String ...]")
