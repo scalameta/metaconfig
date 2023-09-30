@@ -99,7 +99,7 @@ private[generic] def deriveConfDecoderImpl[T: Type](default: Expr[T])(using
 
   if paramss.head.isEmpty then '{ ConfDecoder.constant($default) }
   else
-    val (head :: params) :: Nil = paramss
+    val (head :: params) :: Nil = paramss : @unchecked
     val vds = paramss.head.map(_.tree).collect { case vd: ValDef =>
       next(vd)
     }
@@ -176,7 +176,7 @@ private[generic] def deriveConfDecoderExImpl[T: Type](default: Expr[T])(using
           Configured.Ok(state.getOrElse($default))
     }
   else
-    val (head :: params) :: Nil = paramss
+    val (head :: params) :: Nil = paramss : @unchecked
     val vds = paramss.head.map(_.tree).collect { case vd: ValDef =>
       next(vd)
     }

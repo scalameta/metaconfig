@@ -13,7 +13,6 @@ val ScalaVersions = List(scala213, scala212, scala3)
 inThisBuild(
   List(
     useSuperShell := false,
-    scalacOptions += "-Yrangepos",
     organization := "com.geirsson",
     version ~= { old => old.replace('+', '-') },
     licenses := Seq(
@@ -54,8 +53,14 @@ commands += Command.command("taskready") { s =>
 }
 
 lazy val warnUnusedImport = Def.setting {
-  if (scalaVersion.value.startsWith("2.13")) "-Wunused:imports"
+  if (scalaVersion.value.startsWith("2.13") ||
+    scalaVersion.value.startsWith("3.")) "-Wunused:imports"
   else "-Ywarn-unused-import"
+}
+
+lazy val yRangePos = Def.setting {
+  if (scalaVersion.value.startsWith("3.")) Seq.empty[String]
+  else Seq("-Yrangepos")
 }
 
 val languageAgnosticCompatibilityPolicy: ProblemFilter = (problem: Problem) => {
@@ -71,8 +76,8 @@ val languageAgnosticCompatibilityPolicy: ProblemFilter = (problem: Problem) => {
 }
 
 lazy val sharedSettings = List[Setting[_]](
-  scalacOptions ++= List(
-    "-Yrangepos",
+  scalacOptions ++= yRangePos.value,
+  scalacOptions ++= Seq(
     "-deprecation",
     warnUnusedImport.value
   ),
@@ -136,10 +141,6 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   )
   .dependsOn(pprint)
 
-lazy val coreJVM = core.jvm
-lazy val coreJS = core.js
-lazy val coreNative = core.native
-
 lazy val typesafe = project
   .in(file("metaconfig-typesafe-config"))
   .settings(
@@ -149,7 +150,7 @@ lazy val typesafe = project
     description := "Integration for HOCON using typesafehub/config.",
     libraryDependencies += "com.typesafe" % "config" % "1.4.1"
   )
-  .dependsOn(coreJVM)
+  .dependsOn(core.jvm)
 
 lazy val sconfig = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .in(file("metaconfig-sconfig"))
@@ -159,24 +160,15 @@ lazy val sconfig = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     moduleName := "metaconfig-sconfig",
     description := "Integration for HOCON using ekrich/sconfig.",
     libraryDependencies ++= List(
-      "org.ekrich" %%% "sconfig" % "1.4.4"
+      "org.ekrich" %%% "sconfig" % "1.5.1"
     )
   )
-  .jsSettings(
+  .platformsSettings(JSPlatform, NativePlatform)(
     libraryDependencies ++= List(
-      "org.ekrich" %%% "sjavatime" % "1.1.5"
+      "org.ekrich" %%% "sjavatime" % "1.1.9"
     )
-  )
-  .nativeSettings(
-    libraryDependencies ++= List(
-      "org.ekrich" %%% "sjavatime" % "1.1.3"
-    ),
-    crossScalaVersions -= scala3
   )
   .dependsOn(core)
-lazy val sconfigJVM = sconfig.jvm
-lazy val sconfigJS = sconfig.js
-lazy val sconfigNative = sconfig.native
 
 lazy val tests = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .in(file("metaconfig-tests"))
@@ -226,26 +218,21 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   )
   .jvmConfigure(
     _.enablePlugins(GraalVMNativeImagePlugin)
-      .dependsOn(typesafe, sconfigJVM)
+      .dependsOn(typesafe, sconfig.jvm)
   )
   .dependsOn(core)
-
-lazy val testsJVM = tests.jvm
-lazy val testsJS = tests.js
-lazy val testsNative = tests.native
 
 lazy val docs = project
   .in(file("metaconfig-docs"))
   .settings(
     sharedSettings,
-    crossScalaVersions -= scala3,
     libraryDependencies ++= List(
+      "com.lihaoyi" %%% "scalatags" % "0.12.0",
       "org.scalacheck" %%% "scalacheck" % V.scalacheck,
       "org.scalameta" %%% "munit-scalacheck" % V.munit % Test
     ),
     moduleName := "metaconfig-docs",
     libraryDependencies ++= List(
-      "com.lihaoyi" %% "scalatags" % "0.9.4"
     ).filter(_ => scalaVersion.value.startsWith("2.")),
     mdocVariables := Map(
       "VERSION" -> version.value.replaceFirst("\\+.*", ""),
@@ -256,6 +243,6 @@ lazy val docs = project
     // mdoc's metaconfig might (and will eventually) lag behind the current version, causing eviction errors
     evictionErrorLevel := Level.Warn
   )
-  .dependsOn(coreJVM, typesafe, sconfigJVM)
+  .dependsOn(core.jvm, typesafe, sconfig.jvm)
   .enablePlugins(DocusaurusPlugin)
   .disablePlugins(MimaPlugin)

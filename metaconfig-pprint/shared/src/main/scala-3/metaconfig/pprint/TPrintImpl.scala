@@ -43,7 +43,6 @@ object TPrintLowPri{
   def typePrintImpl[T](using Quotes, Type[T]): Expr[TPrint[T]] = {
 
     import quotes.reflect._
-    import util._
 
     def literalColor(s: fansi.Str): fansi.Str = {
       fansi.Color.Green(s)
