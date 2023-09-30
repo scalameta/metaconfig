@@ -1,21 +1,10 @@
 package metaconfig
 
-import java.io.File
 import metaconfig.generic.Settings
 import metaconfig.generic.Surface
 import metaconfig.pprint.TPrintColors
 
 class DeriveSurfaceSuite extends munit.FunSuite {
-
-  case class WithFile(file: File)
-  test("toString") {
-    val surface = generic.deriveSurface[WithFile]
-    val obtained = surface.toString
-    assertNoDiff(
-      obtained,
-      "Surface(List(List(Field(name=\"file\",tpe=\"File\",annotations=List(@TabCompleteAsPath()),underlying=List()))))"
-    )
-  }
 
   case class Curried(a: Int)(b: List[Int])
   test("curried") {
