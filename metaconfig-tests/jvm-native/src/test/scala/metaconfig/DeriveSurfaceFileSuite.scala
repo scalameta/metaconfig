@@ -1,7 +1,6 @@
 package metaconfig
 
 import java.io.File
-import metaconfig.generic.Surface
 
 class DeriveSurfaceFileSuite extends munit.FunSuite {
 
