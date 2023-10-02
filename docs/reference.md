@@ -234,7 +234,7 @@ automatically derive a `ConfEncoder[T]` instance for any case class with
 `generic.deriveEncoder`.
 
 ```scala mdoc
-implicit val encoder = generic.deriveEncoder[User]
+implicit val encoder: ConfEncoder[User] = generic.deriveEncoder[User]
 
 ConfEncoder[User].write(User("John", 42))
 ```
@@ -257,8 +257,8 @@ It's common to have a class that has both a `ConfDecoder[T]` and
 
 ```scala mdoc:silent
 case class Bijective(name: String)
-implicit val surface = generic.deriveSurface[Bijective]
-implicit val codec = generic.deriveCodec[Bijective](new Bijective("default"))
+implicit val surface: generic.Surface[Bijective] = generic.deriveSurface[Bijective]
+implicit val codec: ConfCodec[Bijective] = generic.deriveCodec[Bijective](new Bijective("default"))
 ```
 
 ```scala mdoc
@@ -429,8 +429,10 @@ case class EvolvingConfig(
     @DeprecatedName("goodName", "Use isGoodName instead", "1.0")
     isGoodName: Boolean
 )
-implicit val surface = generic.deriveSurface[EvolvingConfig]
-implicit val decoder = generic.deriveDecoder[EvolvingConfig](EvolvingConfig(true)).noTypos
+implicit val surface: generic.Surface[EvolvingConfig] =
+  generic.deriveSurface[EvolvingConfig]
+implicit val decoder: ConfDecoder[EvolvingConfig] =
+  generic.deriveDecoder[EvolvingConfig](EvolvingConfig(true)).noTypos
 ```
 
 ```scala mdoc
@@ -555,8 +557,8 @@ case class Home(
     @Description("Country description")
     country: String = "Iceland"
 )
-implicit val homeSurface = generic.deriveSurface[Home]
-implicit val homeEncoder = generic.deriveEncoder[Home]
+implicit val homeSurface: Surface[Home] = generic.deriveSurface[Home]
+implicit val homeEncoder: ConfEncoder[Home] = generic.deriveEncoder[Home]
 
 case class User(
     @Description("Name description")
@@ -565,8 +567,8 @@ case class User(
     age: Int = 42,
     home: Home = Home()
 )
-implicit val userSurface = generic.deriveSurface[User]
-implicit val userEncoder = generic.deriveEncoder[User]
+implicit val userSurface: Surface[User] = generic.deriveSurface[User]
+implicit val userEncoder: ConfEncoder[User] = generic.deriveEncoder[User]
 ```
 
 To generate html documentation, pass in a default value
