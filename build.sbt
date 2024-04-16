@@ -104,7 +104,7 @@ lazy val pprint = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     sharedSettings,
     mimaSettings,
     moduleName := "metaconfig-pprint",
-    libraryDependencies += "com.lihaoyi" %%% "fansi" % "0.4.0",
+    libraryDependencies += "com.lihaoyi" %%% "fansi" % "0.5.0",
     libraryDependencies ++= {
       if (scalaVersion.value.startsWith("2."))
         List(
@@ -123,7 +123,7 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     moduleName := "metaconfig-core",
     libraryDependencies ++= List(
       "org.typelevel" %%% "paiges-core" % "0.4.3",
-      "org.scala-lang.modules" %%% "scala-collection-compat" % "2.11.0"
+      "org.scala-lang.modules" %%% "scala-collection-compat" % "2.12.0"
     )
   )
   .settings(
@@ -163,12 +163,12 @@ lazy val sconfig = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     moduleName := "metaconfig-sconfig",
     description := "Integration for HOCON using ekrich/sconfig.",
     libraryDependencies ++= List(
-      "org.ekrich" %%% "sconfig" % "1.5.1"
+      "org.ekrich" %%% "sconfig" % "1.7.0"
     )
   )
   .platformsSettings(JSPlatform, NativePlatform)(
     libraryDependencies ++= List(
-      "org.ekrich" %%% "sjavatime" % "1.1.9"
+      "org.ekrich" %%% "sjavatime" % "1.3.0"
     )
   )
   .dependsOn(core)
