@@ -7,7 +7,7 @@ lazy val V = new {
   def scalacheck = "1.17.0"
 }
 val scala212 = "2.12.15"
-val scala213 = "2.13.8"
+val scala213 = "2.13.13"
 val scala3 = "3.3.1"
 val ScalaVersions = List(scala213, scala212, scala3)
 inThisBuild(
