@@ -2,7 +2,7 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.8.1")
 
 addSbtPlugin("com.github.sbt" % "sbt-ci-release" % "1.5.12")
 
-addSbtPlugin("org.scalameta" % "sbt-mdoc" % "2.3.7")
+addSbtPlugin("org.scalameta" % "sbt-mdoc" % "2.3.8")
 
 addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "1.1.0")
 
