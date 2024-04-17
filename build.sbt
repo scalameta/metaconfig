@@ -148,7 +148,7 @@ lazy val typesafe = project
     mimaSettings,
     moduleName := "metaconfig-typesafe-config",
     description := "Integration for HOCON using typesafehub/config.",
-    libraryDependencies += "com.typesafe" % "config" % "1.4.1"
+    libraryDependencies += "com.typesafe" % "config" % "1.4.3"
   )
   .dependsOn(core.jvm)
 
@@ -227,7 +227,7 @@ lazy val docs = project
   .settings(
     sharedSettings,
     libraryDependencies ++= List(
-      "com.lihaoyi" %%% "scalatags" % "0.12.0",
+      "com.lihaoyi" %%% "scalatags" % "0.13.1",
       "org.scalacheck" %%% "scalacheck" % V.scalacheck,
       "org.scalameta" %%% "munit-scalacheck" % V.munit % Test
     ),
