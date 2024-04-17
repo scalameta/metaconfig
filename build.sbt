@@ -148,7 +148,7 @@ lazy val typesafe = project
     mimaSettings,
     moduleName := "metaconfig-typesafe-config",
     description := "Integration for HOCON using typesafehub/config.",
-    libraryDependencies += "com.typesafe" % "config" % "1.4.1"
+    libraryDependencies += "com.typesafe" % "config" % "1.4.3"
   )
   .dependsOn(core.jvm)
 
