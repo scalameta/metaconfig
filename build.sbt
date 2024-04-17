@@ -6,9 +6,12 @@ lazy val V = new {
   def munit = "1.0.0-M10"
   def scalacheck = "1.17.0"
 }
-val scala212 = "2.12.15"
-val scala213 = "2.13.8"
+val scala212 = "2.12.19"
+
+val scala213 = "2.13.13"
+
 val scala3 = "3.3.1"
+
 val ScalaVersions = List(scala213, scala212, scala3)
 inThisBuild(
   List(
@@ -194,7 +197,7 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform, NativePlatform)
         Seq(
           "com.github.alexarchambault" %%% "scalacheck-shapeless_1.15" % "1.3.0"
         )
-      else Seq("org.typelevel" %% "shapeless3-deriving" % "3.0.3")
+      else Seq("org.typelevel" %% "shapeless3-deriving" % "3.0.4")
     },
     graalVMNativeImageOptions ++= {
       val reflectionFile =
