@@ -22,8 +22,8 @@ object Cli {
       case els => ConfError.typeMismatch("Conf.Obj", els).notOk.get
     }
 
-    val keyValues = settings.settings.zip(defaultConf).flatMap {
-      case (setting, value) =>
+    val keyValues =
+      settings.settings.zip(defaultConf).flatMap { case (setting, value) =>
         if (setting.isHidden) {
           Nil
         } else if (setting.annotations.exists(_.isInstanceOf[Inline])) {
@@ -35,7 +35,7 @@ object Cli {
         } else {
           toHelp(setting, value) :: Nil
         }
-    }
+      }
     tabulate(keyValues)
   }
 }

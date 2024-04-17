@@ -47,8 +47,8 @@ object TabCompleteOptions {
       (obj.getOption[Int]("current") |@|
         obj.getOption[String]("format") |@|
         obj.get[List[String]]("remainingArgs"))
-        .map {
-          case ((a, b), c) => TabCompleteOptions(a, b, c)
+        .map { case ((a, b), c) =>
+          TabCompleteOptions(a, b, c)
         }
     case _ =>
       Configured.ok(TabCompleteOptions())

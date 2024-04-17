@@ -2,8 +2,7 @@ package metaconfig.generic
 
 import scala.annotation.StaticAnnotation
 
-/**
-  * Aggregated metadata about a given type.
+/** Aggregated metadata about a given type.
   *
   * @param fields the fields of this type
   * @tparam T not used for anything but to drive implicit resolution.

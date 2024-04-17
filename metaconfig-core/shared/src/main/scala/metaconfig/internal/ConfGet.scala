@@ -30,8 +30,8 @@ object ConfGet {
   ): Configured[T] =
     getKey(conf, path +: extraNames).fold(Configured.ok(default))(ev.read)
 
-  def get[T](conf: Conf, path: String, extraNames: String*)(
-      implicit ev: ConfDecoder[T]
+  def get[T](conf: Conf, path: String, extraNames: String*)(implicit
+      ev: ConfDecoder[T]
   ): Configured[T] = {
     conf match {
       case obj: Conf.Obj =>
@@ -45,8 +45,8 @@ object ConfGet {
     }
   }
 
-  def getNested[T](conf: Conf, keys: String*)(
-      implicit ev: ConfDecoder[T]
+  def getNested[T](conf: Conf, keys: String*)(implicit
+      ev: ConfDecoder[T]
   ): Configured[T] =
     conf.getNestedConf(keys: _*).andThen(ev.read)
 
