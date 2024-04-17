@@ -227,7 +227,7 @@ lazy val docs = project
   .settings(
     sharedSettings,
     libraryDependencies ++= List(
-      "com.lihaoyi" %%% "scalatags" % "0.12.0",
+      "com.lihaoyi" %%% "scalatags" % "0.13.1",
       "org.scalacheck" %%% "scalacheck" % V.scalacheck,
       "org.scalameta" %%% "munit-scalacheck" % V.munit % Test
     ),
