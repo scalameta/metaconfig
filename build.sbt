@@ -4,7 +4,7 @@ import com.typesafe.tools.mima.core._
 
 lazy val V = new {
   def munit = "1.0.0-M10"
-  def scalacheck = "1.17.0"
+  def scalacheck = "1.17.1"
 }
 val scala212 = "2.12.15"
 val scala213 = "2.13.8"
