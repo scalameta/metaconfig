@@ -43,13 +43,13 @@ object ConfEncoder {
   implicit lazy val PathEncoder: ConfEncoder[Path] =
     (value: Path) => Conf.Str(value.toString())
 
-  implicit def IterableEncoder[A, C[x] <: Iterable[x]](
-      implicit ev: ConfEncoder[A]
+  implicit def IterableEncoder[A, C[x] <: Iterable[x]](implicit
+      ev: ConfEncoder[A]
   ): ConfEncoder[C[A]] =
     (value: C[A]) => Conf.Lst(value.view.map(ev.write).toList)
 
-  implicit def OptionEncoder[A](
-      implicit ev: ConfEncoder[A]
+  implicit def OptionEncoder[A](implicit
+      ev: ConfEncoder[A]
   ): ConfEncoder[Option[A]] =
     _.fold[Conf](Conf.Null())(ev.write)
 

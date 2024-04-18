@@ -22,14 +22,13 @@ SOFTWARE. */
 
 package metaconfig.pprint
 
-/**
-  * Summoning an implicit `TPrint[T]` provides a pretty-printed
-  * string representation of the type `T`, much better than is
-  * provided by the default `Type#toString`. In particular
+/** Summoning an implicit `TPrint[T]` provides a pretty-printed string
+  * representation of the type `T`, much better than is provided by the default
+  * `Type#toString`. In particular
   *
-  * - More forms are properly supported and printed
-  * - Prefixed Types are printed un-qualified, according to
-  *   what's currently in scope
+  *   - More forms are properly supported and printed
+  *   - Prefixed Types are printed un-qualified, according to what's currently
+  *     in scope
   */
 trait TPrint[T] {
   def render(implicit tpc: TPrintColors): fansi.Str

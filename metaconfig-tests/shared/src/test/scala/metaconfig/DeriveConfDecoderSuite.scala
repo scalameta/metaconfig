@@ -37,16 +37,16 @@ class DeriveConfDecoderSuite extends munit.FunSuite {
     "typo",
     Obj(number, "sttring" -> Str("42")),
     """|found option 'sttring' which wasn't expected, or isn't valid in this context.
-       |	Did you mean 'string'?
-       |""".stripMargin
+      |	Did you mean 'string'?
+      |""".stripMargin
   )
 
   checkError(
     "typo2",
     Obj(string, "nummbber" -> Str("42")),
     """|found option 'nummbber' which wasn't expected, or isn't valid in this context.
-       |	Did you mean 'number'?
-       |""".stripMargin
+      |	Did you mean 'number'?
+      |""".stripMargin
   )
 
   checkOk(
@@ -125,8 +125,8 @@ class DeriveConfDecoderSuite extends munit.FunSuite {
 
   case class MissingSurface(b: Int)
 
-  def checkOption(conf: Conf, expected: HasOption)(
-      implicit decoder: ConfDecoder[HasOption]
+  def checkOption(conf: Conf, expected: HasOption)(implicit
+      decoder: ConfDecoder[HasOption]
   ): Unit = {
     test("option-" + conf.toString) {
       val obtained = decoder.read(conf).get

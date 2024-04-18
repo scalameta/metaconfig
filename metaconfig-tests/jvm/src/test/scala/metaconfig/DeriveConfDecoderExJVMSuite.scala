@@ -2,8 +2,8 @@ package metaconfig
 
 class DeriveConfDecoderExJVMSuite extends munit.FunSuite {
 
-  def checkOkStr[T, A](confStr: String, out: A, in: T = null)(
-      implicit loc: munit.Location,
+  def checkOkStr[T, A](confStr: String, out: A, in: T = null)(implicit
+      loc: munit.Location,
       decoder: ConfDecoderExT[T, A]
   ): Unit = {
     val cfg = Input.String(confStr).parse(Hocon)

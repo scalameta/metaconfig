@@ -40,9 +40,9 @@ private[generic] def deriveCodecImpl[T: Type](default: Expr[T])(using Quotes) =
 private[generic] def deriveEncoderImpl[T](using tp: Type[T])(using q: Quotes) =
   import q.reflect.*
   assumeCaseClass[T]
-  val str                    = Expr("Show: " + Type.show[T])
-  val encoders               = params[T]
-  val fields                 = paramNames[T]
+  val str = Expr("Show: " + Type.show[T])
+  val encoders = params[T]
+  val fields = paramNames[T]
   val ev: Expr[Mirror.Of[T]] = Expr.summon[Mirror.Of[T]].get
   '{
     new metaconfig.ConfEncoder[T]:
@@ -64,7 +64,7 @@ private[generic] def deriveConfDecoderImpl[T: Type](default: Expr[T])(using
   import q.reflect.*
   assumeCaseClass[T]
 
-  val cls    = Expr(Type.show[T])
+  val cls = Expr(Type.show[T])
   val clsTpt = TypeRepr.of[T]
   val settings =
     Expr.summon[Settings[T]] match
@@ -77,8 +77,8 @@ private[generic] def deriveConfDecoderImpl[T: Type](default: Expr[T])(using
   def next(p: ValDef): Expr[Conf => Configured[Any]] =
     p.tpt.tpe.asType match
       case '[t] =>
-        val name     = Expr(p.name)
-        val getter   = clsTpt.classSymbol.get.declaredField(p.name)
+        val name = Expr(p.name)
+        val getter = clsTpt.classSymbol.get.declaredField(p.name)
         val fallback = Select(default.asTerm, getter).asExprOf[t]
         val dec = Expr
           .summon[ConfDecoder[t]]
@@ -99,7 +99,7 @@ private[generic] def deriveConfDecoderImpl[T: Type](default: Expr[T])(using
 
   if paramss.head.isEmpty then '{ ConfDecoder.constant($default) }
   else
-    val (head :: params) :: Nil = paramss : @unchecked
+    val (head :: params) :: Nil = paramss: @unchecked
     val vds = paramss.head.map(_.tree).collect { case vd: ValDef =>
       next(vd)
     }
@@ -134,7 +134,7 @@ private[generic] def deriveConfDecoderExImpl[T: Type](default: Expr[T])(using
   import q.reflect.*
   assumeCaseClass[T]
 
-  val cls    = Expr(Type.show[T])
+  val cls = Expr(Type.show[T])
   val clsTpt = TypeRepr.of[T]
   val settings =
     Expr.summon[Settings[T]] match
@@ -147,7 +147,7 @@ private[generic] def deriveConfDecoderExImpl[T: Type](default: Expr[T])(using
   def next(p: ValDef): Expr[(Conf, T) => Configured[Any]] =
     p.tpt.tpe.asType match
       case '[t] =>
-        val name   = Expr(p.name)
+        val name = Expr(p.name)
         val getter = clsTpt.classSymbol.get.declaredField(p.name)
         val fallback = (from: Expr[Any]) =>
           Select(from.asTerm, getter).asExprOf[t]
@@ -176,7 +176,7 @@ private[generic] def deriveConfDecoderExImpl[T: Type](default: Expr[T])(using
           Configured.Ok(state.getOrElse($default))
     }
   else
-    val (head :: params) :: Nil = paramss : @unchecked
+    val (head :: params) :: Nil = paramss: @unchecked
     val vds = paramss.head.map(_.tree).collect { case vd: ValDef =>
       next(vd)
     }
@@ -211,7 +211,7 @@ private[generic] def deriveSurfaceImpl[T: Type](using q: Quotes) =
   val target = TypeRepr.of[T] match
     case at: AppliedType =>
       at.tycon.asType match
-        case '[t]  => assumeCaseClass[t]; at.tycon
+        case '[t] => assumeCaseClass[t]; at.tycon
         case other => report.error(at.tycon.show); ???
     case other => other
 
@@ -232,8 +232,8 @@ private[generic] def deriveSurfaceImpl[T: Type](using q: Quotes) =
                   ) =>
                 annot.asExprOf[StaticAnnotation]
             }
-            val isConf     = derivesFrom[metaconfig.Conf]
-            val isMap      = derivesFrom[Map[?, ?]]
+            val isConf = derivesFrom[metaconfig.Conf]
+            val isMap = derivesFrom[Map[?, ?]]
             val isIterable = derivesFrom[Iterable[?]]
             val repeated =
               if isIterable && !isMap then
@@ -265,7 +265,7 @@ private[generic] def deriveSurfaceImpl[T: Type](using q: Quotes) =
             val underlying: Expr[List[List[Field]]] = vd.tpt.tpe.asType match
               case '[t] =>
                 Expr.summon[Surface[t]] match
-                  case None    => '{ Nil }
+                  case None => '{ Nil }
                   case Some(e) => '{ $e.fields }
 
             val fieldName = Expr(vd.name)
@@ -301,13 +301,13 @@ end deriveSurfaceImpl
 
 private[generic] def assumeCaseClass[T: Type](using q: Quotes) =
   import q.reflect.*
-  val sym         = TypeTree.of[T].symbol
+  val sym = TypeTree.of[T].symbol
   val isCaseClass = sym.isClassDef && sym.flags.is(Flags.Case)
   if !isCaseClass then report.error(s"${Type.show[T]} must be a case class")
 
 private[generic] def params[T: Type](using q: Quotes) =
   import q.reflect.*
-  val fields  = TypeTree.of[T].symbol.caseFields
+  val fields = TypeTree.of[T].symbol.caseFields
   val encoder = TypeRepr.of[ConfEncoder]
   Expr.ofList {
     fields.map { f =>

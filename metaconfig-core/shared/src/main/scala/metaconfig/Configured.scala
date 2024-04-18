@@ -69,9 +69,8 @@ object Configured extends ConfiguredLowPriorityImplicits {
 
   @deprecated("No longer supported", "0.8.1")
   def traverse[T](cs: List[Configured[T]]): Configured[List[T]] = {
-    cs.foldLeft(ok(List.empty[T])) {
-      case (res, configured) =>
-        res.product(configured).map { case (a, b) => b :: a }
+    cs.foldLeft(ok(List.empty[T])) { case (res, configured) =>
+      res.product(configured).map { case (a, b) => b :: a }
     }
   }
   def unit: Configured[Unit] = Ok(())

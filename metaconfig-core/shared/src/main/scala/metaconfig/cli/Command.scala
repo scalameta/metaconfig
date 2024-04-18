@@ -9,8 +9,8 @@ import java.nio.charset.StandardCharsets
 import metaconfig.generic.Settings
 import metaconfig.ConfDecoder
 
-abstract class Command[T](val name: String)(
-    implicit val _settings: Settings[T],
+abstract class Command[T](val name: String)(implicit
+    val _settings: Settings[T],
     confEncoder: ConfEncoder[T],
     confDecoder: ConfDecoder[T]
 ) { self =>

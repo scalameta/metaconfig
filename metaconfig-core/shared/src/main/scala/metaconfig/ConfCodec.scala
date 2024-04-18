@@ -9,8 +9,7 @@ trait ConfCodec[A] extends ConfDecoder[A] with ConfEncoder[A] { self =>
 
 object ConfCodec {
   def apply[A](implicit ev: ConfCodec[A]): ConfCodec[A] = ev
-  implicit def EncoderDecoderToCodec[A](
-      implicit
+  implicit def EncoderDecoderToCodec[A](implicit
       encode: ConfEncoder[A],
       decode: ConfDecoder[A]
   ): ConfCodec[A] = new ConfCodec[A] {

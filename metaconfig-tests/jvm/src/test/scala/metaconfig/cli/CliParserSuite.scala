@@ -279,60 +279,60 @@ class CliParserSuite extends BaseCliParserSuite {
     "positional-everywhere5",
     "positional1" :: "--titl" :: Nil,
     """|found argument '--titl' which wasn't expected, or isn't valid in this context.
-       |	Did you mean '--title'?
-       |""".stripMargin
+      |	Did you mean '--title'?
+      |""".stripMargin
   )
 
   checkError(
     "skip hidden",
     "--hidden1" :: "10" :: Nil,
     """|found argument '--hidden1' which wasn't expected, or isn't valid in this context.
-       |""".stripMargin
+      |""".stripMargin
   )
 
   checkError(
     "match decoding",
     "--decoding" :: "10" :: Nil,
     """|found argument '--decoding' which wasn't expected, or isn't valid in this context.
-       |	Did you mean '--encoding'?
-       |""".stripMargin
+      |	Did you mean '--encoding'?
+      |""".stripMargin
   )
 
   checkError(
     "match decodung",
     "--decodung" :: "10" :: Nil,
     """|found argument '--decodung' which wasn't expected, or isn't valid in this context.
-       |	Did you mean '--encoding'?
-       |""".stripMargin
+      |	Did you mean '--encoding'?
+      |""".stripMargin
   )
 
   checkError(
     "match decodingg",
     "--decodingg" :: "10" :: Nil,
     """|found argument '--decodingg' which wasn't expected, or isn't valid in this context.
-       |	Did you mean '--encoding'?
-       |""".stripMargin
+      |	Did you mean '--encoding'?
+      |""".stripMargin
   )
 
   checkError(
     "match decoddung",
     "--decoddung" :: "10" :: Nil,
     """|found argument '--decoddung' which wasn't expected, or isn't valid in this context.
-       |""".stripMargin
+      |""".stripMargin
   )
 
   checkError(
     "match decodding1",
     "--decodding1" :: "10" :: Nil,
     """|found argument '--decodding1' which wasn't expected, or isn't valid in this context.
-       |""".stripMargin
+      |""".stripMargin
   )
 
   checkError(
     "match decodunk",
     "--decodunk" :: "10" :: Nil,
     """|found argument '--decodunk' which wasn't expected, or isn't valid in this context.
-       |""".stripMargin
+      |""".stripMargin
   )
 
 }

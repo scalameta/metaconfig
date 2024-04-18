@@ -96,8 +96,8 @@ final class Settings[T](
     case DescriptionDoc(doc) => doc
     case Description(doc) => Doc.text(doc)
   }
-  def cliUsage: Option[Doc] = annotations.collectFirst {
-    case Usage(doc) => Doc.text(doc)
+  def cliUsage: Option[Doc] = annotations.collectFirst { case Usage(doc) =>
+    Doc.text(doc)
   }
   def cliExamples: List[Doc] = annotations.collect {
     case ExampleUsage(example) => Doc.text(example)
