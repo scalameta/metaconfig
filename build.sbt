@@ -197,7 +197,7 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform, NativePlatform)
         Seq(
           "com.github.alexarchambault" %%% "scalacheck-shapeless_1.15" % "1.3.0"
         )
-      else Seq("org.typelevel" %% "shapeless3-deriving" % "3.0.4")
+      else Seq("org.typelevel" %% "shapeless3-deriving" % "3.4.1")
     },
     graalVMNativeImageOptions ++= {
       val reflectionFile =
