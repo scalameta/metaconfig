@@ -21,9 +21,9 @@ inThisBuild(
     licenses := Seq(
       "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")
     ),
-    homepage := Some(url("https://github.com/olafurpg/metaconfig")),
+    homepage := Some(url("https://github.com/scalameta/metaconfig")),
     autoAPIMappings := true,
-    apiURL := Some(url("https://github.com/olafurpg/metaconfig")),
+    apiURL := Some(url("https://github.com/scalameta/metaconfig")),
     developers += Developer(
       "olafurpg",
       "Ólafur Páll Geirsson",
