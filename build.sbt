@@ -3,8 +3,8 @@ import sbtcrossproject.CrossPlugin.autoImport.crossProject
 import com.typesafe.tools.mima.core._
 
 lazy val V = new {
-  def munit = "1.0.0-M10"
-  def scalacheck = "1.17.0"
+  def munit = "1.0.0"
+  def scalacheck = "1.18.0"
 }
 val scala212 = "2.12.19"
 
@@ -122,7 +122,7 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     mimaSettings,
     moduleName := "metaconfig-core",
     libraryDependencies ++= List(
-      "org.typelevel" %%% "paiges-core" % "0.4.3",
+      "org.typelevel" %%% "paiges-core" % "0.4.3-35-4d6217a-SNAPSHOT",
       "org.scala-lang.modules" %%% "scala-collection-compat" % "2.12.0"
     )
   )
