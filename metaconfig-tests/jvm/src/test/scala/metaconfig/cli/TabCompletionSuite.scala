@@ -97,44 +97,44 @@ class TabCompletionSuite extends FunSuite {
     "basic",
     List("h"),
     """|help
-       |version
-       |tab
-       |""".stripMargin
+      |version
+      |tab
+      |""".stripMargin
   )
 
   check(
     "flag",
     List("tab", "-"),
     """|--custom
-       |--in
-       |--out
-       |""".stripMargin
+      |--in
+      |--out
+      |""".stripMargin
   )
 
   check(
     "path-empty",
     List("tab", "--in", ""),
     """|goodbye
-       |hello
-       |project/
-       |""".stripMargin.replace('/', File.separatorChar)
+      |hello
+      |project/
+      |""".stripMargin.replace('/', File.separatorChar)
   )
 
   check(
     "path-no-slash",
     List("tab", "--in", "project"),
     """|goodbye
-       |hello
-       |project/
-       |""".stripMargin.replace('/', File.separatorChar)
+      |hello
+      |project/
+      |""".stripMargin.replace('/', File.separatorChar)
   )
 
   check(
     "path-directory",
     List("tab", "--in", "project" + File.separatorChar),
     """|project/inner
-       |project/outer
-       |""".stripMargin.replace('/', File.separatorChar)
+      |project/outer
+      |""".stripMargin.replace('/', File.separatorChar)
   )
 
   check(
@@ -147,18 +147,18 @@ class TabCompletionSuite extends FunSuite {
     "custom-non-empty",
     List("tab", "--custom", "abba"),
     """|setting: custom
-       |secondLast: --custom
-       |last: abba
-       |""".stripMargin
+      |secondLast: --custom
+      |last: abba
+      |""".stripMargin
   )
 
   check(
     "custom-non-empty",
     List("tab", "--unknown", "abba"),
     """|setting:
-       |secondLast: --unknown
-       |last: abba
-       |""".stripMargin
+      |secondLast: --unknown
+      |last: abba
+      |""".stripMargin
   )
 
   check(

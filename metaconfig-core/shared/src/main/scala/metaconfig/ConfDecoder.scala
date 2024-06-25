@@ -26,8 +26,7 @@ trait ConfDecoder[A] { self =>
   final def orElse(other: ConfDecoder[A]): ConfDecoder[A] =
     ConfDecoder.orElse(this, other)
 
-  /**
-    * Fail this decoder on unknown fields.
+  /** Fail this decoder on unknown fields.
     *
     * By default, a decoder ignores unknown fields. With .noTypos, the decoder
     * will fail if an object contains unknown fields, which typically hint the
@@ -86,8 +85,8 @@ object ConfDecoder {
       case Conf.Str(Number(n)) => Ok(n.toInt)
     }
   implicit val bigDecimalConfDecoder: ConfDecoder[BigDecimal] =
-    fromPartial[BigDecimal]("Number") {
-      case Conf.Num(x) => Ok(x)
+    fromPartial[BigDecimal]("Number") { case Conf.Num(x) =>
+      Ok(x)
     }
   implicit val stringConfDecoder: ConfDecoder[String] =
     fromPartial[String]("String") { case Conf.Str(x) => Ok(x) }
@@ -104,8 +103,8 @@ object ConfDecoder {
       Configured.fromExceptionThrowing(Paths.get(path))
     }
 
-  implicit def canBuildFromOption[A](
-      implicit ev: ConfDecoder[A],
+  implicit def canBuildFromOption[A](implicit
+      ev: ConfDecoder[A],
       classTag: ClassTag[A]
   ): ConfDecoder[Option[A]] =
     (conf: Conf) =>
@@ -114,29 +113,29 @@ object ConfDecoder {
         case _ => ev.read(conf).map(Some(_))
       }
 
-  implicit def canBuildEither[A, B](
-      implicit evA: ConfDecoder[A],
+  implicit def canBuildEither[A, B](implicit
+      evA: ConfDecoder[A],
       evB: ConfDecoder[B]
   ): ConfDecoder[Either[A, B]] =
     orElse(evA.map(x => Left(x)), evB.map(x => Right(x)))
 
   // XXX: remove this method when MIMA no longer an issue
   @deprecated("Use canBuildFromAnyMapWithStringKey instead", "0.9.2")
-  implicit def canBuildFromMapWithStringKey[A](
-      implicit ev: ConfDecoder[A],
+  implicit def canBuildFromMapWithStringKey[A](implicit
+      ev: ConfDecoder[A],
       classTag: ClassTag[A]
   ): ConfDecoder[Map[String, A]] =
     CanBuildFromDecoder.map[A, Map]
 
-  implicit def canBuildFromAnyMapWithStringKey[A, CC[_, _]](
-      implicit ev: ConfDecoder[A],
+  implicit def canBuildFromAnyMapWithStringKey[A, CC[_, _]](implicit
+      ev: ConfDecoder[A],
       factory: Factory[(String, A), CC[String, A]],
       classTag: ClassTag[A]
   ): ConfDecoder[CC[String, A]] =
     CanBuildFromDecoder.map[A, CC]
 
-  implicit def canBuildFromConfDecoder[C[_], A](
-      implicit ev: ConfDecoder[A],
+  implicit def canBuildFromConfDecoder[C[_], A](implicit
+      ev: ConfDecoder[A],
       factory: Factory[A, C[A]],
       classTag: ClassTag[A]
   ): ConfDecoder[C[A]] =

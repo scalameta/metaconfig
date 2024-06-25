@@ -25,12 +25,12 @@ sealed abstract class Conf extends Product with Serializable {
   final override def toString: String = show
   def as[T](implicit ev: ConfDecoder[T]): Configured[T] =
     ev.read(this)
-  def getSettingOrElse[T](setting: Setting, default: T)(
-      implicit ev: ConfDecoder[T]
+  def getSettingOrElse[T](setting: Setting, default: T)(implicit
+      ev: ConfDecoder[T]
   ): Configured[T] =
     ConfGet.getOrElse(this, default, setting.name, setting.alternativeNames: _*)
-  def get[T](path: String, extraNames: String*)(
-      implicit ev: ConfDecoder[T]
+  def get[T](path: String, extraNames: String*)(implicit
+      ev: ConfDecoder[T]
   ): Configured[T] =
     ConfGet.get(this, path, extraNames: _*)
   def getOrElse[T](path: String, extraNames: String*)(
@@ -64,8 +64,8 @@ object Conf {
       string: String
   )(implicit parser: MetaconfigParser): Configured[Conf] =
     Input.String(string).parse
-  def parseString(filename: String, string: String)(
-      implicit parser: MetaconfigParser
+  def parseString(filename: String, string: String)(implicit
+      parser: MetaconfigParser
   ): Configured[Conf] =
     Input.VirtualFile(filename, string).parse
   def parseInput(
@@ -78,7 +78,7 @@ object Conf {
     HoconPrinter.toHocon(value).renderTrim(100)
   }
 
-  /** Produce a minimal Conf that when merged with original yields revised. **/
+  /** Produce a minimal Conf that when merged with original yields revised. * */
   def patch(original: Conf, revised: Conf): Conf =
     ConfPatch.patch(original, revised)
 
@@ -104,11 +104,11 @@ object Conf {
     def field(key: String): Option[Conf] = map.get(key)
     def keys: List[String] = values.map(_._1)
     def mapValues(f: Conf => Conf): Obj =
-      Obj(values.map {
-        case (k, v) => k -> f(v)
+      Obj(values.map { case (k, v) =>
+        k -> f(v)
       })
-    def getOption[T](path: String, extraNames: String*)(
-        implicit ev: ConfDecoder[T]
+    def getOption[T](path: String, extraNames: String*)(implicit
+        ev: ConfDecoder[T]
     ): Configured[Option[T]] =
       ConfGet
         .getKey(this, path +: extraNames)
@@ -120,27 +120,27 @@ object Conf {
     def apply(values: (String, Conf)*): Obj = Obj(values.toList)
   }
 
-  def getEx[A](state: A, conf: Conf, path: Seq[String])(
-      implicit ev: ConfDecoderEx[A]
+  def getEx[A](state: A, conf: Conf, path: Seq[String])(implicit
+      ev: ConfDecoderEx[A]
   ): Configured[A] =
     ConfGet
       .getKey(conf, path)
       .fold(Configured.ok(state))(ev.read(Some(state), _))
 
-  def getSettingEx[A](state: A, conf: Conf, setting: Setting)(
-      implicit ev: ConfDecoderEx[A]
+  def getSettingEx[A](state: A, conf: Conf, setting: Setting)(implicit
+      ev: ConfDecoderEx[A]
   ): Configured[A] =
     getEx(state, conf, setting.name +: setting.alternativeNames)
 
   implicit class ConfImplicit(conf: Conf) {
 
-    def getEx[A](state: Option[A])(
-        implicit ev: ConfDecoderEx[A]
+    def getEx[A](state: Option[A])(implicit
+        ev: ConfDecoderEx[A]
     ): Configured[A] =
       ev.read(state, conf)
 
-    def getExT[A, B](state: Option[A])(
-        implicit ev: ConfDecoderExT[A, B]
+    def getExT[A, B](state: Option[A])(implicit
+        ev: ConfDecoderExT[A, B]
     ): Configured[B] =
       ev.read(state, conf)
 
@@ -195,17 +195,16 @@ object ConfOps {
       else
         v1.map(_._2)
           .zip(v2.map(_._2))
-          .flatMap {
-            case (a, b) => diff(a, b)
+          .flatMap { case (a, b) =>
+            diff(a, b)
           }
           .headOption
     case (Lst(l1), Lst(l2)) =>
       if (l1.lengthCompare(l2.length) != 0) Some(a -> b)
       else {
         l1.zip(l1)
-          .flatMap {
-            case (c1, c2) =>
-              diff(c1, c2)
+          .flatMap { case (c1, c2) =>
+            diff(c1, c2)
           }
           .headOption
       }
@@ -289,10 +288,9 @@ object ConfOps {
       val merged = (v1 ++ v2).foldLeft(Vector.empty[(String, Conf)]) {
         case (accumulated, pair @ (key, value2)) =>
           accumulated
-            .collectFirst {
-              case (`key`, value1) =>
-                accumulated.filter(_._1 != key) ++
-                  Vector((key, merge(value1, value2)))
+            .collectFirst { case (`key`, value1) =>
+              accumulated.filter(_._1 != key) ++
+                Vector((key, merge(value1, value2)))
             }
             .getOrElse(pair +: accumulated)
       }

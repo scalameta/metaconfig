@@ -145,8 +145,8 @@ object CliParser {
   }
 
   private def add(curr: Conf.Obj, key: String, value: Conf): Conf.Obj = {
-    val values = curr.values.filterNot {
-      case (k, _) => k == key
+    val values = curr.values.filterNot { case (k, _) =>
+      k == key
     }
     Conf.Obj((key, value) :: values)
   }

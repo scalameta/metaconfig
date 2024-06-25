@@ -85,104 +85,104 @@ class SubcommandSuite extends FunSuite {
   check(
     List("help"),
     """|USAGE:
-       |  app COMMAND [OPTIONS]
-       |
-       |DESCRIPTION:
-       |  This is a description
-       |
-       |COMMANDS:
-       |  help     Print this help message
-       |  version  Show version information
-       |  test     Run tests
-       |See 'app help COMMAND' for more information on a specific command.
-       |
-       |EXAMPLES:
-       |  app test --max-count=100
-       |""".stripMargin
+      |  app COMMAND [OPTIONS]
+      |
+      |DESCRIPTION:
+      |  This is a description
+      |
+      |COMMANDS:
+      |  help     Print this help message
+      |  version  Show version information
+      |  test     Run tests
+      |See 'app help COMMAND' for more information on a specific command.
+      |
+      |EXAMPLES:
+      |  app test --max-count=100
+      |""".stripMargin
   )
 
   checkError(
     List("help", "version", "help"),
     """|error: expected 1 argument but obtained 2 arguments 'version help'
-       |""".stripMargin
+      |""".stripMargin
   )
 
   check(
     List("help", "version"),
     """|DESCRIPTION:
-       |  Show version information
-       |""".stripMargin
+      |  Show version information
+      |""".stripMargin
   )
 
   check(
     List("help", "test"),
     """|USAGE:
-       |  app test [OPTIONS] [project ...]
-       |
-       |DESCRIPTION:
-       |  Run tests
-       |
-       |OPTIONS:
-       |  --verbose
-       |  --max-count Int (default: 0)
-       |    The maximum number of files to test
-       |
-       |  Advanced:
-       |  --magic-number Int (default: 42)
-       |  --beep
-       |
-       |EXAMPLES:
-       |  app test --max-count=100 project-name
-       |""".stripMargin
+      |  app test [OPTIONS] [project ...]
+      |
+      |DESCRIPTION:
+      |  Run tests
+      |
+      |OPTIONS:
+      |  --verbose
+      |  --max-count Int (default: 0)
+      |    The maximum number of files to test
+      |
+      |  Advanced:
+      |  --magic-number Int (default: 42)
+      |  --beep
+      |
+      |EXAMPLES:
+      |  app test --max-count=100 project-name
+      |""".stripMargin
   )
 
   check(
     List("version"),
     """|1.0
-       |""".stripMargin
+      |""".stripMargin
   )
 
   checkError(
     List("unknown"),
     """|error: no such subcommand 'unknown'.
-       |	Try 'app help' for more information.
-       |""".stripMargin
+      |	Try 'app help' for more information.
+      |""".stripMargin
   )
 
   checkError(
     List("versionn"),
     """|error: no such subcommand 'versionn'.
-       |	Did you mean 'app version'?
-       |	Try 'app help' for more information.
-       |""".stripMargin
+      |	Did you mean 'app version'?
+      |	Try 'app help' for more information.
+      |""".stripMargin
   )
 
   checkError(
     List("test", "--max=40"),
     """|error: found argument '--max' which wasn't expected, or isn't valid in this context.
-       |	Did you mean '--max-count'?
-       |""".stripMargin
+      |	Did you mean '--max-count'?
+      |""".stripMargin
   )
   checkError(
     List("test", "--banana=40"),
     """|error: found argument '--banana' which wasn't expected, or isn't valid in this context.
-       |""".stripMargin
+      |""".stripMargin
   )
 
   check(
     List("test", "--max-count", "40"),
     """|verbose: false
-       |max-count: 40
-       |beep: false
-       |""".stripMargin
+      |max-count: 40
+      |beep: false
+      |""".stripMargin
   )
 
   check(
     List("test", "--max-count=41", "--verbose"),
     """|verbose: true
-       |max-count: 41
-       |beep: false
-       |""".stripMargin
+      |max-count: 41
+      |beep: false
+      |""".stripMargin
   )
 
   List(
@@ -194,9 +194,9 @@ class SubcommandSuite extends FunSuite {
     check(
       beep,
       """|verbose: false
-         |max-count: 0
-         |beep: true
-         |""".stripMargin
+        |max-count: 0
+        |beep: true
+        |""".stripMargin
     )
   }
 

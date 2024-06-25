@@ -74,8 +74,8 @@ class DeriveSurfaceSuite extends munit.FunSuite {
         def render(implicit tpc: TPrintColors): fansi.Str =
           "(" + ev.render + ")"
       }
-    implicit def iterablePrint[C[x] <: Iterable[x], T](
-        implicit ev: TPrint[T]
+    implicit def iterablePrint[C[x] <: Iterable[x], T](implicit
+        ev: TPrint[T]
     ): TPrint[C[T]] = new TPrint[C[T]] {
       def render(implicit tpc: TPrintColors): fansi.Str =
         "[" + ev.render + " ...]"

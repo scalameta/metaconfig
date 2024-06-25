@@ -8,9 +8,8 @@ class BaseCliParserSuite extends munit.FunSuite {
   def toString(options: Options): String = {
     settings.settings
       .zip(options.productIterator.toList)
-      .map {
-        case (s, v) =>
-          s"${s.name} = $v"
+      .map { case (s, v) =>
+        s"${s.name} = $v"
       }
       .mkString("\n")
   }

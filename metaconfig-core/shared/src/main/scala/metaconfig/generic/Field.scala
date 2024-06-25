@@ -2,12 +2,14 @@ package metaconfig.generic
 
 import scala.annotation.StaticAnnotation
 
-/**
-  * Metadata about one field of a class.
+/** Metadata about one field of a class.
   *
-  * @param name the parameter name of this field.
-  * @param tpe the pretty-printed type of this parameter
-  * @param annotations static annotations attached to this field.
+  * @param name
+  *   the parameter name of this field.
+  * @param tpe
+  *   the pretty-printed type of this parameter
+  * @param annotations
+  *   static annotations attached to this field.
   */
 final class Field(
     val name: String,
@@ -18,8 +20,7 @@ final class Field(
   def withName(newName: String) =
     new Field(newName, tpe, annotations, underlying)
 
-  /**
-    * Returns this field with all underlying fields expaneded.
+  /** Returns this field with all underlying fields expaneded.
     *
     * Underlying field names become prefixed by their enclosing fields.
     */

@@ -34,10 +34,10 @@ object HelpOptions {
     ConfEncoder.StringEncoder.contramap[HelpOptions](_.subcommand.mkString(" "))
   implicit val decoder: ConfDecoder[HelpOptions] = ConfDecoder.from {
     case Obj(
-        List(("remainingArgs", Conf.Lst(subcommands)))
+          List(("remainingArgs", Conf.Lst(subcommands)))
         ) =>
-      Configured.ok(HelpOptions(subcommands.collect {
-        case Conf.Str(command) => command
+      Configured.ok(HelpOptions(subcommands.collect { case Conf.Str(command) =>
+        command
       }))
     case _ =>
       Configured.ok(HelpOptions(Nil))

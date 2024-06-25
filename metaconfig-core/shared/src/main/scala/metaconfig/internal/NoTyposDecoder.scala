@@ -16,16 +16,15 @@ object NoTyposDecoder {
   private[internal] def checkTypos[A](conf: Conf, otherwise: => Configured[A])(
       implicit ev: Settings[A]
   ): Configured[A] =
-    ConfDecoder.readWithPartial("Object") {
-      case Conf.Obj(values) =>
-        val names = ev.allNames
-        val typos = values.collect {
-          case (key, obj) if !names.contains(key) =>
-            key -> obj.pos
-        }
-        ConfError
-          .invalidFieldsOpt(typos, ev.nonHiddenNames)
-          .fold(otherwise)(_.notOk)
+    ConfDecoder.readWithPartial("Object") { case Conf.Obj(values) =>
+      val names = ev.allNames
+      val typos = values.collect {
+        case (key, obj) if !names.contains(key) =>
+          key -> obj.pos
+      }
+      ConfError
+        .invalidFieldsOpt(typos, ev.nonHiddenNames)
+        .fold(otherwise)(_.notOk)
     }(conf)
 
 }

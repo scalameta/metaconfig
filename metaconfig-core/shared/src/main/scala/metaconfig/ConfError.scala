@@ -24,8 +24,8 @@ sealed abstract class ConfError(val msg: String) extends Serializable { self =>
       val sb = new StringWriter()
       val out = new PrintWriter(sb)
       if (extra.nonEmpty) out.println(s"${extra.length + 1} errors")
-      all.zipWithIndex.foreach {
-        case (err, i) => out.append(s"[E$i] ").println(err)
+      all.zipWithIndex.foreach { case (err, i) =>
+        out.append(s"[E$i] ").println(err)
       }
       sb.toString
     }
@@ -149,8 +149,8 @@ object ConfError {
     val pathSuffix = if (path.isEmpty) "" else s" at '$path'"
     new ConfError(
       s"""Type mismatch$pathSuffix;
-         |  found    : $obtained
-         |  expected : $expected""".stripMargin
+        |  found    : $obtained
+        |  expected : $expected""".stripMargin
     ) {
       override def isTypeMismatch: Boolean = true
     }
@@ -194,18 +194,17 @@ object ConfError {
       valid: Iterable[String]
   )(implicit dummy: DummyImplicit): Option[ConfError] = {
     val candidates = valid.toSeq
-    val errors = invalid.toList.map {
-      case (field, pos) =>
-        val closestCandidate = Levenshtein.closestCandidate(field, candidates)
-        val didYouMean = closestCandidate match {
-          case None =>
-            ""
-          case Some(candidate) =>
-            s"\n\tDid you mean '$candidate'?"
-        }
-        message(
-          s"found option '$field' which wasn't expected, or isn't valid in this context.$didYouMean"
-        ).atPos(pos)
+    val errors = invalid.toList.map { case (field, pos) =>
+      val closestCandidate = Levenshtein.closestCandidate(field, candidates)
+      val didYouMean = closestCandidate match {
+        case None =>
+          ""
+        case Some(candidate) =>
+          s"\n\tDid you mean '$candidate'?"
+      }
+      message(
+        s"found option '$field' which wasn't expected, or isn't valid in this context.$didYouMean"
+      ).atPos(pos)
     }
     apply(errors)
   }
@@ -219,24 +218,23 @@ object ConfError {
         val tail = values.tail
         if (tail.isEmpty) head else f(head, tail)
       }
-    seqToOpt(errors) {
-      case (head, tail) =>
-        new ConfError(head.stackTrace) {
-          override def extra: List[String] =
-            head.extra ++ tail.flatMap(x => x.stackTrace :: x.extra)
-          override def typeMismatch: Option[TypeMismatch] =
-            errors.view.flatMap(_.typeMismatch).headOption
-          override def isParseError: Boolean = errors.exists(_.isParseError)
-          override def isMissingField: Boolean = errors.exists(_.isMissingField)
+    seqToOpt(errors) { case (head, tail) =>
+      new ConfError(head.stackTrace) {
+        override def extra: List[String] =
+          head.extra ++ tail.flatMap(x => x.stackTrace :: x.extra)
+        override def typeMismatch: Option[TypeMismatch] =
+          errors.view.flatMap(_.typeMismatch).headOption
+        override def isParseError: Boolean = errors.exists(_.isParseError)
+        override def isMissingField: Boolean = errors.exists(_.isMissingField)
 
-          override def cause: Option[Throwable] =
-            seqToOpt(errors.flatMap {
-              _.cause match {
-                case Some(c: CompositeException) => c.all
-                case x => x
-              }
-            }) { case (head, tail) => CompositeException(head, tail.toList) }
-        }
+        override def cause: Option[Throwable] =
+          seqToOpt(errors.flatMap {
+            _.cause match {
+              case Some(c: CompositeException) => c.all
+              case x => x
+            }
+          }) { case (head, tail) => CompositeException(head, tail.toList) }
+      }
     }
   }
 

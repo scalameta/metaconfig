@@ -96,8 +96,8 @@ class Macros(val c: blackbox.Context) {
       val fallback = q"tmp.$getter"
       q"conf.getSettingOrElse[$P](settings.unsafeGet($name), $fallback)"
     }
-    val product = params.foldLeft(next(head)) {
-      case (accum, param) => q"$accum.product(${next(param)})"
+    val product = params.foldLeft(next(head)) { case (accum, param) =>
+      q"$accum.product(${next(param)})"
     }
     val tupleExtract = 1.to(params.length).foldLeft(q"t": Tree) {
       case (accum, _) => q"$accum._1"
@@ -168,8 +168,8 @@ class Macros(val c: blackbox.Context) {
       val fallback = q"tmp.$getter"
       q"Conf.getSettingEx[$P]($fallback, conf, settings.unsafeGet($name))"
     }
-    val product = params.foldLeft(next(head)) {
-      case (accum, param) => q"$accum.product(${next(param)})"
+    val product = params.foldLeft(next(head)) { case (accum, param) =>
+      q"$accum.product(${next(param)})"
     }
     val tupleExtract = 1.to(params.length).foldLeft(q"t": Tree) {
       case (accum, _) => q"$accum._1"

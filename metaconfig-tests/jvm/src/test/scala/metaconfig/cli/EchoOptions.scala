@@ -9,10 +9,10 @@ import metaconfig.ConfEncoder
 @Usage("echo [OPTIONS] [ARGUMENTS ...]")
 @ExampleUsage(
   """|$ echo Hello world!
-     |Hello world!
-     |$ echo --uppercase Hello world!
-     |HELLO WORLD!
-     |""".stripMargin
+    |Hello world!
+    |$ echo --uppercase Hello world!
+    |HELLO WORLD!
+    |""".stripMargin
 )
 final case class EchoOptions(
     @Description("Print out additional information.")

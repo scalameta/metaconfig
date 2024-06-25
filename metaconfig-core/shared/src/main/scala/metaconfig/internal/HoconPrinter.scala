@@ -21,18 +21,23 @@ object HoconPrinter {
         case Conf.Lst(lst) =>
           if (lst.isEmpty) text("[]")
           else {
-            val parts = intercalate(line, lst.map {
-              case c: Conf.Obj =>
-                wrap('{', '}', loop(c))
-              case x => loop(x)
-            })
+            val parts = intercalate(
+              line,
+              lst.map {
+                case c: Conf.Obj =>
+                  wrap('{', '}', loop(c))
+                case x => loop(x)
+              }
+            )
             wrap('[', ']', parts)
           }
         case Conf.Obj(obj) =>
-          intercalate(line, obj.map {
-            case (k, v) =>
+          intercalate(
+            line,
+            obj.map { case (k, v) =>
               text(k) + text(" = ") + loop(v)
-          })
+            }
+          )
       }
     }
 
@@ -41,13 +46,13 @@ object HoconPrinter {
 
   def flatten(c: Conf): Conf = c match {
     case Conf.Obj(obj) =>
-      val flattened = obj.map {
-        case (k, v) => (k, flatten(v))
+      val flattened = obj.map { case (k, v) =>
+        (k, flatten(v))
       }
       val next = flattened.flatMap {
         case (key, Conf.Obj(nested)) =>
-          nested.map {
-            case (k, v) => s"${quote(key)}.$k" -> v
+          nested.map { case (k, v) =>
+            s"${quote(key)}.$k" -> v
           }
         case (key, value) => (quote(key), value) :: Nil
       }

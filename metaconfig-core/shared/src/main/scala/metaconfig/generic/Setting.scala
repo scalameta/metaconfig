@@ -56,8 +56,8 @@ final class Setting(val field: Field) {
       case _ => false
     }
   def tabCompleteOneOf: Option[List[String]] =
-    annotations.collectFirst {
-      case oneof: TabCompleteAsOneOf => oneof.options.toList
+    annotations.collectFirst { case oneof: TabCompleteAsOneOf =>
+      oneof.options.toList
     }
   @deprecated("Use isDynamic instead", "0.8.2")
   def isMap: Boolean = field.tpe.startsWith("Map")

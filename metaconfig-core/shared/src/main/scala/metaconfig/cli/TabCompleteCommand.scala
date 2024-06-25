@@ -98,8 +98,8 @@ object TabCompleteCommand extends Command[TabCompleteOptions]("tab-complete") {
       context: TabCompletionContext
   ): List[TabCompletionItem] = {
     context.allSettings
-      .filterNot {
-        case (_, setting) => setting.isPositionalArgument
+      .filterNot { case (_, setting) =>
+        setting.isPositionalArgument
       }
       .keys
       .toList

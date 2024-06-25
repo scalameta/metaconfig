@@ -56,8 +56,10 @@ commands += Command.command("taskready") { s =>
 }
 
 lazy val warnUnusedImport = Def.setting {
-  if (scalaVersion.value.startsWith("2.13") ||
-    scalaVersion.value.startsWith("3.")) "-Wunused:imports"
+  if (
+    scalaVersion.value.startsWith("2.13") ||
+    scalaVersion.value.startsWith("3.")
+  ) "-Wunused:imports"
   else "-Ywarn-unused-import"
 }
 

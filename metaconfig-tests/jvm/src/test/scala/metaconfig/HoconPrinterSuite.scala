@@ -4,8 +4,8 @@ import munit.FunSuite
 
 class HoconPrinterSuite extends FunSuite {
 
-  def check(original: Conf, expected: String)(
-      implicit loc: munit.Location
+  def check(original: Conf, expected: String)(implicit
+      loc: munit.Location
   ): Unit = {
     test(original.toString()) {
       val obtained = Conf.printHocon(original)
@@ -23,15 +23,15 @@ class HoconPrinterSuite extends FunSuite {
       "f.g" -> Conf.Num(2)
     ),
     """|a = true
-       |b = null
-       |c = 1
-       |d = [
-       |  "2"
-       |  ""
-       |]
-       |e.f = 3
-       |"f.g" = 2
-       |""".stripMargin.trim
+      |b = null
+      |c = 1
+      |d = [
+      |  "2"
+      |  ""
+      |]
+      |e.f = 3
+      |"f.g" = 2
+      |""".stripMargin.trim
   )
 
   check(

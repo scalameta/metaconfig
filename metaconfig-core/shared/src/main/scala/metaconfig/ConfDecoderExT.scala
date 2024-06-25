@@ -38,8 +38,8 @@ object ConfDecoderExT {
     (_, conf) => Configured.Ok(conf)
 
   implicit def subConfDecoder[S, A <: Conf: ClassTag]: ConfDecoderExT[S, A] =
-    fromPartial("Config") {
-      case (_, x: A) => Configured.Ok(x)
+    fromPartial("Config") { case (_, x: A) =>
+      Configured.Ok(x)
     }
 
   implicit def bigDecimalConfDecoder[S]: ConfDecoderExT[S, BigDecimal] =
@@ -52,8 +52,8 @@ object ConfDecoderExT {
     bigDecimalConfDecoder[S].map(_.toInt)
 
   implicit def stringConfDecoder[S]: ConfDecoderExT[S, String] =
-    fromPartial[S, String]("String") {
-      case (_, Conf.Str(x)) => Configured.Ok(x)
+    fromPartial[S, String]("String") { case (_, Conf.Str(x)) =>
+      Configured.Ok(x)
     }
 
   implicit def unitConfDecoder[S]: ConfDecoderExT[S, Unit] =
@@ -71,8 +71,8 @@ object ConfDecoderExT {
       Configured.fromExceptionThrowing(Paths.get(path))
     }
 
-  implicit def canBuildOptionT[S, A](
-      implicit ev: ConfDecoderExT[S, A]
+  implicit def canBuildOptionT[S, A](implicit
+      ev: ConfDecoderExT[S, A]
   ): ConfDecoderExT[S, Option[A]] =
     (state, conf) =>
       conf match {
@@ -80,8 +80,8 @@ object ConfDecoderExT {
         case _ => ev.read(state, conf).map(Some.apply)
       }
 
-  implicit def canBuildOption[A](
-      implicit ev: ConfDecoderEx[A]
+  implicit def canBuildOption[A](implicit
+      ev: ConfDecoderEx[A]
   ): ConfDecoderEx[Option[A]] =
     (state, conf) =>
       conf match {
@@ -89,14 +89,14 @@ object ConfDecoderExT {
         case _ => ev.read(state.flatten, conf).map(Some.apply)
       }
 
-  implicit def canBuildEitherT[S, A, B](
-      implicit evA: ConfDecoderExT[S, A],
+  implicit def canBuildEitherT[S, A, B](implicit
+      evA: ConfDecoderExT[S, A],
       evB: ConfDecoderExT[S, B]
   ): ConfDecoderExT[S, Either[A, B]] =
     evA.map[Either[A, B]](Left.apply).orElse(evB.map[Either[A, B]](Right.apply))
 
-  implicit def canBuildEither[A, B](
-      implicit evA: ConfDecoderEx[A],
+  implicit def canBuildEither[A, B](implicit
+      evA: ConfDecoderEx[A],
       evB: ConfDecoderEx[B]
   ): ConfDecoderEx[Either[A, B]] =
     (state, conf) => {
@@ -112,20 +112,20 @@ object ConfDecoderExT {
       }
     }
 
-  implicit def canBuildStringMapT[S, A, CC[_, _]](
-      implicit ev: ConfDecoderExT[S, A],
+  implicit def canBuildStringMapT[S, A, CC[_, _]](implicit
+      ev: ConfDecoderExT[S, A],
       factory: Factory[(String, A), CC[String, A]],
       classTag: ClassTag[A]
   ): ConfDecoderExT[S, CC[String, A]] =
     fromPartial(
       s"Map[String, ${classTag.runtimeClass.getName}]"
-    ) {
-      case (state, Conf.Obj(values)) =>
-        buildFrom(state, values, ev, factory)(_._2, (x, y) => (x._1, y))
+    ) { case (state, Conf.Obj(values)) =>
+      buildFrom(state, values, ev, factory)(_._2, (x, y) => (x._1, y))
     }
 
   implicit def canBuildStringMap[A, CC[x, y] <: collection.Iterable[(x, y)]](
-      implicit ev: ConfDecoderEx[A],
+      implicit
+      ev: ConfDecoderEx[A],
       factory: Factory[(String, A), CC[String, A]],
       classTag: ClassTag[A]
   ): ConfDecoderEx[CC[String, A]] = {
@@ -149,20 +149,19 @@ object ConfDecoderExT {
     }
   }
 
-  implicit def canBuildSeqT[S, A, C[_]](
-      implicit ev: ConfDecoderExT[S, A],
+  implicit def canBuildSeqT[S, A, C[_]](implicit
+      ev: ConfDecoderExT[S, A],
       factory: Factory[A, C[A]],
       classTag: ClassTag[A]
   ): ConfDecoderExT[S, C[A]] =
     fromPartial(
       s"List[${classTag.runtimeClass.getName}]"
-    ) {
-      case (state, Conf.Lst(values)) =>
-        buildFrom(state, values, ev, factory)(identity, (_, x) => x)
+    ) { case (state, Conf.Lst(values)) =>
+      buildFrom(state, values, ev, factory)(identity, (_, x) => x)
     }
 
-  implicit def canBuildSeq[A, C[x] <: collection.Iterable[x]](
-      implicit ev: ConfDecoderEx[A],
+  implicit def canBuildSeq[A, C[x] <: collection.Iterable[x]](implicit
+      ev: ConfDecoderEx[A],
       factory: Factory[A, C[A]],
       classTag: ClassTag[A]
   ): ConfDecoderEx[C[A]] = {
