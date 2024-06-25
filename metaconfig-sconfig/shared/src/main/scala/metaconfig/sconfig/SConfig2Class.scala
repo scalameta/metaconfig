@@ -2,8 +2,8 @@ package metaconfig
 package sconfig
 
 import org.ekrich.config._
-import scala.collection.JavaConverters._
 import scala.collection.mutable
+import scala.jdk.CollectionConverters._
 import metaconfig.internal.ConfGet
 
 object SConfig2Class {

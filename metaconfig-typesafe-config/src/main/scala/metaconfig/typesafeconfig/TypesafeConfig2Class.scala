@@ -2,8 +2,8 @@ package metaconfig
 package typesafeconfig
 
 import com.typesafe.config._
-import scala.collection.JavaConverters._
 import scala.collection.mutable
+import scala.jdk.CollectionConverters._
 
 object TypesafeConfig2Class {
   def gimmeConfFromString(string: String): Configured[Conf] =
