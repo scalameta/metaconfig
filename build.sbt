@@ -16,7 +16,7 @@ val ScalaVersions = List(scala213, scala212, scala3)
 inThisBuild(
   List(
     useSuperShell := false,
-    organization := "com.geirsson",
+    organization := "org.scalameta",
     version ~= { old => old.replace('+', '-') },
     licenses := Seq(
       "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")

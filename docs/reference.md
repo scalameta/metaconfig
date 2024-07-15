@@ -27,10 +27,10 @@ There are alternatives to metaconfig that you might want to give a try first
 ## Getting started
 
 ```scala
-libraryDependencies += "com.geirsson" %% "metaconfig-core" % "@VERSION@"
+libraryDependencies += "org.scalameta" %% "metaconfig-core" % "@VERSION@"
 
 // Use https://github.com/lightbend/config to parse HOCON
-libraryDependencies += "com.geirsson" %% "metaconfig-typesafe-config" % "@VERSION@"
+libraryDependencies += "org.scalameta" %% "metaconfig-typesafe-config" % "@VERSION@"
 ```
 
 Use this import to access the metaconfig API
@@ -541,7 +541,7 @@ To generate documentation for you configuration, add a dependency to the
 following module
 
 ```scala
-libraryDependencies += "com.geirsson" %% "metaconfig-docs" % "@VERSION@"
+libraryDependencies += "org.scalameta" %% "metaconfig-docs" % "@VERSION@"
 ```
 
 First define your configuration

@@ -31,7 +31,7 @@ with the following goals:
 ## Quick start
 
 ```scala
-libraryDependencies += "com.geirsson" %% "metaconfig-typesafe-config" % "@VERSION@"
+libraryDependencies += "org.scalameta" %% "metaconfig-typesafe-config" % "@VERSION@"
 ```
 
 Next, write a case class for your user configuration.
