@@ -15,7 +15,8 @@ sealed abstract class Position { pos =>
     pos.start <= other.start &&
       pos.end > other.end
 
-  /** Returns a formatted string of this position including filename/line/caret. */
+  /** Returns a formatted string of this position including filename/line/caret.
+    */
   final def pretty(severity: String, message: String): String = {
     // Predef.augmentString = work around scala/bug#11125 on JDK 11
     val content = augmentString(lineContent).linesIterator

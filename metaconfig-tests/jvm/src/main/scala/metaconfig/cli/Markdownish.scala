@@ -8,14 +8,14 @@ import metaconfig.generic.Surface
 case class Markdownish(
     @Description(
       """|The JVM classpath is a list of path ':' separated files.
-         |Example:
-         |
-         |```
-         |a.jar:b.jar:c.jar
-         |```
-         |
-         |The JVM classpath is a list of path ':' separated files.
-         |""".stripMargin
+        |Example:
+        |
+        |```
+        |a.jar:b.jar:c.jar
+        |```
+        |
+        |The JVM classpath is a list of path ':' separated files.
+        |""".stripMargin
     )
     classpath: List[String] = Nil
 )

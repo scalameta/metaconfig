@@ -19,10 +19,13 @@ object Generators {
     Gen.frequency[Conf](1 -> genNum, 1 -> genStr, 1 -> genBool)
 
   val genConfShow: Gen[ConfShow] = for {
-    lines <- Gen.listOfN(100, for {
-      key <- genKey
-      conf <- genPrimitive
-    } yield s"$key = ${conf.show}")
+    lines <- Gen.listOfN(
+      100,
+      for {
+        key <- genKey
+        conf <- genPrimitive
+      } yield s"$key = ${conf.show}"
+    )
   } yield ConfShow(lines.mkString("\n"))
   implicit val argConfShow: Arbitrary[ConfShow] = Arbitrary(genConfShow)
 }

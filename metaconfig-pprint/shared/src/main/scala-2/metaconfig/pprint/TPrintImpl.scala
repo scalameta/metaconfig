@@ -73,9 +73,8 @@ object TPrintLowPri {
       else printSymFull(s.owner) ++ "." ++ printSym(s)
     }
 
-    /**
-      * Looks up a symbol in the enclosing scope and returns
-      * whether it exists in scope by the same name
+    /** Looks up a symbol in the enclosing scope and returns whether it exists
+      * in scope by the same name
       */
     def lookup(s: Symbol) = {
       val cas = c.asInstanceOf[reflect.macros.runtime.Context]
@@ -161,7 +160,8 @@ object TPrintLowPri {
 
               Some(paramTree ++ resultBounds)
             case TypeBounds(lo, hi)
-                if t.toString.contains("$") && lo =:= typeOf[Nothing] && hi =:= typeOf[
+                if t.toString
+                  .contains("$") && lo =:= typeOf[Nothing] && hi =:= typeOf[
                   Any
                 ] =>
               None
@@ -211,9 +211,13 @@ object TPrintLowPri {
         )
       // Special-case operator two-parameter types as infix
       case TypeRef(pre, sym, List(left, right))
-          if lookup(sym) && sym.name.encodedName.toString != sym.name.decodedName.toString =>
+          if lookup(
+            sym
+          ) && sym.name.encodedName.toString != sym.name.decodedName.toString =>
         (
-          typePrintImplRec(c)(left, true) ++ " " ++ printSym(sym) ++ " " ++ typePrintImplRec(
+          typePrintImplRec(c)(left, true) ++ " " ++ printSym(
+            sym
+          ) ++ " " ++ typePrintImplRec(
             c
           )(right, true),
           WrapType.Infix
@@ -269,7 +273,10 @@ object TPrintLowPri {
           showRefinement(quantified) match {
             case None => typePrintImplRec(c)(underlying, true)
             case Some(block) =>
-              typePrintImplRec(c)(underlying, true) ++ " forSome { " ++ block ++ " }"
+              typePrintImplRec(c)(
+                underlying,
+                true
+              ) ++ " forSome { " ++ block ++ " }"
           },
           WrapType.NoWrap
         )

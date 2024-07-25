@@ -48,8 +48,8 @@ class ConfErrorSuite extends munit.FunSuite {
     "combine",
     message("message 1").combine(message("message 2")),
     """|2 errors
-       |[E0] message 1
-       |[E1] message 2""".stripMargin
+      |[E0] message 1
+      |[E1] message 2""".stripMargin
   )
 
   check(
@@ -79,8 +79,8 @@ class ConfErrorSuite extends munit.FunSuite {
       parseError(pos, "No var")
     },
     """|foo.scala:3:2 error: No var
-       |  var x
-       |  ^^^
-       |""".stripMargin
+      |  var x
+      |  ^^^
+      |""".stripMargin
   )
 }

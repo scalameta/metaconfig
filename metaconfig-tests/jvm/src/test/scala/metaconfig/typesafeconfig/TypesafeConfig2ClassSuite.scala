@@ -11,11 +11,11 @@ class TypesafeConfig2ClassSuite extends munit.FunSuite {
     Files.write(
       Paths.get(file.toURI),
       """|a.b = 2
-         |a = [
-         |  1,
-         |  "2"
-         |]
-         |a += true""".stripMargin.getBytes()
+        |a = [
+        |  1,
+        |  "2"
+        |]
+        |a += true""".stripMargin.getBytes()
     )
     val obtained = TypesafeConfig2Class.gimmeConfFromFile(file).get
     val expected: Conf = Conf.Obj(
@@ -39,8 +39,8 @@ class TypesafeConfig2ClassSuite extends munit.FunSuite {
       TypesafeConfig2Class
         .gimmeConfFromString(
           """|keywords = [
-             |  null
-             |]""".stripMargin
+            |  null
+            |]""".stripMargin
         )
         .get
     val expected: Conf = Conf.Obj(
@@ -58,21 +58,21 @@ class TypesafeConfig2ClassSuite extends munit.FunSuite {
     Files.write(
       main,
       """|a = [ 1 ]
-         |include "included.conf"
-         |c = bar
-         |""".stripMargin.getBytes()
+        |include "included.conf"
+        |c = bar
+        |""".stripMargin.getBytes()
     )
 
     val included = dir.resolve("included.conf")
     Files.write(
       included,
       s"""|a = $${a} [
-          |  "2",
-          |  3,
-          |  true
-          |]
-          |b = foo
-          |""".stripMargin.getBytes()
+        |  "2",
+        |  3,
+        |  true
+        |]
+        |b = foo
+        |""".stripMargin.getBytes()
     )
 
     val obtained = TypesafeConfig2Class.gimmeConfFromFile(main.toFile).get

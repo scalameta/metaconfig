@@ -17,8 +17,8 @@ object Messages {
       default: T
   )(implicit encoder: ConfEncoder[T], settings: Settings[T]): Doc = {
     val obj = ConfEncoder[T].writeObj(default)
-    val docs = settings.settings.zip(obj.values).flatMap {
-      case (setting, (_, value)) =>
+    val docs =
+      settings.settings.zip(obj.values).flatMap { case (setting, (_, value)) =>
         if (setting.annotations.exists(_.isInstanceOf[Inline])) {
           for {
             underlying <- setting.underlying.toList
@@ -30,7 +30,7 @@ object Messages {
         } else {
           List(printOption(setting, value))
         }
-    }
+      }
     Doc.intercalate(Doc.line, docs.filter(_.nonEmpty))
   }
 

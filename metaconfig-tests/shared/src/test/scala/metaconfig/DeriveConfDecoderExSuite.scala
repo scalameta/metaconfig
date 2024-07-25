@@ -24,8 +24,8 @@ class DeriveConfDecoderExSuite extends munit.FunSuite {
       checkOk(obj, expected)
     }
 
-  def checkOk[A](cfg: Conf, out: A, in: A = null)(
-      implicit loc: munit.Location,
+  def checkOk[A](cfg: Conf, out: A, in: A = null)(implicit
+      loc: munit.Location,
       decoder: ConfDecoderEx[A]
   ): Unit =
     decoder.read(Option(in), cfg) match {
@@ -41,16 +41,16 @@ class DeriveConfDecoderExSuite extends munit.FunSuite {
     "typo",
     Obj(number, "sttring" -> Str("42")),
     """|found option 'sttring' which wasn't expected, or isn't valid in this context.
-       |	Did you mean 'string'?
-       |""".stripMargin
+      |	Did you mean 'string'?
+      |""".stripMargin
   )
 
   checkError(
     "typo2",
     Obj(string, "nummbber" -> Str("42")),
     """|found option 'nummbber' which wasn't expected, or isn't valid in this context.
-       |	Did you mean 'number'?
-       |""".stripMargin
+      |	Did you mean 'number'?
+      |""".stripMargin
   )
 
   checkOk(
@@ -163,8 +163,8 @@ class DeriveConfDecoderExSuite extends munit.FunSuite {
       conf: Conf,
       expected: HasOption,
       state: HasOption = HasOption()
-  )(
-      implicit decoder: ConfDecoderEx[HasOption]
+  )(implicit
+      decoder: ConfDecoderEx[HasOption]
   ): Unit = {
     test("option-" + conf.toString) {
       val obtained = decoder.read(Some(state), conf).get
