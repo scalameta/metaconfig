@@ -236,6 +236,7 @@ lazy val docs = project
       "org.scalacheck" %%% "scalacheck" % V.scalacheck,
       "org.scalameta" %%% "munit-scalacheck" % V.munit % Test
     ),
+    publish / skip := true,
     moduleName := "metaconfig-docs",
     mdocVariables := Map(
       "VERSION" -> version.value.replaceFirst("\\+.*", ""),
