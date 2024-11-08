@@ -165,7 +165,7 @@ lazy val sconfig = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     moduleName := "metaconfig-sconfig",
     description := "Integration for HOCON using ekrich/sconfig.",
     libraryDependencies ++= List(
-      "org.ekrich" %%% "sconfig" % "1.7.0"
+      "org.ekrich" %%% "sconfig" % "1.8.1"
     )
   )
   .platformsSettings(JSPlatform, NativePlatform)(
