@@ -22,21 +22,21 @@ class ConfGetSuite extends munit.FunSuite {
     assertEquals(
       confA.getNested[Boolean]().toEither.left.get.msg,
       """|Type mismatch;
-        |  found    : String (value: "a")
-        |  expected : Bool""".stripMargin
+         |  found    : String (value: "a")
+         |  expected : Bool""".stripMargin,
     )
 
     assertEquals(
       confA.getNested[Boolean]("c").toEither.left.get.msg,
       """|Type mismatch;
-        |  found    : String (value: "a")
-        |  expected : Conf.Obj with key 'c'""".stripMargin
+         |  found    : String (value: "a")
+         |  expected : Conf.Obj with key 'c'""".stripMargin,
     )
 
     val confB = Obj("b" -> confA)
     assertEquals(
       confB.getNested[String]("c").toEither.left.get.msg,
-      """{"b": "a"} has no field 'c'."""
+      """{"b": "a"} has no field 'c'.""",
     )
   }
 

@@ -6,8 +6,7 @@ final case class CompositeException(head: Throwable, tail: List[Throwable])
   def add(other: Throwable): CompositeException = other match {
     case composite @ CompositeException(_, _) =>
       CompositeException(head, tail ++ composite.all)
-    case _ =>
-      CompositeException(other, head :: tail)
+    case _ => CompositeException(other, head :: tail)
   }
   override def getCause: Throwable = head
 }

@@ -15,7 +15,7 @@ final class Field(
     val name: String,
     val tpe: String,
     val annotations: List[StaticAnnotation],
-    val underlying: List[List[Field]]
+    val underlying: List[List[Field]],
 ) {
   def withName(newName: String) =
     new Field(newName, tpe, annotations, underlying)
@@ -24,16 +24,13 @@ final class Field(
     *
     * Underlying field names become prefixed by their enclosing fields.
     */
-  def flat: List[Field] = {
+  def flat: List[Field] =
     if (underlying.isEmpty) this :: Nil
-    else {
-      for {
-        fields <- underlying
-        field <- fields
-        flattened <- field.withName(s"$name.${field.name}").flat
-      } yield flattened
-    }
-  }
+    else for {
+      fields <- underlying
+      field <- fields
+      flattened <- field.withName(s"$name.${field.name}").flat
+    } yield flattened
   override def toString: String = {
     val annots = annotations.map(annot => s"@$annot").mkString(", ")
     s"""Field(name="$name",tpe="$tpe",annotations=List($annots),underlying=$underlying)"""

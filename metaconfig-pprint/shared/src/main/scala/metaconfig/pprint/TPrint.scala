@@ -36,15 +36,13 @@ trait TPrint[T] {
 }
 
 object TPrint extends TPrintLowPri {
-  def recolor[T](s: fansi.Str): TPrint[T] = {
-    new TPrint[T] {
-      def render(implicit tpc: TPrintColors) = {
-        val colors = s.getColors
-        val updatedColors = colors.map { c =>
-          if (c == fansi.Color.Green.applyMask) tpc.typeColor.applyMask else 0L
-        }
-        fansi.Str.fromArrays(s.getChars, updatedColors)
+  def recolor[T](s: fansi.Str): TPrint[T] = new TPrint[T] {
+    def render(implicit tpc: TPrintColors) = {
+      val colors = s.getColors
+      val updatedColors = colors.map { c =>
+        if (c == fansi.Color.Green.applyMask) tpc.typeColor.applyMask else 0L
       }
+      fansi.Str.fromArrays(s.getChars, updatedColors)
     }
   }
   def implicitly[T](implicit t: TPrint[T]): TPrint[T] = t

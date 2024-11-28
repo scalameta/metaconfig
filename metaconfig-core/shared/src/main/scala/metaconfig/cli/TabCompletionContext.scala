@@ -10,5 +10,5 @@ case class TabCompletionContext(
     secondLast: Option[String],
     setting: Option[Setting],
     allSettings: Map[String, Setting],
-    app: CliApp
+    app: CliApp,
 )

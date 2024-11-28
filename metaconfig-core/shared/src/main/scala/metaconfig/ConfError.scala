@@ -1,15 +1,16 @@
 package metaconfig
 
+import metaconfig.ConfError.TypeMismatch
+import metaconfig.annotation.DeprecatedName
+import metaconfig.error.CompositeException
+import metaconfig.internal.Levenshtein
+
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.PrintStream
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.nio.file.Path
-import metaconfig.internal.Levenshtein
-import metaconfig.ConfError.TypeMismatch
-import metaconfig.annotation.DeprecatedName
-import metaconfig.error.CompositeException
 
 // TODO(olafur) I think ConfError needs to be rethinked from scratch.
 // It would be much cleaner as NonEmptyList[Error] where Error
@@ -17,7 +18,7 @@ import metaconfig.error.CompositeException
 sealed abstract class ConfError(val msg: String) extends Serializable { self =>
   def extra: List[String] = Nil
   final def all: List[String] = msg :: extra
-  final override def toString: String =
+  override final def toString: String =
     if (isEmpty) "No error message provided"
     else if (extra.isEmpty) stackTrace
     else {
@@ -40,9 +41,8 @@ sealed abstract class ConfError(val msg: String) extends Serializable { self =>
   final def notOk: Configured[Nothing] = Configured.NotOk(this)
   final def left[A]: Either[ConfError, A] = Left(this)
 
-  final override def hashCode(): Int =
-    (msg.hashCode << 1) | (if (hasPos) 1 else 0)
-  final override def equals(obj: scala.Any): Boolean = obj match {
+  override final def hashCode(): Int = msg.hashCode << 1 | (if (hasPos) 1 else 0)
+  override final def equals(obj: scala.Any): Boolean = obj match {
     case err: ConfError => hasPos == err.hasPos && msg == err.msg
     case _ => false
   }
@@ -52,31 +52,27 @@ sealed abstract class ConfError(val msg: String) extends Serializable { self =>
   final def combine(other: ConfError): ConfError =
     if (isEmpty) other
     else if (other.isEmpty) this
-    else {
-      new ConfError(stackTrace) {
-        override def extra: List[String] =
-          other.stackTrace :: (other.extra ++ self.extra)
-        override def cause: Option[Throwable] =
-          if (self.cause.isEmpty) other.cause
-          else if (other.cause.isEmpty) self.cause
-          else Some(CompositeException(self.cause.get, other.cause.get))
-        override def isParseError: Boolean =
-          this.isParseError || other.isParseError
-        override def isMissingField: Boolean =
-          this.isMissingField || other.isMissingField
-        override def typeMismatch: Option[TypeMismatch] =
-          self.typeMismatch.orElse(other.typeMismatch)
-      }
+    else new ConfError(stackTrace) {
+      override def extra: List[String] = other.stackTrace ::
+        (other.extra ++ self.extra)
+      override def cause: Option[Throwable] =
+        if (self.cause.isEmpty) other.cause
+        else if (other.cause.isEmpty) self.cause
+        else Some(CompositeException(self.cause.get, other.cause.get))
+      override def isParseError: Boolean = this.isParseError ||
+        other.isParseError
+      override def isMissingField: Boolean = this.isMissingField ||
+        other.isMissingField
+      override def typeMismatch: Option[TypeMismatch] = self.typeMismatch
+        .orElse(other.typeMismatch)
     }
 
   def hasPos: Boolean = false
   final def atPos(position: Position): ConfError =
     if (hasPos) this // avoid duplicate position
     else if (position == Position.None) this
-    else {
-      new ConfError(position.pretty("error", msg)) {
-        override def hasPos: Boolean = true
-      }
+    else new ConfError(position.pretty("error", msg)) {
+      override def hasPos: Boolean = true
     }
 
   // TODO(olafur) this is nothing but pure abusal of overriding and custom classes
@@ -106,15 +102,13 @@ object ConfError {
   def deprecated(
       name: String,
       message: String,
-      sinceVersion: String
-  ): ConfError =
-    deprecated(DeprecatedName(name, message, sinceVersion))
+      sinceVersion: String,
+  ): ConfError = deprecated(DeprecatedName(name, message, sinceVersion))
   def deprecated(deprecation: DeprecatedName): ConfError =
     new ConfError(deprecation.toString) {
       override def isDeprecation: Boolean = true
     }
-  def message(message: String): ConfError =
-    new ConfError(message) {}
+  def message(message: String): ConfError = new ConfError(message) {}
   def exception(e: Throwable, stackSize: Int = 10): ConfError = {
     e.setStackTrace(e.getStackTrace.take(stackSize))
     new ConfError(e.getMessage) {
@@ -133,24 +127,19 @@ object ConfError {
     }
   def typeMismatch(expected: String, obtained: Conf): ConfError =
     typeMismatch(expected, obtained, "")
-  def typeMismatch(
-      expected: String,
-      obtained: Conf,
-      path: String
-  ): ConfError = {
+  def typeMismatch(expected: String, obtained: Conf, path: String): ConfError =
     typeMismatch(expected, s"${obtained.kind} (value: $obtained)", path)
       .atPos(obtained.pos)
-  }
   def typeMismatch(
       expected: String,
       obtained: String,
-      path: String
+      path: String,
   ): ConfError = {
     val pathSuffix = if (path.isEmpty) "" else s" at '$path'"
     new ConfError(
       s"""Type mismatch$pathSuffix;
-        |  found    : $obtained
-        |  expected : $expected""".stripMargin
+         |  found    : $obtained
+         |  expected : $expected""".stripMargin,
     ) {
       override def isTypeMismatch: Boolean = true
     }
@@ -172,39 +161,34 @@ object ConfError {
 
   def invalidFields(
       invalid: Iterable[String],
-      valid: Iterable[String]
-  ): ConfError =
-    invalidFieldsOpt(invalid, valid).getOrElse(empty)
+      valid: Iterable[String],
+  ): ConfError = invalidFieldsOpt(invalid, valid).getOrElse(empty)
 
   def invalidFieldsOpt(
       invalid: Iterable[String],
-      valid: Iterable[String]
-  ): Option[ConfError] = {
+      valid: Iterable[String],
+  ): Option[ConfError] =
     invalidFieldsOpt(invalid.map(i => i -> Position.None), valid)
-  }
 
   def invalidFields(
       invalid: Iterable[(String, Position)],
-      valid: Iterable[String]
-  )(implicit dummy: DummyImplicit): ConfError =
-    invalidFieldsOpt(invalid, valid).getOrElse(empty)
+      valid: Iterable[String],
+  )(implicit dummy: DummyImplicit): ConfError = invalidFieldsOpt(invalid, valid)
+    .getOrElse(empty)
 
   def invalidFieldsOpt(
       invalid: Iterable[(String, Position)],
-      valid: Iterable[String]
+      valid: Iterable[String],
   )(implicit dummy: DummyImplicit): Option[ConfError] = {
     val candidates = valid.toSeq
     val errors = invalid.toList.map { case (field, pos) =>
       val closestCandidate = Levenshtein.closestCandidate(field, candidates)
       val didYouMean = closestCandidate match {
-        case None =>
-          ""
-        case Some(candidate) =>
-          s"\n\tDid you mean '$candidate'?"
+        case None => ""
+        case Some(candidate) => s"\n\tDid you mean '$candidate'?"
       }
-      message(
-        s"found option '$field' which wasn't expected, or isn't valid in this context.$didYouMean"
-      ).atPos(pos)
+      message(s"found option '$field' which wasn't expected, or isn't valid in this context.$didYouMean")
+        .atPos(pos)
     }
     apply(errors)
   }
@@ -213,27 +197,26 @@ object ConfError {
     apply(results.collect { case Configured.NotOk(x) => x })
 
   def apply(errors: Seq[ConfError]): Option[ConfError] = {
-    def seqToOpt[T](values: Seq[T])(f: (T, Seq[T]) => T): Option[T] =
-      values.headOption.map { head =>
+    def seqToOpt[T](values: Seq[T])(f: (T, Seq[T]) => T): Option[T] = values
+      .headOption.map { head =>
         val tail = values.tail
         if (tail.isEmpty) head else f(head, tail)
       }
     seqToOpt(errors) { case (head, tail) =>
       new ConfError(head.stackTrace) {
-        override def extra: List[String] =
-          head.extra ++ tail.flatMap(x => x.stackTrace :: x.extra)
-        override def typeMismatch: Option[TypeMismatch] =
-          errors.view.flatMap(_.typeMismatch).headOption
+        override def extra: List[String] = head.extra ++
+          tail.flatMap(x => x.stackTrace :: x.extra)
+        override def typeMismatch: Option[TypeMismatch] = errors.view
+          .flatMap(_.typeMismatch).headOption
         override def isParseError: Boolean = errors.exists(_.isParseError)
         override def isMissingField: Boolean = errors.exists(_.isMissingField)
 
-        override def cause: Option[Throwable] =
-          seqToOpt(errors.flatMap {
-            _.cause match {
-              case Some(c: CompositeException) => c.all
-              case x => x
-            }
-          }) { case (head, tail) => CompositeException(head, tail.toList) }
+        override def cause: Option[Throwable] = seqToOpt(errors.flatMap {
+          _.cause match {
+            case Some(c: CompositeException) => c.all
+            case x => x
+          }
+        }) { case (head, tail) => CompositeException(head, tail.toList) }
       }
     }
   }

@@ -2,15 +2,12 @@ package metaconfig.typesafeconfig
 
 import metaconfig.Conf
 import metaconfig.ConfShow
-import org.scalacheck.Prop.forAll
 import metaconfig.Generators.argConfShow
 
+import org.scalacheck.Prop.forAll
+
 class TypesafeConfigPropertySuite extends munit.ScalaCheckSuite {
-  def check(a: String, b: String): Unit = {
-    test(a) {
-      assertRoundtrip(a, b)
-    }
-  }
+  def check(a: String, b: String): Unit = test(a)(assertRoundtrip(a, b))
 
   def assertRoundtrip(a: String, b: String): Unit = {
     val original = Conf.parseString(a).get
@@ -22,7 +19,7 @@ class TypesafeConfigPropertySuite extends munit.ScalaCheckSuite {
   }
 
   property("roundtrip") {
-    forAll { (a: ConfShow, b: ConfShow) => assertRoundtrip(a.str, b.str) }
+    forAll((a: ConfShow, b: ConfShow) => assertRoundtrip(a.str, b.str))
   }
 
   check(
@@ -34,7 +31,7 @@ class TypesafeConfigPropertySuite extends munit.ScalaCheckSuite {
       |
       |ad.a.dc = false
       |ad = "ad"
-    """.stripMargin
+    """.stripMargin,
   )
 
 }

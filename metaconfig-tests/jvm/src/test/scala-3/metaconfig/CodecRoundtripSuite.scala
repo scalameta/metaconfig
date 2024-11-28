@@ -11,11 +11,9 @@ class CodecRoundtripSuite extends munit.ScalaCheckSuite {
   }
 
   property("roundtrip AllTheAnnotations") {
-    forAll { (a: AllTheAnnotations) => checkRoundtrip(a) }
+    forAll((a: AllTheAnnotations) => checkRoundtrip(a))
   }
 
-  property("roundtrip Outer") {
-    forAll { (a: Outer) => checkRoundtrip(a) }
-  }
+  property("roundtrip Outer")(forAll((a: Outer) => checkRoundtrip(a)))
 
 }

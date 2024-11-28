@@ -5,12 +5,10 @@ import munit.FunSuite
 class HoconPrinterSuite extends FunSuite {
 
   def check(original: Conf, expected: String)(implicit
-      loc: munit.Location
-  ): Unit = {
-    test(original.toString()) {
-      val obtained = Conf.printHocon(original)
-      assertNoDiff(obtained, expected)
-    }
+      loc: munit.Location,
+  ): Unit = test(original.toString()) {
+    val obtained = Conf.printHocon(original)
+    assertNoDiff(obtained, expected)
   }
 
   check(
@@ -20,38 +18,34 @@ class HoconPrinterSuite extends FunSuite {
       "c" -> Conf.Num(1),
       "d" -> Conf.Lst(Conf.Str("2"), Conf.Str("")),
       "e" -> Conf.Obj("f" -> Conf.Num(3)),
-      "f.g" -> Conf.Num(2)
+      "f.g" -> Conf.Num(2),
     ),
     """|a = true
-      |b = null
-      |c = 1
-      |d = [
-      |  "2"
-      |  ""
-      |]
-      |e.f = 3
-      |"f.g" = 2
-      |""".stripMargin.trim
+       |b = null
+       |c = 1
+       |d = [
+       |  "2"
+       |  ""
+       |]
+       |e.f = 3
+       |"f.g" = 2
+       |""".stripMargin.trim,
   )
 
   check(
-    Conf.Obj(
-      "a" -> Conf.Lst(Conf.Str("b.c"))
-    ),
+    Conf.Obj("a" -> Conf.Lst(Conf.Str("b.c"))),
     """
       |a = [
       |  "b.c"
       |]
-    """.stripMargin.trim
+    """.stripMargin.trim,
   )
 
   check(
-    Conf.Obj(
-      "a" -> Conf.Obj("b.c" -> Conf.Str("d"))
-    ),
+    Conf.Obj("a" -> Conf.Obj("b.c" -> Conf.Str("d"))),
     """
       |a."b.c" = d
-    """.stripMargin.trim
+    """.stripMargin.trim,
   )
 
 }

@@ -11,9 +11,8 @@ sealed abstract class Position { pos =>
   def text: String
 
   /** Returns true if this position encloses the other position */
-  final def encloses(other: Position): Boolean =
-    pos.start <= other.start &&
-      pos.end > other.end
+  final def encloses(other: Position): Boolean = pos.start <= other.start &&
+    pos.end > other.end
 
   /** Returns a formatted string of this position including filename/line/caret.
     */
@@ -21,16 +20,9 @@ sealed abstract class Position { pos =>
     // Predef.augmentString = work around scala/bug#11125 on JDK 11
     val content = augmentString(lineContent).linesIterator
     val sb = new StringBuilder()
-    sb.append(lineInput(severity, message))
-      .append("\n")
-      .append(content.next())
-      .append("\n")
-      .append(lineCaret)
-      .append("\n")
-    content.foreach { line =>
-      sb.append(line)
-        .append("\n")
-    }
+    sb.append(lineInput(severity, message)).append("\n").append(content.next())
+      .append("\n").append(lineCaret).append("\n")
+    content.foreach(line => sb.append(line).append("\n"))
     sb.toString()
   }
 

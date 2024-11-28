@@ -1,6 +1,3 @@
 package metaconfig.cli
 
-case class TabCompletionItem(
-    name: String,
-    description: String = ""
-)
+case class TabCompletionItem(name: String, description: String = "")

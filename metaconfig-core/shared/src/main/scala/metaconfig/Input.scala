@@ -4,11 +4,11 @@ import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
+
 import scala.collection.mutable
 
 sealed abstract class Input(val path: String, val text: String)
-    extends Product
-    with Serializable {
+    extends Product with Serializable {
 
   def syntax: String = path
 
@@ -19,12 +19,10 @@ sealed abstract class Input(val path: String, val text: String)
     buf += 0
     var i = 0
     while (i < chars.length) {
-      if (chars(i) == '\n')
-        buf += (i + 1)
+      if (chars(i) == '\n') buf += i + 1
       i += 1
     }
-    if (buf.last != chars.length)
-      buf += chars.length // sentinel value used for binary search
+    if (buf.last != chars.length) buf += chars.length // sentinel value used for binary search
     buf.toArray
   }
 
@@ -49,11 +47,8 @@ sealed abstract class Input(val path: String, val text: String)
     }
     // If the file doesn't end with \n, then it's simply last_line:last_col+1.
     // But if the file does end with \n, then it's last_line+1:0.
-    if (
-      offset == chars.length && (0 < chars.length && chars(offset - 1) == '\n')
-    ) {
+    if (offset == chars.length && (0 < chars.length && chars(offset - 1) == '\n'))
       return a.length - 1
-    }
     var lo = 0
     var hi = a.length - 1
     while (hi - lo > 1) {
@@ -74,13 +69,12 @@ object Input {
 
   final case class String(override val text: Predef.String)
       extends Input("<input>", text) {
-    override def toString: Predef.String =
-      s"""Input.String("$text")"""
+    override def toString: Predef.String = s"""Input.String("$text")"""
   }
 
   final case class VirtualFile(
       override val path: Predef.String,
-      override val text: Predef.String
+      override val text: Predef.String,
   ) extends Input(path, text) {
     override def toString: Predef.String =
       s"""Input.VirtualFile("$path", "...")"""
@@ -89,15 +83,12 @@ object Input {
   final case class File(file: Path, charset: Charset)
       extends Input(
         file.toString,
-        new Predef.String(Files.readAllBytes(file), charset.name)
+        new Predef.String(Files.readAllBytes(file), charset.name),
       )
   object File {
-    def apply(file: java.io.File): Input = {
-      Input.File(file.toPath, StandardCharsets.UTF_8)
-    }
-    def apply(path: Path): Input = {
-      Input.File(path, StandardCharsets.UTF_8)
-    }
+    def apply(file: java.io.File): Input = Input
+      .File(file.toPath, StandardCharsets.UTF_8)
+    def apply(path: Path): Input = Input.File(path, StandardCharsets.UTF_8)
   }
 
   implicit class InputImplicits(input: Input) {
@@ -105,15 +96,13 @@ object Input {
     def parse(implicit metaconfigParser: MetaconfigParser): Configured[Conf] =
       metaconfigParser.fromInput(input)
 
-    def parse(
-        path: Option[Predef.String]
-    )(implicit parser: MetaconfigParser): Configured[Conf] =
-      path.fold(parse)(x => parse.andThen(_.getConf(x)))
+    def parse(path: Option[Predef.String])(implicit
+        parser: MetaconfigParser,
+    ): Configured[Conf] = path.fold(parse)(x => parse.andThen(_.getConf(x)))
 
-    def parse(
-        path: Predef.String*
-    )(implicit parser: MetaconfigParser): Configured[Conf] =
-      parse.andThen(_.getNestedConf(path: _*))
+    def parse(path: Predef.String*)(implicit
+        parser: MetaconfigParser,
+    ): Configured[Conf] = parse.andThen(_.getNestedConf(path: _*))
 
   }
 

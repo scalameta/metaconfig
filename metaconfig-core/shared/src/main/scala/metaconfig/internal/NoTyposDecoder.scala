@@ -14,16 +14,13 @@ object NoTyposDecoder {
     else new NoTyposDecoder[A](underlying)
 
   private[internal] def checkTypos[A](conf: Conf, otherwise: => Configured[A])(
-      implicit ev: Settings[A]
-  ): Configured[A] =
-    ConfDecoder.readWithPartial("Object") { case Conf.Obj(values) =>
+      implicit ev: Settings[A],
+  ): Configured[A] = ConfDecoder
+    .readWithPartial("Object") { case Conf.Obj(values) =>
       val names = ev.allNames
-      val typos = values.collect {
-        case (key, obj) if !names.contains(key) =>
-          key -> obj.pos
-      }
-      ConfError
-        .invalidFieldsOpt(typos, ev.nonHiddenNames)
+      val typos = values
+        .collect { case (key, obj) if !names.contains(key) => key -> obj.pos }
+      ConfError.invalidFieldsOpt(typos, ev.nonHiddenNames)
         .fold(otherwise)(_.notOk)
     }(conf)
 
@@ -32,8 +29,8 @@ object NoTyposDecoder {
 class NoTyposDecoder[A: Settings](underlying: ConfDecoder[A])
     extends ConfDecoder[A] {
 
-  override def read(conf: Conf): Configured[A] =
-    NoTyposDecoder.checkTypos(conf, underlying.read(conf))
+  override def read(conf: Conf): Configured[A] = NoTyposDecoder
+    .checkTypos(conf, underlying.read(conf))
 
 }
 

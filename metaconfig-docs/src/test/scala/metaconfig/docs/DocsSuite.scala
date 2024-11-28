@@ -9,7 +9,7 @@ class DocsSuite extends munit.FunSuite {
   case class Home(
       address: String = "blah",
       @Description("Original country")
-      country: String = "Iceland"
+      country: String = "Iceland",
   )
   object Home {
     implicit val surface: Surface[Home] = generic.deriveSurface[Home]
@@ -21,7 +21,7 @@ class DocsSuite extends munit.FunSuite {
       name: String = "John",
       @Description("Age description")
       age: Int = 42,
-      home: Home = Home()
+      home: Home = Home(),
   )
   object User {
     implicit val surface: Surface[User] = generic.deriveSurface[User]

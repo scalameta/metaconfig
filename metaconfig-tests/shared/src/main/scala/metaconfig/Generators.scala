@@ -15,8 +15,8 @@ object Generators {
   val genNum: Gen[Num] = Gen.posNum[Int].map(x => Num(x))
   val genStr: Gen[Str] = genIdent.map(Str.apply)
   val genBool: Gen[Bool] = Gen.oneOf(true, false).map(Bool.apply)
-  val genPrimitive: Gen[Conf] =
-    Gen.frequency[Conf](1 -> genNum, 1 -> genStr, 1 -> genBool)
+  val genPrimitive: Gen[Conf] = Gen
+    .frequency[Conf](1 -> genNum, 1 -> genStr, 1 -> genBool)
 
   val genConfShow: Gen[ConfShow] = for {
     lines <- Gen.listOfN(
@@ -24,7 +24,7 @@ object Generators {
       for {
         key <- genKey
         conf <- genPrimitive
-      } yield s"$key = ${conf.show}"
+      } yield s"$key = ${conf.show}",
     )
   } yield ConfShow(lines.mkString("\n"))
   implicit val argConfShow: Arbitrary[ConfShow] = Arbitrary(genConfShow)

@@ -4,8 +4,8 @@ object ConfOptionSuite {
   case class Foo(a: Option[String])
 
   object Foo {
-    implicit val reader: ConfDecoder[Foo] =
-      ConfDecoder.instance[Foo] { case obj: Conf.Obj =>
+    implicit val reader: ConfDecoder[Foo] = ConfDecoder
+      .instance[Foo] { case obj: Conf.Obj =>
         obj.getOption[String]("a").map(Foo(_))
       }
   }

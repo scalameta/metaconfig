@@ -11,7 +11,7 @@ import scala.annotation.StaticAnnotation
   */
 final class Surface[T](
     val fields: List[List[Field]],
-    val annotations: List[StaticAnnotation]
+    val annotations: List[StaticAnnotation],
 ) {
   def this(fields: List[List[Field]]) = this(fields, Nil)
   def cast[B]: Surface[B] = new Surface(fields)

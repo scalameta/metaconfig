@@ -10,7 +10,7 @@ class DeriveSurfaceFileSuite extends munit.FunSuite {
     val obtained = surface.toString
     assertNoDiff(
       obtained,
-      "Surface(List(List(Field(name=\"file\",tpe=\"File\",annotations=List(@TabCompleteAsPath()),underlying=List()))))"
+      "Surface(List(List(Field(name=\"file\",tpe=\"File\",annotations=List(@TabCompleteAsPath()),underlying=List()))))",
     )
   }
 }

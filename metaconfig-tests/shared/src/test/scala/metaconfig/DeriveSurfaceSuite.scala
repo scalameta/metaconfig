@@ -16,8 +16,7 @@ class DeriveSurfaceSuite extends munit.FunSuite {
 
   case class Underlying(number: Int)
   object Underlying {
-    implicit val surface: Surface[Underlying] =
-      generic.deriveSurface[Underlying]
+    implicit val surface: Surface[Underlying] = generic.deriveSurface[Underlying]
   }
   case class Enclosing(underlying: Underlying)
   object Enclosing {
@@ -33,8 +32,8 @@ class DeriveSurfaceSuite extends munit.FunSuite {
 
   case class TypeParam[T](value: T)
   object TypeParam {
-    implicit def surface[T]: Surface[TypeParam[T]] =
-      generic.deriveSurface[TypeParam[T]]
+    implicit def surface[T]: Surface[TypeParam[T]] = generic
+      .deriveSurface[TypeParam[T]]
   }
   test("tparam") {
     implicit val is: Surface[Int] = new Surface[Int](Nil)
@@ -48,11 +47,11 @@ class DeriveSurfaceSuite extends munit.FunSuite {
       notIterable: String,
       a: Iterable[T],
       b: List[Int],
-      c: Set[String]
+      c: Set[String],
   )
   object AllRepeated {
-    implicit def surface[T]: Surface[AllRepeated[T]] =
-      generic.deriveSurface[AllRepeated[T]]
+    implicit def surface[T]: Surface[AllRepeated[T]] = generic
+      .deriveSurface[AllRepeated[T]]
   }
 
   test("@Repeated") {
@@ -60,7 +59,7 @@ class DeriveSurfaceSuite extends munit.FunSuite {
     assert(settings.settings.length == 4)
     val notIterable :: tail = settings.settings: @unchecked
     assert(!notIterable.isRepeated)
-    tail.foreach { setting => assert(setting.isRepeated, setting.name) }
+    tail.foreach(setting => assert(setting.isRepeated, setting.name))
   }
 
   case class CustomTypePrinting(a: Int, b: Option[Int], c: List[String])
@@ -71,14 +70,14 @@ class DeriveSurfaceSuite extends munit.FunSuite {
     }
     implicit def optionPrint[T](implicit ev: TPrint[T]): TPrint[Option[T]] =
       new TPrint[Option[T]] {
-        def render(implicit tpc: TPrintColors): fansi.Str =
-          "(" + ev.render + ")"
+        def render(implicit tpc: TPrintColors): fansi.Str = "(" + ev.render +
+          ")"
       }
     implicit def iterablePrint[C[x] <: Iterable[x], T](implicit
-        ev: TPrint[T]
+        ev: TPrint[T],
     ): TPrint[C[T]] = new TPrint[C[T]] {
-      def render(implicit tpc: TPrintColors): fansi.Str =
-        "[" + ev.render + " ...]"
+      def render(implicit tpc: TPrintColors): fansi.Str = "[" + ev.render +
+        " ...]"
     }
     implicit val surface = generic.deriveSurface[CustomTypePrinting]
     val a :: b :: c :: Nil = Settings[CustomTypePrinting].settings: @unchecked

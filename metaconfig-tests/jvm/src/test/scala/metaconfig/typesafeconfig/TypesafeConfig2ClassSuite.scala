@@ -1,9 +1,11 @@
 package metaconfig.typesafeconfig
 
+import metaconfig.Conf
+import metaconfig.Position
+
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
-import metaconfig.{Conf, Position}
 
 class TypesafeConfig2ClassSuite extends munit.FunSuite {
   test("basic") {
@@ -11,20 +13,15 @@ class TypesafeConfig2ClassSuite extends munit.FunSuite {
     Files.write(
       Paths.get(file.toURI),
       """|a.b = 2
-        |a = [
-        |  1,
-        |  "2"
-        |]
-        |a += true""".stripMargin.getBytes()
+         |a = [
+         |  1,
+         |  "2"
+         |]
+         |a += true""".stripMargin.getBytes(),
     )
     val obtained = TypesafeConfig2Class.gimmeConfFromFile(file).get
-    val expected: Conf = Conf.Obj(
-      "a" -> Conf.Lst(
-        Conf.Num(1),
-        Conf.Str("2"),
-        Conf.Bool(true)
-      )
-    )
+    val expected: Conf = Conf
+      .Obj("a" -> Conf.Lst(Conf.Num(1), Conf.Str("2"), Conf.Bool(true)))
     assertEquals(obtained, expected)
   }
 
@@ -35,19 +32,12 @@ class TypesafeConfig2ClassSuite extends munit.FunSuite {
   }
 
   test("null") {
-    val obtained =
-      TypesafeConfig2Class
-        .gimmeConfFromString(
-          """|keywords = [
-            |  null
-            |]""".stripMargin
-        )
-        .get
-    val expected: Conf = Conf.Obj(
-      "keywords" -> Conf.Lst(
-        Conf.Null()
-      )
-    )
+    val obtained = TypesafeConfig2Class.gimmeConfFromString(
+      """|keywords = [
+         |  null
+         |]""".stripMargin,
+    ).get
+    val expected: Conf = Conf.Obj("keywords" -> Conf.Lst(Conf.Null()))
     assertEquals(obtained, expected)
   }
 
@@ -58,33 +48,28 @@ class TypesafeConfig2ClassSuite extends munit.FunSuite {
     Files.write(
       main,
       """|a = [ 1 ]
-        |include "included.conf"
-        |c = bar
-        |""".stripMargin.getBytes()
+         |include "included.conf"
+         |c = bar
+         |""".stripMargin.getBytes(),
     )
 
     val included = dir.resolve("included.conf")
     Files.write(
       included,
       s"""|a = $${a} [
-        |  "2",
-        |  3,
-        |  true
-        |]
-        |b = foo
-        |""".stripMargin.getBytes()
+          |  "2",
+          |  3,
+          |  true
+          |]
+          |b = foo
+          |""".stripMargin.getBytes(),
     )
 
     val obtained = TypesafeConfig2Class.gimmeConfFromFile(main.toFile).get
     val expected: Conf = Conf.Obj(
-      "a" -> Conf.Lst(
-        Conf.Num(1),
-        Conf.Str("2"),
-        Conf.Num(3),
-        Conf.Bool(true)
-      ),
+      "a" -> Conf.Lst(Conf.Num(1), Conf.Str("2"), Conf.Num(3), Conf.Bool(true)),
       "b" -> Conf.Str("foo"),
-      "c" -> Conf.Str("bar")
+      "c" -> Conf.Str("bar"),
     )
     assertEquals(obtained, expected)
 
@@ -95,15 +80,9 @@ class TypesafeConfig2ClassSuite extends munit.FunSuite {
     assertEquals(aPos, Position.None: Position)
 
     val bPos = obtainedObj.field("b").get.pos
-    assertEquals(
-      bPos.lineContent.replace("\n", "").replace("\r", ""),
-      "b = foo"
-    )
+    assertEquals(bPos.lineContent.replace("\n", "").replace("\r", ""), "b = foo")
 
     val cPos = obtainedObj.field("c").get.pos
-    assertEquals(
-      cPos.lineContent.replace("\n", "").replace("\r", ""),
-      "c = bar"
-    )
+    assertEquals(cPos.lineContent.replace("\n", "").replace("\r", ""), "c = bar")
   }
 }

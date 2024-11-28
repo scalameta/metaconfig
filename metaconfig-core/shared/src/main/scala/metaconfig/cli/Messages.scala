@@ -1,74 +1,60 @@
 package metaconfig.cli
 
+import metaconfig.Conf
+import metaconfig.ConfEncoder
 import metaconfig.annotation.Hidden
 import metaconfig.annotation.Inline
 import metaconfig.annotation.Section
-import org.typelevel.paiges.Doc
-import scala.collection.mutable.ListBuffer
-import metaconfig.internal.Case
-import metaconfig.Conf
-import metaconfig.ConfEncoder
 import metaconfig.generic.Setting
 import metaconfig.generic.Settings
+import metaconfig.internal.Case
+
+import scala.collection.mutable.ListBuffer
+
+import org.typelevel.paiges.Doc
 
 object Messages {
 
   def options[T](
-      default: T
+      default: T,
   )(implicit encoder: ConfEncoder[T], settings: Settings[T]): Doc = {
     val obj = ConfEncoder[T].writeObj(default)
-    val docs =
-      settings.settings.zip(obj.values).flatMap { case (setting, (_, value)) =>
-        if (setting.annotations.exists(_.isInstanceOf[Inline])) {
-          for {
-            underlying <- setting.underlying.toList
-            (field, (_, fieldDefault)) <- underlying.settings
-              .zip(value.asInstanceOf[Conf.Obj].values)
-          } yield {
-            printOption(field, fieldDefault)
-          }
-        } else {
-          List(printOption(setting, value))
-        }
+    val docs = settings.settings.zip(obj.values)
+      .flatMap { case (setting, (_, value)) =>
+        if (setting.annotations.exists(_.isInstanceOf[Inline])) for {
+          underlying <- setting.underlying.toList
+          (field, (_, fieldDefault)) <- underlying.settings
+            .zip(value.asInstanceOf[Conf.Obj].values)
+        } yield printOption(field, fieldDefault)
+        else List(printOption(setting, value))
       }
     Doc.intercalate(Doc.line, docs.filter(_.nonEmpty))
   }
 
-  private def printOption(setting: Setting, value: Conf): Doc = {
+  private def printOption(setting: Setting, value: Conf): Doc =
     if (setting.annotations.exists(_.isInstanceOf[Hidden])) Doc.empty
     else {
       var doc = Doc.empty
       setting.annotations.foreach {
-        case section: Section =>
-          doc += Doc.line + Doc.text(section.name) + Doc.char(':') + Doc.line
+        case section: Section => doc += Doc.line + Doc.text(section.name) +
+            Doc.char(':') + Doc.line
         case _ =>
       }
       val name = Case.camelToKebab(setting.name)
       doc += Doc.text("--") + Doc.text(name)
       setting.extraNames.foreach { name =>
-        if (name.length == 1) {
-          doc += Doc.text(" | -") +
-            Doc.text(Case.camelToKebab(name))
-        }
+        if (name.length == 1) doc += Doc.text(" | -") +
+          Doc.text(Case.camelToKebab(name))
       }
-      if (!setting.isBoolean) {
-        doc = doc + {
-          Doc.space +
-            Doc.text(setting.tpe) +
-            Doc.text(" (default: ") +
-            Doc.text(value.toString()) +
-            Doc.text(")")
-        }
+      if (!setting.isBoolean) doc = doc + {
+        Doc.space + Doc.text(setting.tpe) + Doc.text(" (default: ") +
+          Doc.text(value.toString()) + Doc.text(")")
       }
-      setting.description
-        .filter(_.nonEmpty)
-        .foreach { description =>
-          doc += Doc.line +
-            Messages.markdownish(description).indent(2)
-        }
+      setting.description.filter(_.nonEmpty).foreach { description =>
+        doc += Doc.line + Messages.markdownish(description).indent(2)
+      }
       doc
     }
-  }
 
   /** Line wrap prose while keeping markdown code fences unchanged. */
   def markdownish(text: String): Doc = {
@@ -76,20 +62,16 @@ object Messages {
     val paragraphs = ListBuffer.empty[Doc]
     var insideCodeFence = false
     def flush(): Unit = {
-      if (insideCodeFence) {
-        paragraphs += Doc.intercalate(Doc.line, buf.map(Doc.text))
-      } else {
-        paragraphs += Doc.paragraph(buf.mkString("\n"))
-      }
+      if (insideCodeFence) paragraphs +=
+        Doc.intercalate(Doc.line, buf.map(Doc.text))
+      else paragraphs += Doc.paragraph(buf.mkString("\n"))
       buf.clear()
     }
     text.linesIterator.foreach { line =>
       if (line.startsWith("```")) {
         flush()
         insideCodeFence = !insideCodeFence
-      } else if (line.isEmpty()) {
-        flush()
-      }
+      } else if (line.isEmpty()) flush()
       buf += line
     }
     flush()
