@@ -2,5 +2,5 @@
 case class ScalafmtConfig(
     version: String,
     align: AlignConfig,
-    project: ProjectConfig
+    project: ProjectConfig,
 )

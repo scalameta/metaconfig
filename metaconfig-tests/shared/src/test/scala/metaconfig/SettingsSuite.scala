@@ -11,7 +11,10 @@ class SettingsSuite extends munit.FunSuite {
 
   import SettingsSuite._
 
-  case class ToString(@ExtraName("extra") name: String)
+  case class ToString(
+      @ExtraName("extra")
+      name: String,
+  )
   test(".toString") {
     implicit val surface = generic.deriveSurface[ToString]
     val obtained = Settings[ToString].toString
@@ -22,18 +25,10 @@ class SettingsSuite extends munit.FunSuite {
 
   val List(s1, s2, _) = Settings[AllTheAnnotations].settings
 
-  test("name") {
-    assertEquals(s1.name, "number")
-  }
+  test("name")(assertEquals(s1.name, "number"))
 
   test("extraNames") {
-    assertEquals(
-      s1.extraNames.toSet,
-      Set(
-        "extraName",
-        "extraName2"
-      )
-    )
+    assertEquals(s1.extraNames.toSet, Set("extraName", "extraName2"))
   }
 
   test("deprecatedNames") {
@@ -41,41 +36,28 @@ class SettingsSuite extends munit.FunSuite {
       s1.deprecatedNames.toSet,
       Set(
         DeprecatedName("deprecatedName", "Use x instead", "2.0"),
-        DeprecatedName("deprecatedName2", "Use y instead", "3.0")
-      )
+        DeprecatedName("deprecatedName2", "Use y instead", "3.0"),
+      ),
     )
   }
 
   test("exampleValues") {
-    assertEquals(
-      s1.exampleValues.toSet,
-      Set("value", "value2")
-    )
+    assertEquals(s1.exampleValues.toSet, Set("value", "value2"))
   }
 
-  test("description") {
-    assert(clue(s1.description).contains("descriptioon"))
-  }
+  test("description")(assert(clue(s1.description).contains("descriptioon")))
 
-  test("sinceVersion") {
-    assert(s1.sinceVersion.contains("2.1"))
-  }
+  test("sinceVersion")(assert(s1.sinceVersion.contains("2.1")))
 
   test("deprecated") {
-    assert(
-      s1.deprecated.contains(Deprecated("Use newFeature instead", "2.1"))
-    )
+    assert(s1.deprecated.contains(Deprecated("Use newFeature instead", "2.1")))
   }
 
-  test("annotations") {
-    assert(s2.annotations.isEmpty)
-  }
+  test("annotations")(assert(s2.annotations.isEmpty))
 
   test("flat") {
-    val flat = Settings[Nested]
-      .flat(ConfEncoder[Nested].writeObj(Nested()))
-      .map { case (s, c) => s"${s.name} $c" }
-      .mkString("\n")
+    val flat = Settings[Nested].flat(ConfEncoder[Nested].writeObj(Nested()))
+      .map { case (s, c) => s"${s.name} $c" }.mkString("\n")
     assertNoDiff(
       flat,
       """a 31
@@ -86,7 +68,7 @@ class SettingsSuite extends munit.FunSuite {
         |e.a "nested3"
         |e.b.a "nested2"
         |e.b.b.param 82
-        |""".stripMargin
+        |""".stripMargin,
     )
   }
 
@@ -96,15 +78,15 @@ class SettingsSuite extends munit.FunSuite {
 
     assertEquals(
       Settings.validate(foo ::: asList(generic.deriveSurface[FooFoo])),
-      Seq("Multiple fields with name: 'foo'")
+      Seq("Multiple fields with name: 'foo'"),
     )
     assertEquals(
       Settings.validate(foo ::: asList(generic.deriveSurface[BarFoo])),
-      Seq("Extra name (foo) for 'bar' conflicts 'foo'")
+      Seq("Extra name (foo) for 'bar' conflicts 'foo'"),
     )
     assertEquals(
       Settings.validate(foo ::: asList(generic.deriveSurface[BazFoo])),
-      Seq("Deprecated name (foo) for 'baz' conflicts 'foo'")
+      Seq("Deprecated name (foo) for 'baz' conflicts 'foo'"),
     )
   }
 
@@ -112,26 +94,21 @@ class SettingsSuite extends munit.FunSuite {
 
 object SettingsSuite {
 
-  case class Foo(
-      foo: Int
-  )
+  case class Foo(foo: Int)
 
   case class FooFoo(
-      @ExtraName("efoo")
-      @DeprecatedName("dfoo", "", "")
-      foo: Int
+      @ExtraName("efoo") @DeprecatedName("dfoo", "", "")
+      foo: Int,
   )
 
   case class BarFoo(
-      @ExtraName("foo")
-      @ExtraName("efoo")
-      bar: Int
+      @ExtraName("foo") @ExtraName("efoo")
+      bar: Int,
   )
 
   case class BazFoo(
-      @DeprecatedName("foo", "", "")
-      @DeprecatedName("dfoo", "", "")
-      baz: Int
+      @DeprecatedName("foo", "", "") @DeprecatedName("dfoo", "", "")
+      baz: Int,
   )
 
 }

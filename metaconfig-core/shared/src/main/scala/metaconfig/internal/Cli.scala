@@ -6,6 +6,7 @@ import metaconfig.ConfError
 import metaconfig.annotation.Inline
 import metaconfig.generic.Setting
 import metaconfig.generic.Settings
+
 import org.typelevel.paiges.Doc
 import org.typelevel.paiges.Doc._
 
@@ -22,19 +23,15 @@ object Cli {
       case els => ConfError.typeMismatch("Conf.Obj", els).notOk.get
     }
 
-    val keyValues =
-      settings.settings.zip(defaultConf).flatMap { case (setting, value) =>
-        if (setting.isHidden) {
-          Nil
-        } else if (setting.annotations.exists(_.isInstanceOf[Inline])) {
-          for {
-            underlying <- setting.underlying.toList
-            (field, (_, fieldDefault)) <- underlying.settings
-              .zip(value.asInstanceOf[Conf.Obj].values)
-          } yield toHelp(field, fieldDefault)
-        } else {
-          toHelp(setting, value) :: Nil
-        }
+    val keyValues = settings.settings.zip(defaultConf)
+      .flatMap { case (setting, value) =>
+        if (setting.isHidden) Nil
+        else if (setting.annotations.exists(_.isInstanceOf[Inline])) for {
+          underlying <- setting.underlying.toList
+          (field, (_, fieldDefault)) <- underlying.settings
+            .zip(value.asInstanceOf[Conf.Obj].values)
+        } yield toHelp(field, fieldDefault)
+        else toHelp(setting, value) :: Nil
       }
     tabulate(keyValues)
   }

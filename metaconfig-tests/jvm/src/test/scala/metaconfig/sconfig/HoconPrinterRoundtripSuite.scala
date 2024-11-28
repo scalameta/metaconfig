@@ -3,6 +3,7 @@ package metaconfig.sconfig
 import metaconfig.Conf
 import metaconfig.ConfShow
 import metaconfig.Generators.argConfShow
+
 import org.scalacheck.Prop.forAll
 
 class HoconPrinterRoundtripSuite extends munit.ScalaCheckSuite {
@@ -14,15 +15,13 @@ class HoconPrinterRoundtripSuite extends munit.ScalaCheckSuite {
   }
   def ignore(conf: String): Unit = super.test(conf.ignore) {}
   def checkRoundtrip(conf: String): Unit =
-    test(conf.take(100)) {
-      assertRoundtrip(clue(conf))
-    }
+    test(conf.take(100))(assertRoundtrip(clue(conf)))
 
   ignore(
     """
       |a.a = "d"
       |a.bc = 9
-    """.stripMargin
+    """.stripMargin,
   )
 
   checkRoundtrip(
@@ -30,10 +29,8 @@ class HoconPrinterRoundtripSuite extends munit.ScalaCheckSuite {
       |aa.bb = true
       |aa.d = 3
       |aa.aa = "cb"
-    """.stripMargin
+    """.stripMargin,
   )
 
-  property("roundtrip") {
-    forAll { (conf: ConfShow) => assertRoundtrip(conf.str) }
-  }
+  property("roundtrip")(forAll((conf: ConfShow) => assertRoundtrip(conf.str)))
 }

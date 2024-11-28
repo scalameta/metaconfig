@@ -11,7 +11,7 @@ object ConfCodec {
   def apply[A](implicit ev: ConfCodec[A]): ConfCodec[A] = ev
   implicit def EncoderDecoderToCodec[A](implicit
       encode: ConfEncoder[A],
-      decode: ConfDecoder[A]
+      decode: ConfDecoder[A],
   ): ConfCodec[A] = new ConfCodec[A] {
     override def write(value: A): Conf = encode.write(value)
     override def read(conf: Conf): Configured[A] = decode.read(conf)

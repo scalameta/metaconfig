@@ -1,18 +1,18 @@
 package metaconfig.internal
 
-import scala.annotation.tailrec
-import scala.collection.mutable
 import metaconfig.Conf
 import metaconfig.ConfDecoder
 import metaconfig.ConfError
 import metaconfig.Configured
 
+import scala.annotation.tailrec
+import scala.collection.mutable
+
 object ConfGet {
-  def getKey(conf: Conf, keys: Seq[String]): Option[Conf] =
-    conf match {
-      case obj: Conf.Obj => getKey(obj, keys)
-      case _ => None
-    }
+  def getKey(conf: Conf, keys: Seq[String]): Option[Conf] = conf match {
+    case obj: Conf.Obj => getKey(obj, keys)
+    case _ => None
+  }
 
   @tailrec
   private def getKey(obj: Conf.Obj, keys: Seq[String]): Option[Conf] =
@@ -26,29 +26,22 @@ object ConfGet {
     }
 
   def getOrElse[T](conf: Conf, default: T, path: String, extraNames: String*)(
-      implicit ev: ConfDecoder[T]
-  ): Configured[T] =
-    getKey(conf, path +: extraNames).fold(Configured.ok(default))(ev.read)
+      implicit ev: ConfDecoder[T],
+  ): Configured[T] = getKey(conf, path +: extraNames)
+    .fold(Configured.ok(default))(ev.read)
 
   def get[T](conf: Conf, path: String, extraNames: String*)(implicit
-      ev: ConfDecoder[T]
-  ): Configured[T] = {
-    conf match {
-      case obj: Conf.Obj =>
-        getKey(obj, path +: extraNames)
-          .map(ev.read)
-          .getOrElse(ConfError.missingField(obj, path).notOk)
-      case _ =>
-        ConfError
-          .typeMismatch(s"Conf.Obj with field $path", conf, path)
-          .notOk
-    }
+      ev: ConfDecoder[T],
+  ): Configured[T] = conf match {
+    case obj: Conf.Obj => getKey(obj, path +: extraNames).map(ev.read)
+        .getOrElse(ConfError.missingField(obj, path).notOk)
+    case _ => ConfError.typeMismatch(s"Conf.Obj with field $path", conf, path)
+        .notOk
   }
 
   def getNested[T](conf: Conf, keys: String*)(implicit
-      ev: ConfDecoder[T]
-  ): Configured[T] =
-    conf.getNestedConf(keys: _*).andThen(ev.read)
+      ev: ConfDecoder[T],
+  ): Configured[T] = conf.getNestedConf(keys: _*).andThen(ev.read)
 
   // Copy-pasted from scala.meta inputs because it's private.
   // TODO(olafur) expose utility in inputs to get offset from line
@@ -57,11 +50,10 @@ object ConfGet {
     buf += 0
     var i = 0
     while (i < chars.length) {
-      if (chars(i) == '\n') buf += (i + 1)
+      if (chars(i) == '\n') buf += i + 1
       i += 1
     }
-    if (buf.last != chars.length)
-      buf += chars.length // sentinel value used for binary search
+    if (buf.last != chars.length) buf += chars.length // sentinel value used for binary search
     buf.toArray
   }
 

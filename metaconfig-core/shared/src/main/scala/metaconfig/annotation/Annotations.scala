@@ -1,6 +1,7 @@
 package metaconfig.annotation
 
 import scala.annotation.StaticAnnotation
+
 import org.typelevel.paiges.Doc
 
 final case class ShortName(value: Char) extends StaticAnnotation
@@ -8,7 +9,7 @@ final case class ExtraName(value: String) extends StaticAnnotation
 final case class DeprecatedName(
     name: String,
     message: String,
-    sinceVersion: String
+    sinceVersion: String,
 ) extends StaticAnnotation {
   override def toString: String =
     s"Setting '$name' is deprecated since version $sinceVersion. $message"

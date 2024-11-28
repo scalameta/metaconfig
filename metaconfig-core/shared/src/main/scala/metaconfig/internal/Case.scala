@@ -6,12 +6,10 @@ object Case {
   def kebabToCamel(kebab: String): String = {
     val m = Kebab.pattern.matcher(kebab)
     val sb = new StringBuffer
-    while (m.find()) {
-      m.appendReplacement(
-        sb,
-        m.group().charAt(1).toUpper.toString + m.group().substring(2)
-      )
-    }
+    while (m.find()) m.appendReplacement(
+      sb,
+      m.group().charAt(1).toUpper.toString + m.group().substring(2),
+    )
     m.appendTail(sb)
     sb.toString
   }
@@ -19,9 +17,7 @@ object Case {
   def camelToKebab(camel: String): String = {
     val m = Camel.pattern.matcher(camel)
     val sb = new StringBuffer
-    while (m.find()) {
-      m.appendReplacement(sb, "-" + m.group().toLowerCase())
-    }
+    while (m.find()) m.appendReplacement(sb, "-" + m.group().toLowerCase())
     m.appendTail(sb)
     sb.toString
   }

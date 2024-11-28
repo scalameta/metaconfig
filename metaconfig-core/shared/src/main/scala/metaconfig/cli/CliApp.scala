@@ -1,13 +1,15 @@
 package metaconfig.cli
 
-import java.io.PrintStream
-import java.io.InputStream
-import java.nio.file.Path
-import fansi.Str
-import fansi.Color
-import java.nio.file.Paths
 import metaconfig.Conf
 import metaconfig.Configured
+
+import java.io.InputStream
+import java.io.PrintStream
+import java.nio.file.Path
+import java.nio.file.Paths
+
+import fansi.Color
+import fansi.Str
 
 case class CliApp(
     version: String,
@@ -19,34 +21,30 @@ case class CliApp(
     err: PrintStream = System.err,
     in: InputStream = System.in,
     workingDirectory: Path = Paths.get(System.getProperty("user.dir")),
-    environmentVariables: Map[String, String] = sys.env
+    environmentVariables: Map[String, String] = sys.env,
 ) {
-  def error(message: Str): Unit = {
-    err.println(Color.LightRed("error: ") ++ message)
-  }
-  def warn(message: Str): Unit = {
-    err.println(Color.LightYellow("warn: ") ++ message)
-  }
-  def info(message: Str): Unit = {
-    err.println(Color.LightBlue("info: ") ++ message)
-  }
+  def error(message: Str): Unit = err
+    .println(Color.LightRed("error: ") ++ message)
+  def warn(message: Str): Unit = err
+    .println(Color.LightYellow("warn: ") ++ message)
+  def info(message: Str): Unit = err
+    .println(Color.LightBlue("info: ") ++ message)
 
   def run(args: List[String]): Int = {
     val app = this.copy(arguments = args)
     args match {
       case Nil => onEmptyArguments.run((), app)
-      case subcommand :: tail =>
-        commands.find(_.matchesName(subcommand)) match {
+      case subcommand :: tail => commands
+          .find(_.matchesName(subcommand)) match {
           case Some(command) =>
             val configured: Configured[command.Value] = Conf
               .parseCliArgs[command.Value](tail)(command.settings)
               .andThen(_.as[command.Value](command.decoder))
             configured.fold { error =>
-              error.all.foreach { message => app.error(message) }
+              error.all.foreach(message => app.error(message))
               1
             }(command.run(_, app))
-          case None =>
-            HelpCommand.notRecognized(subcommand, app)
+          case None => HelpCommand.notRecognized(subcommand, app)
         }
     }
   }

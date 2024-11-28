@@ -1,14 +1,14 @@
 package metaconfig.cli
 
-import scala.collection.immutable.ListMap
-
 import metaconfig._
 import metaconfig.generic.Surface
+
+import scala.collection.immutable.ListMap
 
 case class Site(
     foo: String = "foo",
     custom: Map[String, String] = Map.empty,
-    custom2: ListMap[String, String] = ListMap.empty
+    custom2: ListMap[String, String] = ListMap.empty,
 )
 
 object Site {

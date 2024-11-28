@@ -2,8 +2,9 @@ package metaconfig.sconfig
 
 import metaconfig.Conf
 import metaconfig.ConfShow
-import org.scalacheck.Prop.forAll
 import metaconfig.Generators.argConfShow
+
+import org.scalacheck.Prop.forAll
 
 class SconfigPropertySuite extends munit.ScalaCheckSuite {
   def assertRoundtrip(a: String, b: String): Unit = {
@@ -15,11 +16,7 @@ class SconfigPropertySuite extends munit.ScalaCheckSuite {
     assertEquals(obtained, expected)
   }
 
-  def checkRoundtrip(a: String, b: String): Unit = {
-    test(a) {
-      assertRoundtrip(a, b)
-    }
-  }
+  def checkRoundtrip(a: String, b: String): Unit = test(a)(assertRoundtrip(a, b))
 
   checkRoundtrip(
     """
@@ -30,10 +27,10 @@ class SconfigPropertySuite extends munit.ScalaCheckSuite {
       |
       |ad.a.dc = false
       |ad = "ad"
-    """.stripMargin
+    """.stripMargin,
   )
 
   property("roundtrip") {
-    forAll { (a: ConfShow, b: ConfShow) => assertRoundtrip(a.str, b.str) }
+    forAll((a: ConfShow, b: ConfShow) => assertRoundtrip(a.str, b.str))
   }
 }

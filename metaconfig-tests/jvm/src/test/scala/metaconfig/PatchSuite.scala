@@ -11,15 +11,12 @@ class PatchSuite extends munit.FunSuite {
   check(
     Conf.Obj(
       "a" -> Conf.Str("b"),
-      "c" -> Conf.Str("d") // ignored
+      "c" -> Conf.Str("d"), // ignored
     ),
-    Conf.Obj(
-      "a" -> Conf.Str("c"),
-      "e" -> Conf.Str("f")
-    ),
+    Conf.Obj("a" -> Conf.Str("c"), "e" -> Conf.Str("f")),
     """a = c
       |e = f
-    """.stripMargin.trim
+    """.stripMargin.trim,
   )
 
   check(
@@ -30,6 +27,6 @@ class PatchSuite extends munit.FunSuite {
       |  c
       |  d
       |]
-    """.stripMargin.trim
+    """.stripMargin.trim,
   )
 }

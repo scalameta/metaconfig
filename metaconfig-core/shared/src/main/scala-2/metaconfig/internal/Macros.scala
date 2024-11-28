@@ -1,32 +1,32 @@
 package metaconfig.internal
 
-import scala.annotation.StaticAnnotation
-import scala.reflect.macros.blackbox
 import metaconfig._
 import metaconfig.generic.Field
 import metaconfig.generic.Settings
 import metaconfig.generic.Surface
-import java.nio.file.Path
+
 import java.io.File
+import java.nio.file.Path
+
+import scala.annotation.StaticAnnotation
+import scala.reflect.macros.blackbox
 
 object Macros
 class Macros(val c: blackbox.Context) {
   import c.universe._
   def assumeClass[T: c.WeakTypeTag]: Type = {
     val T = weakTypeOf[T]
-    if (!T.typeSymbol.isClass || !T.typeSymbol.asClass.isCaseClass)
-      c.abort(c.enclosingPosition, s"$T must be a case class")
+    if (!T.typeSymbol.isClass || !T.typeSymbol.asClass.isCaseClass) c
+      .abort(c.enclosingPosition, s"$T must be a case class")
     T
   }
 
   def params(T: Type): List[Symbol] = {
     val paramss = T.typeSymbol.asClass.primaryConstructor.asMethod.paramLists
-    if (paramss.lengthCompare(1) > 0) {
-      c.abort(
-        c.enclosingPosition,
-        s"${T.typeSymbol} has a curried parameter list, which is not supported."
-      )
-    }
+    if (paramss.lengthCompare(1) > 0) c.abort(
+      c.enclosingPosition,
+      s"${T.typeSymbol} has a curried parameter list, which is not supported.",
+    )
     paramss.head
   }
 
@@ -60,7 +60,8 @@ class Macros(val c: blackbox.Context) {
         q"_root_.scala.Predef.implicitly[_root_.metaconfig.ConfEncoder[${param.info}]]"
       q"($name, $encoder.write($select))"
     }
-    val result = q"""
+    val result =
+      q"""
        new ${weakTypeOf[ConfEncoder[T]]} {
          override def write(value: ${weakTypeOf[T]}): _root_.metaconfig.Conf = {
            new _root_.metaconfig.Conf.Obj(
@@ -76,14 +77,12 @@ class Macros(val c: blackbox.Context) {
     val T = assumeClass[T]
     val Tclass = T.typeSymbol.asClass
     val settings = c.inferImplicitValue(weakTypeOf[Settings[T]])
-    if (settings == null || settings.isEmpty) {
-      c.abort(
-        c.enclosingPosition,
-        s"Missing implicit for ${weakTypeOf[Settings[T]]}]. " +
-          s"Hint, add `implicit val surface: ${weakTypeOf[Surface[T]]}` " +
-          s"to the companion ${T.companion.typeSymbol}"
-      )
-    }
+    if (settings == null || settings.isEmpty) c.abort(
+      c.enclosingPosition,
+      s"Missing implicit for ${weakTypeOf[Settings[T]]}]. " +
+        s"Hint, add `implicit val surface: ${weakTypeOf[Surface[T]]}` " +
+        s"to the companion ${T.companion.typeSymbol}",
+    )
     val paramss = Tclass.primaryConstructor.asMethod.paramLists
     if (paramss.isEmpty || paramss.head.isEmpty)
       return q"_root_.metaconfig.ConfDecoder.constant($default)"
@@ -99,19 +98,15 @@ class Macros(val c: blackbox.Context) {
     val product = params.foldLeft(next(head)) { case (accum, param) =>
       q"$accum.product(${next(param)})"
     }
-    val tupleExtract = 1.to(params.length).foldLeft(q"t": Tree) {
-      case (accum, _) => q"$accum._1"
-    }
+    val tupleExtract = 1.to(params.length)
+      .foldLeft(q"t": Tree) { case (accum, _) => q"$accum._1" }
     var curr = tupleExtract
     val args = 0.to(params.length).map { _ =>
       val old = curr
       curr = curr match {
-        case q"$qual._1" =>
-          q"$qual._2"
-        case q"$qual._1._2" =>
-          q"$qual._2"
-        case q"$qual._2" =>
-          q"$qual"
+        case q"$qual._1" => q"$qual._2"
+        case q"$qual._1._2" => q"$qual._2"
+        case q"$qual._2" => q"$qual"
         case q"t" => q"t"
       }
       old
@@ -139,17 +134,14 @@ class Macros(val c: blackbox.Context) {
     val retvalT = weakTypeOf[Configured[T]]
 
     val settings = c.inferImplicitValue(weakTypeOf[Settings[T]])
-    if (settings == null || settings.isEmpty) {
-      c.abort(
-        c.enclosingPosition,
-        s"Missing implicit for ${weakTypeOf[Settings[T]]}]. " +
-          s"Hint, add `implicit val surface: ${weakTypeOf[Surface[T]]}` " +
-          s"to the companion ${T.companion.typeSymbol}"
-      )
-    }
+    if (settings == null || settings.isEmpty) c.abort(
+      c.enclosingPosition,
+      s"Missing implicit for ${weakTypeOf[Settings[T]]}]. " +
+        s"Hint, add `implicit val surface: ${weakTypeOf[Surface[T]]}` " +
+        s"to the companion ${T.companion.typeSymbol}",
+    )
     val paramss = Tclass.primaryConstructor.asMethod.paramLists
-    if (paramss.isEmpty || paramss.head.isEmpty)
-      return q"""
+    if (paramss.isEmpty || paramss.head.isEmpty) return q"""
         new $resT {
           def read(
             state: $optionT,
@@ -171,19 +163,15 @@ class Macros(val c: blackbox.Context) {
     val product = params.foldLeft(next(head)) { case (accum, param) =>
       q"$accum.product(${next(param)})"
     }
-    val tupleExtract = 1.to(params.length).foldLeft(q"t": Tree) {
-      case (accum, _) => q"$accum._1"
-    }
+    val tupleExtract = 1.to(params.length)
+      .foldLeft(q"t": Tree) { case (accum, _) => q"$accum._1" }
     var curr = tupleExtract
     val args = 0.to(params.length).map { _ =>
       val old = curr
       curr = curr match {
-        case q"$qual._1" =>
-          q"$qual._2"
-        case q"$qual._1._2" =>
-          q"$qual._2"
-        case q"$qual._2" =>
-          q"$qual"
+        case q"$qual._1" => q"$qual._2"
+        case q"$qual._1._2" => q"$qual._2"
+        case q"$qual._2" => q"$qual"
         case q"t" => q"t"
       }
       old
@@ -206,8 +194,8 @@ class Macros(val c: blackbox.Context) {
 
   def deriveSurfaceImpl[T: c.WeakTypeTag]: Tree = {
     val T = weakTypeOf[T]
-    if (!T.typeSymbol.isClass || !T.typeSymbol.asClass.isCaseClass)
-      c.abort(c.enclosingPosition, s"$T must be a case class")
+    if (!T.typeSymbol.isClass || !T.typeSymbol.asClass.isCaseClass) c
+      .abort(c.enclosingPosition, s"$T must be a case class")
     val Tclass = T.typeSymbol.asClass
     val ctor = Tclass.primaryConstructor.asMethod
     val argss = ctor.paramLists.map { params =>
@@ -221,49 +209,35 @@ class Macros(val c: blackbox.Context) {
         val isConf = paramTpe <:< typeOf[Conf]
         val isIterable = paramTpe <:< typeOf[Iterable[_]] && !isMap
         val repeated =
-          if (isIterable) {
-            q"new _root_.metaconfig.annotation.Repeated" :: Nil
-          } else {
-            Nil
-          }
+          if (isIterable) q"new _root_.metaconfig.annotation.Repeated" :: Nil
+          else Nil
         val dynamic =
-          if (isMap || isConf) {
-            q"new _root_.metaconfig.annotation.Dynamic" :: Nil
-          } else {
+          if (isMap || isConf) q"new _root_.metaconfig.annotation.Dynamic" ::
             Nil
-          }
+          else Nil
         val flag =
-          if (paramTpe <:< typeOf[Boolean]) {
+          if (paramTpe <:< typeOf[Boolean])
             q"new _root_.metaconfig.annotation.Flag" :: Nil
-          } else {
-            Nil
-          }
+          else Nil
 
         val tabCompletePath =
-          if (paramTpe <:< typeOf[Path] || paramTpe <:< typeOf[File]) {
+          if (paramTpe <:< typeOf[Path] || paramTpe <:< typeOf[File])
             q"new _root_.metaconfig.annotation.TabCompleteAsPath" :: Nil
-          } else {
-            Nil
-          }
+          else Nil
 
-        val finalAnnots =
-          repeated ::: dynamic ::: flag ::: tabCompletePath ::: baseAnnots
-        val fieldsParamTpe = c.internal.typeRef(
-          NoPrefix,
-          weakTypeOf[Surface[_]].typeSymbol,
-          paramTpe :: Nil
-        )
+        val finalAnnots = repeated ::: dynamic ::: flag ::: tabCompletePath :::
+          baseAnnots
+        val fieldsParamTpe = c.internal
+          .typeRef(NoPrefix, weakTypeOf[Surface[_]].typeSymbol, paramTpe :: Nil)
         val underlyingInferred = c.inferImplicitValue(fieldsParamTpe)
         val underlying =
-          if (underlyingInferred == null || underlyingInferred.isEmpty) {
+          if (underlyingInferred == null || underlyingInferred.isEmpty)
             q"_root_.scala.Nil"
-          } else {
-            q"$underlyingInferred.fields"
-          }
+          else q"$underlyingInferred.fields"
         val tprint = c.internal.typeRef(
           NoPrefix,
           weakTypeOf[metaconfig.pprint.TPrint[_]].typeSymbol,
-          paramTpe :: Nil
+          paramTpe :: Nil,
         )
         val tpeString = c.inferImplicitValue(tprint)
 
@@ -280,15 +254,12 @@ class Macros(val c: blackbox.Context) {
     }
     val args = q"_root_.scala.List.apply(..$argss)"
     val classAnnotations = Tclass.annotations.collect {
-      case annot if annot.tree.tpe <:< typeOf[StaticAnnotation] =>
-        annot.tree
+      case annot if annot.tree.tpe <:< typeOf[StaticAnnotation] => annot.tree
     }
     val result =
-      if (classAnnotations.isEmpty) {
-        q"new ${weakTypeOf[Surface[T]]}($args)"
-      } else {
+      if (classAnnotations.isEmpty) q"new ${weakTypeOf[Surface[T]]}($args)"
+      else
         q"new ${weakTypeOf[Surface[T]]}($args, _root_.scala.List.apply(..$classAnnotations))"
-      }
     c.untypecheck(result)
   }
 

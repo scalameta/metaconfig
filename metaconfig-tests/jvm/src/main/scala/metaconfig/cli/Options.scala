@@ -1,16 +1,17 @@
 package metaconfig.cli
 
-import java.nio.file.Paths
-import metaconfig.annotation._
 import metaconfig._
+import metaconfig.annotation._
 import metaconfig.generic.Surface
 
+import java.nio.file.Paths
+
 case class Options(
-    @Description("The input directory to generate the fox site.")
-    @ExtraName("i")
+    @Description("The input directory to generate the fox site.") @ExtraName("i")
     in: String = Paths.get("docs").toString,
-    @Description("The output directory to generate the fox site.")
-    @ExtraName("o")
+    @Description("The output directory to generate the fox site.") @ExtraName(
+      "o",
+    )
     out: String = Paths.get("target").resolve("fox").toString,
     cwd: String = Paths.get(".").toAbsolutePath.toString,
     repoName: String = "olafurpg/fox",
@@ -37,10 +38,9 @@ case class Options(
     @Inline
     inlined: Site = Site(),
     @Hidden // should not appear in --help
-    hidden: Int = 87
+    hidden: Int = 87,
 )
 object Options {
   implicit val surface: Surface[Options] = generic.deriveSurface[Options]
-  implicit val codec: ConfCodec[Options] =
-    generic.deriveCodec[Options](Options())
+  implicit val codec: ConfCodec[Options] = generic.deriveCodec[Options](Options())
 }

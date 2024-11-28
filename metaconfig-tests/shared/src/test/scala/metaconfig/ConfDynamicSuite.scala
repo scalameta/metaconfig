@@ -5,7 +5,7 @@ class ConfDynamicSuite extends munit.FunSuite {
   val conf: Conf.Obj = Conf.Obj(
     "x" -> Conf.Obj("c" -> Conf.Obj("d" -> Conf.Num(2))),
     "banana" -> Conf.Num(2),
-    "kass" -> Conf.Str("boo")
+    "kass" -> Conf.Str("boo"),
   )
 
   test("basic") {
