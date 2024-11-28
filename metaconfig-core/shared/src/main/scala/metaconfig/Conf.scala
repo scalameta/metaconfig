@@ -86,7 +86,7 @@ object Conf {
   object Lst {
     def apply(values: Conf*): Lst = Lst(values.toList)
   }
-  case class Obj(values: List[(String, Conf)]) extends Conf {
+  case class Obj(values: List[Obj.Elem]) extends Conf {
     override final def equals(obj: scala.Any): Boolean = this
       .eq(obj.asInstanceOf[AnyRef]) || {
       obj match {
@@ -106,8 +106,9 @@ object Conf {
       .map(ev.read(_).map(Some(_))).getOrElse(Configured.Ok(None))
   }
   object Obj {
-    val empty: Obj = Obj()
-    def apply(values: (String, Conf)*): Obj = Obj(values.toList)
+    type Elem = (String, Conf)
+    val empty: Obj = Obj(Nil)
+    def apply(values: Elem*): Obj = Obj(values.toList)
   }
 
   def getEx[A](state: A, conf: Conf, path: Seq[String])(implicit
@@ -258,14 +259,14 @@ object ConfOps {
   }
 
   final def merge(a: Conf, b: Conf): Conf = (a, b) match {
-    case (Obj(v1), Obj(v2)) =>
-      val merged = (v1 ++ v2).foldLeft(Vector.empty[(String, Conf)]) {
-        case (accumulated, pair @ (key, value2)) => accumulated.collectFirst {
-            case (`key`, value1) => accumulated.filter(_._1 != key) ++
-                Vector((key, merge(value1, value2)))
-          }.getOrElse(pair +: accumulated)
-      }
-      Obj(merged.toList)
+    case (Obj(elemsA), Obj(elemsB)) => Obj(
+        Iterable.concat(elemsA, elemsB).foldLeft(List.empty[Obj.Elem]) {
+          case (merged, elemB @ (key, valB)) => merged
+              .collectFirst { case (`key`, valA) =>
+                (key -> merge(valA, valB)) :: merged.filter(_._1 != key)
+              }.getOrElse(elemB :: merged)
+        },
+      )
     case (_, _) => b
   }
 
