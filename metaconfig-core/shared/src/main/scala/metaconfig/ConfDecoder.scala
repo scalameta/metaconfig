@@ -3,8 +3,7 @@ package metaconfig
 import metaconfig.Configured._
 import metaconfig.Extractors.Number
 import metaconfig.generic.Settings
-import metaconfig.internal.CanBuildFromDecoder
-import metaconfig.internal.NoTyposDecoder
+import metaconfig.internal._
 
 import java.nio.file.Path
 import java.nio.file.Paths

@@ -1,6 +1,6 @@
 package metaconfig
 
-import metaconfig.internal.NoTyposDecoderEx
+import metaconfig.internal._
 
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -166,7 +166,8 @@ object ConfDecoderExT {
     }
   }
 
-  implicit final class Implicits[S, A](self: ConfDecoderExT[S, A]) {
+  implicit final class Implicits[S, A](private val self: ConfDecoderExT[S, A])
+      extends AnyVal {
 
     def read(state: Option[S], conf: Configured[Conf]): Configured[A] = conf
       .andThen(self.read(state, _))
@@ -182,8 +183,7 @@ object ConfDecoderExT {
         self.read(state, conf).recoverWithOrCombine(other.read(state, conf))
 
     def noTypos(implicit settings: generic.Settings[A]): ConfDecoderExT[S, A] =
-      if (self.isInstanceOf[NoTyposDecoderEx[_, _]]) self
-      else new NoTyposDecoderEx[S, A](self)
+      NoTyposDecoder(self)
 
   }
 
