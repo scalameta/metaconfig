@@ -1,20 +1,19 @@
 package metaconfig.internal
 
-import metaconfig.Conf
-import metaconfig.ConfDecoder
-import metaconfig.ConfDecoderExT
-import metaconfig.ConfError
-import metaconfig.Configured
-import metaconfig.generic.Settings
+import metaconfig._
 
 object NoTyposDecoder {
 
-  def apply[A: Settings](underlying: ConfDecoder[A]): ConfDecoder[A] =
-    if (underlying.isInstanceOf[NoTyposDecoder[_]]) underlying
-    else new NoTyposDecoder[A](underlying)
+  def apply[A: generic.Settings](dec: ConfDecoder[A]): ConfDecoder[A] =
+    if (dec.isInstanceOf[Decoder[_]]) dec else new Decoder[A](dec)
 
-  private[internal] def checkTypos[A](conf: Conf, otherwise: => Configured[A])(
-      implicit ev: Settings[A],
+  def apply[S, A: generic.Settings](
+      dec: ConfDecoderExT[S, A],
+  ): ConfDecoderExT[S, A] =
+    if (dec.isInstanceOf[DecoderEx[_, _]]) dec else new DecoderEx[S, A](dec)
+
+  private def checkTypos[A](conf: Conf, otherwise: => Configured[A])(implicit
+      ev: generic.Settings[A],
   ): Configured[A] = ConfDecoder
     .readWithPartial("Object") { case Conf.Obj(values) =>
       val names = ev.allNames
@@ -24,20 +23,16 @@ object NoTyposDecoder {
         .fold(otherwise)(_.notOk)
     }(conf)
 
-}
+  private class Decoder[A: generic.Settings](dec: ConfDecoder[A])
+      extends ConfDecoder[A] {
+    override def read(conf: Conf): Configured[A] =
+      checkTypos(conf, dec.read(conf))
+  }
 
-class NoTyposDecoder[A: Settings](underlying: ConfDecoder[A])
-    extends ConfDecoder[A] {
-
-  override def read(conf: Conf): Configured[A] = NoTyposDecoder
-    .checkTypos(conf, underlying.read(conf))
-
-}
-
-class NoTyposDecoderEx[S, A: Settings](underlying: ConfDecoderExT[S, A])
-    extends ConfDecoderExT[S, A] {
-
-  override def read(state: Option[S], conf: Conf): Configured[A] =
-    NoTyposDecoder.checkTypos(conf, underlying.read(state, conf))
+  private class DecoderEx[-S, A: generic.Settings](dec: ConfDecoderExT[S, A])
+      extends ConfDecoderExT[S, A] {
+    override def read(state: Option[S], conf: Conf): Configured[A] =
+      checkTypos(conf, dec.read(state, conf))
+  }
 
 }
