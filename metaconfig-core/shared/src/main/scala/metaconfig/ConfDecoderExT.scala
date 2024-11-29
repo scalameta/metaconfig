@@ -185,6 +185,14 @@ object ConfDecoderExT {
     def noTypos(implicit settings: generic.Settings[A]): ConfDecoderExT[S, A] =
       NoTyposDecoder(self)
 
+    def detectSectionRenames(implicit
+        settings: generic.Settings[A],
+    ): ConfDecoderExT[S, A] = SectionRenameDecoder(self)
+
+    def withSectionRenames(
+        renames: annotation.SectionRename*,
+    ): ConfDecoderExT[S, A] = SectionRenameDecoder(self, renames.toList)
+
   }
 
   private[metaconfig] def buildFrom[V, S, A, B, Coll](
