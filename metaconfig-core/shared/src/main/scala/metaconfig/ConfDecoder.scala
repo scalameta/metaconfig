@@ -50,15 +50,13 @@ object ConfDecoder {
   ): ConfDecoder[T] = fromPartial(ev.runtimeClass.getName)(f)
 
   @deprecated("Use from instead", "0.9.12")
-  def instanceF[T](f: Conf => Configured[T])(implicit
-      ev: ClassTag[T],
-  ): ConfDecoder[T] = from(f)
+  def instanceF[T: ClassTag](f: Conf => Configured[T]): ConfDecoder[T] = from(f)
 
   def from[T](f: Conf => Configured[T]): ConfDecoder[T] = f(_)
 
   @deprecated("Use fromPartial instead", "0.9.12")
-  def instanceExpect[T](expect: String)(f: PartialFunction[Conf, Configured[T]])(
-      implicit ev: ClassTag[T],
+  def instanceExpect[T: ClassTag](expect: String)(
+      f: PartialFunction[Conf, Configured[T]],
   ): ConfDecoder[T] = fromPartial(expect)(f)
 
   def fromPartial[A](expect: String)(
@@ -108,19 +106,14 @@ object ConfDecoder {
 
   // XXX: remove this method when MIMA no longer an issue
   @deprecated("Use canBuildFromAnyMapWithStringKey instead", "0.9.2")
-  def canBuildFromMapWithStringKey[A](implicit
-      ev: ConfDecoder[A],
-      classTag: ClassTag[A],
-  ): ConfDecoder[Map[String, A]] = CanBuildFromDecoder.map[A, Map]
+  def canBuildFromMapWithStringKey[A: ConfDecoder: ClassTag]
+      : ConfDecoder[Map[String, A]] = CanBuildFromDecoder.map[A, Map]
 
-  implicit def canBuildFromAnyMapWithStringKey[A, CC[_, _]](implicit
-      ev: ConfDecoder[A],
-      factory: Factory[(String, A), CC[String, A]],
-      classTag: ClassTag[A],
+  implicit def canBuildFromAnyMapWithStringKey[A: ClassTag: ConfDecoder, CC[_, _]](
+      implicit factory: Factory[(String, A), CC[String, A]],
   ): ConfDecoder[CC[String, A]] = CanBuildFromDecoder.map[A, CC]
 
-  implicit def canBuildFromConfDecoder[C[_], A](implicit
-      ev: ConfDecoder[A],
+  implicit def canBuildFromConfDecoder[C[_], A: ConfDecoder](implicit
       factory: Factory[A, C[A]],
       classTag: ClassTag[A],
   ): ConfDecoder[C[A]] = CanBuildFromDecoder.list[C, A]
