@@ -107,7 +107,8 @@ object Conf {
   object Obj {
     type Elem = (String, Conf)
     val empty: Obj = Obj(Nil)
-    def apply(values: Elem*): Obj = Obj(values.toList)
+    def apply(values: Elem*): Obj =
+      if (values.isEmpty) empty else Obj(values.toList)
   }
 
   def getEx[A](state: A, conf: Conf, path: Seq[String])(implicit
@@ -264,7 +265,11 @@ object ConfOps {
         Iterable.concat(elemsA, elemsB).foldLeft(List.empty[Obj.Elem]) {
           case (merged, elemB @ (key, valB)) => merged
               .collectFirst { case (`key`, valA) =>
-                (key -> merge(valA, valB)) :: merged.filter(_._1 != key)
+                val filtered = merged.filter(_._1 != key)
+                merge(valA, valB) match {
+                  case Conf.Obj(Nil) => filtered
+                  case x => (key -> x) :: filtered
+                }
               }.getOrElse(elemB :: merged)
         },
       )
