@@ -1,5 +1,6 @@
 package metaconfig
 
+import scala.language.implicitConversions
 import scala.util.Failure
 import scala.util.Success
 
@@ -93,6 +94,9 @@ object Configured extends ConfiguredLowPriorityImplicits {
     @inline
     def combine(other: NotOk): NotOk = combine(other.error)
   }
+
+  implicit def errorToNotOK(error: ConfError): Configured.NotOk = Configured
+    .NotOk(error)
 
   implicit class ConfiguredImplicit[A](value: Configured[A]) {
 
