@@ -107,6 +107,12 @@ object Configured extends ConfiguredLowPriorityImplicits {
 
     def recoverWithOrCombine[B >: A](f: => Configured[B]): Configured[B] = value
       .recoverWith(x => f.recoverWith(x.combine))
+
+    def getError: ConfError = value match {
+      case Configured.Ok(value) => ConfError.message(s"Not an error: $value")
+      case Configured.NotOk(error) => error
+    }
+
   }
 
 }

@@ -5,7 +5,7 @@ object ConfOptionSuite {
 
   object Foo {
     implicit val reader: ConfDecoder[Foo] = ConfDecoder
-      .instance[Foo] { case obj: Conf.Obj =>
+      .fromPartial[Foo]("Foo") { case obj: Conf.Obj =>
         obj.getOption[String]("a").map(Foo(_))
       }
   }

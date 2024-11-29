@@ -20,14 +20,14 @@ class ConfGetSuite extends munit.FunSuite {
   test("getNested fail") {
     val confA = Str("a")
     assertEquals(
-      confA.getNested[Boolean]().toEither.left.get.msg,
+      confA.getNested[Boolean]().getError.msg,
       """|Type mismatch;
          |  found    : String (value: "a")
          |  expected : Bool""".stripMargin,
     )
 
     assertEquals(
-      confA.getNested[Boolean]("c").toEither.left.get.msg,
+      confA.getNested[Boolean]("c").getError.msg,
       """|Type mismatch;
          |  found    : String (value: "a")
          |  expected : Conf.Obj with key 'c'""".stripMargin,
@@ -35,7 +35,7 @@ class ConfGetSuite extends munit.FunSuite {
 
     val confB = Obj("b" -> confA)
     assertEquals(
-      confB.getNested[String]("c").toEither.left.get.msg,
+      confB.getNested[String]("c").getError.msg,
       """{"b": "a"} has no field 'c'.""",
     )
   }
