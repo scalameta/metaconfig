@@ -29,4 +29,11 @@ class PatchSuite extends munit.FunSuite {
       |]
     """.stripMargin.trim,
   )
+
+  test("patch with key and empty val: delete") {
+    val initial = Conf.Obj("a" -> Conf.Num(0), "b" -> Conf.Str("1"))
+    val patched = Conf.applyPatch(initial, Conf.Obj("a" -> Conf.Obj.empty))
+    assertEquals(patched, Conf.Obj("a" -> Conf.Obj.empty, "b" -> Conf.Str("1")))
+  }
+
 }
