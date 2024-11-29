@@ -3,15 +3,16 @@ package metaconfig.internal
 import metaconfig.Conf
 
 object ConfPatch {
-  def patch(original: Conf, revised: Conf): Conf = (original, revised) match {
-    case (Conf.Obj(a), Conf.Obj(b)) => Conf.Obj(b.flatMap { case kv @ (k, v) =>
-        if (a.contains(kv)) Nil
-        else a.find(_._1 == k) match {
-          case Some((_, v1)) => (k, patch(v1, v)) :: Nil
-          case _ => kv :: Nil
+
+  // compact patch so that merge(conf, patch) == merge(srcConf, compact)
+  def compact(conf: Conf, extra: Conf): Conf = (conf, extra) match {
+    case (Conf.Obj(a), Conf.Obj(b)) => Conf.Obj(b.flatMap { case kv @ (k, vB) =>
+        a.find(_._1 == k) match {
+          case Some((_, vA)) => if (vA eq vB) None else Some(k -> compact(vA, vB))
+          case _ => Some(kv)
         }
       })
-    case (a, b) => b
+    case (_, b) => b
   }
 
 }

@@ -70,7 +70,7 @@ object Conf {
 
   /** Produce a minimal Conf that when merged with original yields revised. * */
   def patch(original: Conf, revised: Conf): Conf = ConfPatch
-    .patch(original, revised)
+    .compact(original, revised)
 
   /** Applies the patch configuration on top of original. */
   def applyPatch(original: Conf, patch: Conf): Conf = ConfOps
