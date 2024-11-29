@@ -16,6 +16,14 @@ val scala3 = "3.3.4"
 
 val ScalaVersions = List(scala213, scala212, scala3)
 inThisBuild(List(
+  version ~= { dynVer =>
+    if (System.getenv("CI") != null) dynVer
+    else {
+      import scala.sys.process._
+      // drop `v` prefix
+      "git describe --abbrev=0 --tags".!!.drop(1).trim + "-SNAPSHOT"
+    }
+  },
   useSuperShell := false,
   organization := "org.scalameta",
   version ~= { old => old.replace('+', '-') },
