@@ -25,19 +25,19 @@ sealed abstract class Conf extends Product with Serializable {
   final def diff(other: Conf): Option[(Conf, Conf)] = ConfOps.diff(this, other)
   override final def toString: String = show
   def as[T](implicit ev: ConfDecoder[T]): Configured[T] = ev.read(this)
-  def getSettingOrElse[T](setting: Setting, default: T)(implicit
-      ev: ConfDecoder[T],
+  def getSettingOrElse[T: ConfDecoder](
+      setting: Setting,
+      default: T,
   ): Configured[T] = ConfGet
     .getOrElse(this, default, setting.name, setting.alternativeNames: _*)
-  def get[T](path: String, extraNames: String*)(implicit
-      ev: ConfDecoder[T],
-  ): Configured[T] = ConfGet.get(this, path, extraNames: _*)
-  def getOrElse[T](path: String, extraNames: String*)(default: T)(implicit
-      ev: ConfDecoder[T],
+  def get[T: ConfDecoder](path: String, extraNames: String*): Configured[T] =
+    ConfGet.get(this, path, extraNames: _*)
+  def getOrElse[T: ConfDecoder](path: String, extraNames: String*)(
+      default: T,
   ): Configured[T] = ConfGet.getOrElse(this, default, path, extraNames: _*)
 
-  def getNested[T](keys: String*)(implicit ev: ConfDecoder[T]): Configured[T] =
-    ConfGet.getNested(this, keys: _*)
+  def getNested[T: ConfDecoder](keys: String*): Configured[T] = ConfGet
+    .getNested(this, keys: _*)
 }
 
 object Conf {
@@ -50,9 +50,8 @@ object Conf {
     Try(fromBigDecimal(BigDecimal(str.toDouble))).getOrElse(fromString(str))
   def fromString(str: String): Conf = Conf.Str(str)
 
-  def parseCliArgs[T](args: List[String])(implicit
-      settings: Settings[T],
-  ): Configured[Conf] = CliParser.parseArgs[T](args)
+  def parseCliArgs[T: Settings](args: List[String]): Configured[Conf] =
+    CliParser.parseArgs[T](args)
   def parseFile(file: File)(implicit
       parser: MetaconfigParser,
   ): Configured[Conf] = Input.File(file).parse
@@ -116,8 +115,10 @@ object Conf {
   ): Configured[A] = ConfGet.getKey(conf, path)
     .fold(Configured.ok(state))(ev.read(Some(state), _))
 
-  def getSettingEx[A](state: A, conf: Conf, setting: Setting)(implicit
-      ev: ConfDecoderEx[A],
+  def getSettingEx[A: ConfDecoderEx](
+      state: A,
+      conf: Conf,
+      setting: Setting,
   ): Configured[A] = getEx(state, conf, setting.name +: setting.alternativeNames)
 
   implicit class ConfImplicit(conf: Conf) {
