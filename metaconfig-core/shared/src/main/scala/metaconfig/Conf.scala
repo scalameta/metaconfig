@@ -28,13 +28,12 @@ sealed abstract class Conf extends Product with Serializable {
   def getSettingOrElse[T: ConfDecoder](
       setting: Setting,
       default: T,
-  ): Configured[T] = ConfGet
-    .getOrElse(this, default, setting.name, setting.alternativeNames: _*)
+  ): Configured[T] = ConfGet.getOrElse(this, default, setting.allNames)
   def get[T: ConfDecoder](path: String, extraNames: String*): Configured[T] =
     ConfGet.get(this, path, extraNames: _*)
   def getOrElse[T: ConfDecoder](path: String, extraNames: String*)(
       default: T,
-  ): Configured[T] = ConfGet.getOrElse(this, default, path, extraNames: _*)
+  ): Configured[T] = ConfGet.getOrElse(this, default, path +: extraNames)
 
   def getNested[T: ConfDecoder](keys: String*): Configured[T] = ConfGet
     .getNested(this, keys: _*)
@@ -120,7 +119,7 @@ object Conf {
       state: A,
       conf: Conf,
       setting: Setting,
-  ): Configured[A] = getEx(state, conf, setting.name +: setting.alternativeNames)
+  ): Configured[A] = getEx(state, conf, setting.allNames)
 
   implicit class ConfImplicit(conf: Conf) {
 
