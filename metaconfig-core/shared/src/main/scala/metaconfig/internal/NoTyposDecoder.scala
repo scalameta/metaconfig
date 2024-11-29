@@ -5,12 +5,21 @@ import metaconfig._
 object NoTyposDecoder {
 
   def apply[A: generic.Settings](dec: ConfDecoder[A]): ConfDecoder[A] =
-    if (dec.isInstanceOf[Decoder[_]]) dec else new Decoder[A](dec)
+    dec match {
+      case _: Decoder[_] => dec
+      case x: Transformable[_] => x.asInstanceOf[Transformable[ConfDecoder[A]]]
+          .transform(apply(_))
+      case _ => new Decoder[A](dec)
+    }
 
   def apply[S, A: generic.Settings](
       dec: ConfDecoderExT[S, A],
-  ): ConfDecoderExT[S, A] =
-    if (dec.isInstanceOf[DecoderEx[_, _]]) dec else new DecoderEx[S, A](dec)
+  ): ConfDecoderExT[S, A] = dec match {
+    case _: DecoderEx[_, _] => dec
+    case x: Transformable[_] => x.asInstanceOf[Transformable[ConfDecoderExT[S, A]]]
+        .transform(apply(_))
+    case _ => new DecoderEx[S, A](dec)
+  }
 
   private def checkTypos[A](conf: Conf, otherwise: => Configured[A])(implicit
       ev: generic.Settings[A],
