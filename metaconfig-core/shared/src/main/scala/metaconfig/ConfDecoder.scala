@@ -108,7 +108,7 @@ object ConfDecoder {
 
   // XXX: remove this method when MIMA no longer an issue
   @deprecated("Use canBuildFromAnyMapWithStringKey instead", "0.9.2")
-  implicit def canBuildFromMapWithStringKey[A](implicit
+  def canBuildFromMapWithStringKey[A](implicit
       ev: ConfDecoder[A],
       classTag: ClassTag[A],
   ): ConfDecoder[Map[String, A]] = CanBuildFromDecoder.map[A, Map]
