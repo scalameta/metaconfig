@@ -104,7 +104,7 @@ class DeriveConfDecoderSuite extends munit.FunSuite {
     assertEquals(either.read(Obj("param" -> Num(2))).get, Left(OneParam(2)))
     assertEquals(either.read(Obj("b" -> Num(2))).get, Right(HasOption(Some(2))))
     assertEquals(
-      either.read(Obj("c" -> Num(3))).toEither.left.get.msg,
+      either.read(Obj("c" -> Num(3))).getError.msg,
       "found option 'c' which wasn't expected, or isn't valid in this context.",
     )
   }

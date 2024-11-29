@@ -127,7 +127,7 @@ class DeriveConfDecoderExSuite extends munit.FunSuite {
       Right(HasOption(Some(2))),
     )
 
-    def getMsg(c: Configured[_]) = c.toEither.left.get.msg
+    def getMsg(c: Configured[_]) = c.getError.msg
 
     assertEquals(
       getMsg(either.read(None, Obj("c" -> Num(3)))),

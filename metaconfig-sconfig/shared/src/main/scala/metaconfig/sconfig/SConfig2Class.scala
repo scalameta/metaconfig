@@ -23,7 +23,8 @@ object SConfig2Class {
     val cache = mutable.Map.empty[Input, Array[Int]]
     def loop(value: ConfigValue): Conf = {
       val conf = value match {
-        case obj: ConfigObject => Conf.Obj(obj.asScala.mapValues(loop).toList)
+        case obj: ConfigObject => Conf
+            .Obj(obj.asScala.toList.map { case (k, v) => k -> loop(v) })
         case lst: ConfigList => Conf
             .Lst(lst.listIterator().asScala.map(loop).toList)
         case _ => value.unwrapped match {

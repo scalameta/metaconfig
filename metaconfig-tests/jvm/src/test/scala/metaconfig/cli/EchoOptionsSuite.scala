@@ -9,7 +9,7 @@ class EchoOptionsSuite extends munit.FunSuite {
   ): Unit = test(name) {
     val parsed = Hocon.parseFilename("hello.conf", input)(EchoOptions.decoder)
     assert(clue(parsed).isNotOk)(munit.Location.generate)
-    assertNoDiff(parsed.toEither.left.get.toString, expectedError)
+    assertNoDiff(parsed.getError.toString, expectedError)
 
   }
 
