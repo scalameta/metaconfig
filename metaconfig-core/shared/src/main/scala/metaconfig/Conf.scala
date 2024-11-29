@@ -100,8 +100,8 @@ object Conf {
     })
     def getOption[T](path: String, extraNames: String*)(implicit
         ev: ConfDecoder[T],
-    ): Configured[Option[T]] = ConfGet.getKey(this, path +: extraNames)
-      .map(ev.read(_).map(Some(_))).getOrElse(Configured.Ok(None))
+    ): Configured[Option[T]] = ConfGet
+      .getOrOK(this, path +: extraNames, ev.read(_).map(Some.apply), None)
   }
   object Obj {
     type Elem = (String, Conf)
@@ -112,8 +112,7 @@ object Conf {
 
   def getEx[A](state: A, conf: Conf, path: Seq[String])(implicit
       ev: ConfDecoderEx[A],
-  ): Configured[A] = ConfGet.getKey(conf, path)
-    .fold(Configured.ok(state))(ev.read(Some(state), _))
+  ): Configured[A] = ConfGet.getOrOK(conf, path, ev.read(Some(state), _), state)
 
   def getSettingEx[A: ConfDecoderEx](
       state: A,
