@@ -227,6 +227,47 @@ a = {
 }
 ```
 
+### Renaming sections
+
+`ConfDecoderEx` and `ConfCodecEx` (as well their obsolete non-`Ex` variants)
+also support renaming sections of configuration, in case they have been
+restructured but still need to provide backwards compatibility.
+
+This can be accomplished in one of two ways:
+- via a call to `.withSectionRenames(...)` with explicit rename arguments
+- via a call to `.detectSectionRenames` when the target type is provided
+  with one or more `@SectionRename(...)` annotations
+
+```
+@SectionRename("spouse" -> "family.spouse")
+case class Human(
+  name: String = "",
+  family: Option[Family] = None
+)
+
+case class Family(
+  spouse: String,
+  children: List[String] = Nil
+)
+
+object Human {
+  /** will parse correctly:
+   *  {{{
+   *    name = "John Doe"
+   *    spouse = "Jane Doe" # maps to `family.spouse = ...`
+   *  }}}
+   */
+  val decoderWithRenamesDetected =
+    generic.deriveDecoderEx(Human()).noTypos.detectSectionRenames
+  // this one will also understand `kids`
+  val decoderWithRenamesExplicit =
+    generic.deriveDecoderEx(Human()).noTypos.withSectionRenames(
+      "spouse" -> "family.spouse",
+      "kids" -> "family.children"
+    )
+}
+```
+
 ## ConfEncoder
 
 To convert a class instance into `Conf` use `ConfEncoder[T]`. It's possible to
@@ -418,6 +459,8 @@ The following features are not supported by generic derivation
   field: `Option[T].value: T`.
 
 ## @DeprecatedName
+
+> See also [Renaming Sections](#renaming-sections)
 
 As your configuration evolves, you may want to rename some settings but you have
 existing users who are using the old name. Use the `@DeprecatedName` annotation
