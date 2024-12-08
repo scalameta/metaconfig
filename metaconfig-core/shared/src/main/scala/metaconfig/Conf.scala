@@ -218,12 +218,14 @@ object ConfOps {
     case x @ Obj(_) => obj(x).mapValues(y => fold(y)(str, num, bool, lst, obj))
   }
 
-  def escape(str: String): String = str.flatMap {
-    case '\\' => "\\\\"
-    case '\n' => "\\n"
-    case '"' => "\""
-    case other => other.toString
-  }
+  def escape(str: String): String =
+    if (str eq null) null
+    else str.flatMap {
+      case '\\' => "\\\\"
+      case '\n' => "\\n"
+      case '"' => "\""
+      case other => other.toString
+    }
 
   // TODO(olafur) use something like Paiges to get pretty output.
   final def show(conf: Conf): String = conf match {
