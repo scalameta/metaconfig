@@ -31,7 +31,6 @@ private[generic] def deriveCodecImpl[T: Type](default: Expr[T])(using Quotes) =
   '{ ConfCodec.EncoderDecoderToCodec[T]($encoder, $decoder) }
 
 private[generic] def deriveEncoderImpl[T](using tp: Type[T])(using q: Quotes) =
-  import q.reflect.*
   assumeCaseClass[T]
   val str = Expr("Show: " + Type.show[T])
   val encoders = params[T]
