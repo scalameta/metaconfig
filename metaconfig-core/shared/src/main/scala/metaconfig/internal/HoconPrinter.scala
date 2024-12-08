@@ -13,26 +13,20 @@ object HoconPrinter {
 
   def toHocon(conf: Conf): Doc = {
     def loop(c: Conf): Doc = c match {
-      case Conf.Null() => text("null")
+      case Conf.Null() | Conf.Str(null) => text("null")
       case Conf.Num(num) => str(num)
       case Conf.Str(str) => quoteString(str)
       case Conf.Bool(bool) => str(bool)
+      case Conf.Lst(Nil) => text("[]")
       case Conf.Lst(lst) =>
-        if (lst.isEmpty) text("[]")
-        else {
-          val parts = intercalate(
-            line,
-            lst.map {
-              case c: Conf.Obj => wrap('{', '}', loop(c))
-              case x => loop(x)
-            },
-          )
-          wrap('[', ']', parts)
+        val elems = lst.map {
+          case c: Conf.Obj => wrap('{', '}', loop(c))
+          case x => loop(x)
         }
-      case Conf.Obj(obj) => intercalate(
-          line,
-          obj.map { case (k, v) => text(k) + text(" = ") + loop(v) },
-        )
+        wrap('[', ']', intercalate(line, elems))
+      case Conf.Obj(obj) =>
+        val elems = obj.map { case (k, v) => text(k) + text(" = ") + loop(v) }
+        intercalate(line, elems)
     }
 
     loop(flatten(conf))
