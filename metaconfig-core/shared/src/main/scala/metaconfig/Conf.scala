@@ -261,19 +261,19 @@ object ConfOps {
   }
 
   final def merge(a: Conf, b: Conf): Conf = (a, b) match {
-    case (Obj(elemsA), Obj(elemsB)) =>
-      if (elemsB.isEmpty) Obj.empty
-      else Obj(Iterable.concat(elemsA, elemsB).foldLeft(List.empty[Obj.Elem]) {
-        case (merged, (key, Obj(Nil))) => merged.filter(_._1 != key)
-        case (merged, elemB @ (key, valB)) => merged
-            .collectFirst { case (`key`, valA) =>
-              val filtered = merged.filter(_._1 != key)
-              merge(valA, valB) match {
-                case Conf.Obj(Nil) => filtered
-                case x => (key -> x) :: filtered
-              }
-            }.getOrElse(elemB :: merged)
-      })
+    case (Obj(elemsA), Obj(elemsB)) => Obj(
+        Iterable.concat(elemsA, elemsB).foldLeft(List.empty[Obj.Elem]) {
+          case (merged, (key, Obj(Nil))) => merged.filter(_._1 != key)
+          case (merged, elemB @ (key, valB)) => merged
+              .collectFirst { case (`key`, valA) =>
+                val filtered = merged.filter(_._1 != key)
+                merge(valA, valB) match {
+                  case Conf.Obj(Nil) => filtered
+                  case x => (key -> x) :: filtered
+                }
+              }.getOrElse(elemB :: merged)
+        },
+      )
     case (_, _) => b
   }
 
