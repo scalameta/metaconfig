@@ -14,6 +14,9 @@ val scala213 = "2.13.15"
 
 val scala3 = "3.3.4"
 
+def isScala213 = Def.setting(scalaBinaryVersion.value == "2.13")
+def isScala3 = Def.setting(scalaVersion.value.startsWith("3."))
+
 val ScalaVersions = List(scala213, scala212, scala3)
 inThisBuild(List(
   version ~= { dynVer =>
@@ -62,18 +65,6 @@ commands += Command.command("taskready") { s =>
   s
 }
 
-lazy val warnUnusedImport = Def.setting {
-  if (
-    scalaVersion.value.startsWith("2.13") || scalaVersion.value.startsWith("3.")
-  ) "-Wunused:imports"
-  else "-Ywarn-unused-import"
-}
-
-lazy val yRangePos = Def.setting {
-  if (scalaVersion.value.startsWith("3.")) Seq.empty[String]
-  else Seq("-Yrangepos")
-}
-
 val languageAgnosticCompatibilityPolicy: ProblemFilter = (problem: Problem) => {
   val (ref, fullName) = problem match {
     case problem: TemplateProblem => (problem.ref, problem.ref.fullName)
@@ -86,16 +77,19 @@ val languageAgnosticCompatibilityPolicy: ProblemFilter = (problem: Problem) => {
   public && include && !exclude
 }
 
-lazy val sharedSettings = List[Setting[_]](
-  scalacOptions ++= yRangePos.value,
-  scalacOptions ++= Seq("-deprecation", warnUnusedImport.value),
-  mimaBinaryIssueFilters ++=
-    List[ProblemFilter](languageAgnosticCompatibilityPolicy),
+lazy val sharedSettings = Def.settings(
+  scalacOptions ++= { if (isScala3.value) Nil else Seq("-Yrangepos") },
+  scalacOptions += {
+    if (isScala213.value || isScala3.value) "-Wunused:imports"
+    else "-Ywarn-unused-import"
+  },
+  scalacOptions += "-deprecation",
+  mimaBinaryIssueFilters += languageAgnosticCompatibilityPolicy,
   crossScalaVersions := ScalaVersions,
   scalaVersion := scala213,
 )
 
-lazy val mimaSettings = List[Setting[_]](
+lazy val mimaSettings = Def.settings(
   mimaPreviousArtifacts := Set("com.geirsson" %% moduleName.value % "0.9.10"),
 )
 
@@ -128,9 +122,8 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     ),
   ).settings(
     libraryDependencies += {
-      if (scalaVersion.value.startsWith("3.")) "org.scala-lang" %
-        "scala-reflect" % scala213
-      else "org.scala-lang" % "scala-reflect" % scalaVersion.value
+      val reflectVersion = if (isScala3.value) scala213 else scalaVersion.value
+      "org.scala-lang" % "scala-reflect" % reflectVersion
     },
     Compile / unmanagedSourceDirectories ++= {
       // TODO: why isn't sbt-crossproject adding epoch scala version
