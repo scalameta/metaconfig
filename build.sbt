@@ -29,7 +29,6 @@ inThisBuild(List(
   },
   useSuperShell := false,
   organization := "org.scalameta",
-  version ~= { old => old.replace('+', '-') },
   licenses :=
     Seq("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
   homepage := Some(url("https://github.com/scalameta/metaconfig")),
