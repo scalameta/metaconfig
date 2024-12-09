@@ -5,7 +5,14 @@ class DeriveConfDecoderExJVMSuite extends munit.FunSuite {
   def checkOkStr[T, A](confStr: String, out: A, in: T = null)(implicit
       loc: munit.Location,
       decoder: ConfDecoderExT[T, A],
-  ): Unit = {
+  ): Unit = checkOkStrEx(decoder, confStr, out, in)
+
+  def checkOkStrEx[T, A](
+      decoder: ConfDecoderExT[T, A],
+      confStr: String,
+      out: A,
+      in: T = null,
+  )(implicit loc: munit.Location): Unit = {
     val cfg = Input.String(confStr).parse(Hocon)
     cfg.andThen(decoder.read(Option(in), _)) match {
       case Configured.NotOk(err) => fail(err.toString)
@@ -81,6 +88,98 @@ class DeriveConfDecoderExJVMSuite extends munit.FunSuite {
       Nested(e =
         Nested3(a = "yyy", b = Nested2(a = "zzz", c = Map("k2" -> OneParam(2)))),
       ),
+    )
+  }
+
+  test("nested param with rename 1") {
+    checkOkStrEx(
+      generic.deriveDecoderEx[Nested](Nested()).noTypos.withSectionRenames(
+        "E.A" -> "e.a",
+        "E.B.B.Param" -> "e.b.b.param",
+        "E.B.C" -> "e.b.c",
+      ),
+      """|
+         |E {
+         |  A = "xxx"
+         |  B {
+         |    B { Param = 3 }
+         |    C {
+         |      "+" = {
+         |        k3 { param = 33 }
+         |      }
+         |    }
+         |  }
+         |}
+         |""".stripMargin,
+      Nested(e =
+        Nested3(
+          a = "xxx",
+          b = Nested2(
+            a = "zzz",
+            b = OneParam(3),
+            c = Map("k2" -> OneParam(2), "k3" -> OneParam(33)),
+          ),
+        ),
+      ),
+      Nested(e =
+        Nested3(a = "yyy", b = Nested2(a = "zzz", c = Map("k2" -> OneParam(2)))),
+      ),
+    )
+  }
+
+  test("nested param with rename 2") {
+    implicit val nested2: ConfDecoderEx[Nested2] = generic
+      .deriveDecoderEx(Nested2()).noTypos.withSectionRenames("B" -> "b")
+    implicit val nested3: ConfDecoderEx[Nested3] = generic
+      .deriveDecoderEx(Nested3()).noTypos
+    val nested: ConfDecoderEx[Nested] = generic.deriveDecoderEx(Nested())
+      .noTypos.withSectionRenames("E.A" -> "e.a", "E.B.C" -> "e.b.c")
+    checkOkStrEx(
+      decoder = nested,
+      confStr = """|E {
+                   |  A = "xxx"
+                   |  B {
+                   |    C {
+                   |      "+" = {
+                   |        k3 { param = 33 }
+                   |      }
+                   |    }
+                   |  }
+                   |
+                   |}
+                   |e {
+                   |  b { B { param = 3 } }
+                   |}
+                   |"""
+        .stripMargin,
+      out = Nested(e =
+        Nested3(
+          a = "xxx",
+          b = Nested2(
+            a = "zzz",
+            b = OneParam(3),
+            c = Map("k2" -> OneParam(2), "k3" -> OneParam(33)),
+          ),
+        ),
+      ),
+      in = Nested(e =
+        Nested3(a = "yyy", b = Nested2(a = "zzz", c = Map("k2" -> OneParam(2)))),
+      ),
+    )
+  }
+
+  test("nested param with rename 3") {
+    val nested = generic.deriveDecoderEx[Nested](Nested()).noTypos
+      .withSectionRenames("E.A" -> "e.a")
+    checkOkStrEx(
+      decoder = nested,
+      confStr = """|E {
+                   |  A = "xxx"
+                   |}
+                   |"""
+        .stripMargin,
+      out = Nested(e = Nested3(a = "xxx")),
+      in = Nested(),
     )
   }
 

@@ -121,4 +121,16 @@ object ConfDecoder {
   def orElse[A](a: ConfDecoder[A], b: ConfDecoder[A]): ConfDecoder[A] =
     conf => a.read(conf).recoverWithOrCombine(b.read(conf))
 
+  implicit final class Implicits[A](private val self: ConfDecoder[A])
+      extends AnyVal {
+
+    def detectSectionRenames(implicit
+        settings: generic.Settings[A],
+    ): ConfDecoder[A] = SectionRenameDecoder(self)
+
+    def withSectionRenames(renames: annotation.SectionRename*): ConfDecoder[A] =
+      SectionRenameDecoder(self, renames.toList)
+
+  }
+
 }

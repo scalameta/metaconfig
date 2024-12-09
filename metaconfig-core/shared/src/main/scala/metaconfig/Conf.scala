@@ -147,6 +147,9 @@ object Conf {
           }
       }
 
+    def nestedWithin(keys: String*): Conf = keys
+      .foldRight(conf) { case (k, res) => Conf.Obj(k -> res) }
+
   }
 
 }
