@@ -234,7 +234,11 @@ also support renaming sections of configuration, in case they have been
 restructured but still need to provide backwards compatibility.
 
 This can be accomplished in one of two ways:
-- via a call to `.withSectionRenames(...)` with explicit rename arguments
+- via a call to `.withSectionRenames(...)` with explicit rename arguments,
+  with each argument either:
+  - a tuple with `(old section name, new section name)`, or
+  - an explicit `metaconfig.annotation.SectionRename` instance which
+    also adds a partial function re-mapping `metaconfig.Conf` value
 - via a call to `.detectSectionRenames` when the target type is provided
   with one or more `@SectionRename(...)` annotations
 
@@ -263,7 +267,11 @@ object Human {
   val decoderWithRenamesExplicit =
     generic.deriveDecoderEx(Human()).noTypos.withSectionRenames(
       "spouse" -> "family.spouse",
-      "kids" -> "family.children"
+      SectionRename("kids", "family.children") {
+        case Conf.Lst(kids) => Conf.Lst(
+          kids.zipWithIndex.map { case (kid, idx) => s"#$idx $kid" }
+        )
+      }
     )
 }
 ```

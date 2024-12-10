@@ -1,5 +1,7 @@
 package metaconfig
 
+import metaconfig.annotation.SectionRename
+
 class DeriveConfDecoderExJVMSuite extends munit.FunSuite {
 
   def checkOkStr[T, A](confStr: String, out: A, in: T = null)(implicit
@@ -129,7 +131,13 @@ class DeriveConfDecoderExJVMSuite extends munit.FunSuite {
 
   test("nested param with rename 2") {
     implicit val nested2: ConfDecoderEx[Nested2] = generic
-      .deriveDecoderEx(Nested2()).noTypos.withSectionRenames("B" -> "b")
+      .deriveDecoderEx(Nested2()).noTypos
+      .withSectionRenames(SectionRename("B", "b") { case Conf.Obj(vals) =>
+        Conf.Obj(vals.map {
+          case ("param", Conf.Num(v)) => "param" -> Conf.Num(v * 2)
+          case x => x
+        })
+      })
     implicit val nested3: ConfDecoderEx[Nested3] = generic
       .deriveDecoderEx(Nested3()).noTypos
     val nested: ConfDecoderEx[Nested] = generic.deriveDecoderEx(Nested())
@@ -157,7 +165,7 @@ class DeriveConfDecoderExJVMSuite extends munit.FunSuite {
           a = "xxx",
           b = Nested2(
             a = "zzz",
-            b = OneParam(3),
+            b = OneParam(6),
             c = Map("k2" -> OneParam(2), "k3" -> OneParam(33)),
           ),
         ),
