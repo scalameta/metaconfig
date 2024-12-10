@@ -1,5 +1,7 @@
 package metaconfig.annotation
 
+import metaconfig.Conf
+
 import scala.annotation.StaticAnnotation
 import scala.collection.compat.immutable.ArraySeq
 import scala.language.implicitConversions
@@ -35,8 +37,9 @@ final case class TabCompleteAsPath() extends StaticAnnotation
 final case class CatchInvalidFlags() extends StaticAnnotation
 final case class TabCompleteAsOneOf(options: String*) extends StaticAnnotation
 
-final case class SectionRename(oldName: String, newName: String)
-    extends StaticAnnotation {
+final case class SectionRename(oldName: String, newName: String)(
+    val conv: PartialFunction[Conf, Conf] = PartialFunction.empty,
+) extends StaticAnnotation {
   require(oldName.nonEmpty && newName.nonEmpty)
   val oldNameAsSeq: Seq[String] = ArraySeq.unsafeWrapArray(oldName.split('.'))
   val newNameAsSeq: Seq[String] = ArraySeq.unsafeWrapArray(newName.split('.'))
@@ -45,5 +48,5 @@ final case class SectionRename(oldName: String, newName: String)
 }
 object SectionRename {
   implicit def fromTuple(obj: (String, String)): SectionRename =
-    SectionRename(obj._1, obj._2)
+    SectionRename(obj._1, obj._2)()
 }

@@ -80,7 +80,8 @@ object SectionRenameDecoder {
       conf.getNestedConf(oldName: _*) match {
         case Configured.Ok(oldVal: Conf) =>
           val del = Conf.Obj.empty.nestedWithin(oldName: _*)
-          val add = oldVal.nestedWithin(head.newNameAsSeq: _*)
+          val add = head.conv.applyOrElse(oldVal, identity[Conf])
+            .nestedWithin(head.newNameAsSeq: _*)
           // remove on right (takes precedence), append on left (doesn't)
           renameSections(rest)(ConfOps.merge(add, ConfOps.merge(conf, del)))
         case _ => renameSections(rest)(conf)
