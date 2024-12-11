@@ -227,55 +227,6 @@ a = {
 }
 ```
 
-### Renaming sections
-
-`ConfDecoderEx` and `ConfCodecEx` (as well their obsolete non-`Ex` variants)
-also support renaming sections of configuration, in case they have been
-restructured but still need to provide backwards compatibility.
-
-This can be accomplished in one of two ways:
-- via a call to `.withSectionRenames(...)` with explicit rename arguments,
-  with each argument either:
-  - a tuple with `(old section name, new section name)`, or
-  - an explicit `metaconfig.annotation.SectionRename` instance which
-    also adds a partial function re-mapping `metaconfig.Conf` value
-- via a call to `.detectSectionRenames` when the target type is provided
-  with one or more `@SectionRename(...)` annotations
-
-```
-@SectionRename("spouse" -> "family.spouse")
-case class Human(
-  name: String = "",
-  family: Option[Family] = None
-)
-
-case class Family(
-  spouse: String,
-  children: List[String] = Nil
-)
-
-object Human {
-  /** will parse correctly:
-   *  {{{
-   *    name = "John Doe"
-   *    spouse = "Jane Doe" # maps to `family.spouse = ...`
-   *  }}}
-   */
-  val decoderWithRenamesDetected =
-    generic.deriveDecoderEx(Human()).noTypos.detectSectionRenames
-  // this one will also understand `kids`
-  val decoderWithRenamesExplicit =
-    generic.deriveDecoderEx(Human()).noTypos.withSectionRenames(
-      "spouse" -> "family.spouse",
-      SectionRename("kids", "family.children") {
-        case Conf.Lst(kids) => Conf.Lst(
-          kids.zipWithIndex.map { case (kid, idx) => s"#$idx $kid" }
-        )
-      }
-    )
-}
-```
-
 ## ConfEncoder
 
 To convert a class instance into `Conf` use `ConfEncoder[T]`. It's possible to
@@ -466,13 +417,155 @@ The following features are not supported by generic derivation
   (`Field.tpe`) will be pretty-printed to the generic representation of that
   field: `Option[T].value: T`.
 
-## @DeprecatedName
+## Renaming settings
 
-> See also [Renaming Sections](#renaming-sections)
+As your configuration evolves, you may want to rename or completely redefine
+some settings but you have existing users who are using the old name. Below
+are some ways to manage these transitions.
 
-As your configuration evolves, you may want to rename some settings but you have
-existing users who are using the old name. Use the `@DeprecatedName` annotation
-to continue supporting the old name even if you go ahead with the rename.
+### @metaconfig.annotation.SectionRename
+
+This functionality provides a rich way to move or transform settings
+across the configuration.
+
+> Since v0.14.0.
+>
+> These transformations are applied to the `Conf` object before passing it to
+> the decoder, in the order in which they are specified.
+>
+> Do not use [@DeprecatedName](#metaconfigannotationdeprecatedname)
+> or [@ExtraName](#metaconfigannotationextraname) on the same section;
+> instead, define an additional `SectionRename` for the other aliases.
+
+This can be accomplished in one of two ways:
+- via a call to `.withSectionRenames(...)` with explicit rename arguments,
+  with each argument either:
+  - a tuple with `(old section name, new section name)`, or
+  - an explicit `metaconfig.annotation.SectionRename` instance which
+    also adds a partial function re-mapping `metaconfig.Conf` value
+- via a call to `.detectSectionRenames` when the target type is provided
+  with one or more `@SectionRename(...)` annotations
+  - using the partial-function argument in this case requires first defining
+    it as a static variable (say, in a companion object); as of this writing,
+    inlining the function in the annotation leads to typechecker errors in
+    the compiler
+
+```scala mdoc:silent:nest
+import metaconfig.annotation._
+
+case class Human(
+  name: String = "",
+  family: Option[Family] = None
+)
+
+@SectionRename("wife", "spouse")
+case class Family(
+  spouse: String = "",
+  children: List[String] = Nil
+)
+
+object Human {
+  /** will parse correctly:
+   *  {{{
+   *    name = "John Doe"
+   *    spouse = "Jane Doe" # maps to `family.spouse = ...`
+   *  }}}
+   */
+  implicit val surface: generic.Surface[Human] =
+    generic.deriveSurface[Human]
+  implicit val decoder: ConfDecoder[Human] =
+    generic.deriveDecoder(Human()).noTypos.withSectionRenames(
+      "wife" -> "family.spouse",
+      "spouse" -> "family.spouse",
+      SectionRename {
+        case Conf.Lst(kids) => Conf.Lst(
+          kids.zipWithIndex.map {
+            case (Conf.Str(kid), idx) =>
+              Conf.Str(s"#$idx $kid")
+            case (kid, _) => kid
+          }
+        )
+      } ("kids", "family.children") 
+    )
+}
+
+object Family {
+  implicit val surface: generic.Surface[Family] =
+    generic.deriveSurface[Family]
+  implicit val decoder: ConfDecoder[Family] =
+    generic.deriveDecoder[Family](Family()).noTypos.detectSectionRenames
+}
+```
+
+```scala mdoc
+Human.decoder.read(Conf.Obj(
+  // this rename takes priority as it comes first
+  "spouse" -> Conf.Str("Jane Doe (spouse)"),
+  "family" -> Conf.Obj(
+    // this rename is ignored as it is applied later in the processing
+    "wife" -> Conf.Str("Jane Doe (wife)")
+  )
+))
+Human.decoder.read(Conf.Obj(
+  // this rename is ignored as there's a primary parameter defined below
+  "spouse" -> Conf.Str("Jane Doe 1"),
+  "family" -> Conf.Obj(
+    // primary parameter, takes precedence over any renames
+    "spouse" -> Conf.Str("Jane Doe 2")
+  )
+))
+Human.decoder.read(Conf.Obj(
+  "name" -> Conf.Str("Bob Parr"),
+  "wife" -> Conf.Str("Elastigirl"),
+  "kids" -> Conf.Lst(
+    Conf.Str("Violet"),
+    Conf.Str("Dash"),
+    Conf.Str("Jack-Jack")
+  )
+))
+```
+
+### @metaconfig.annotation.ExtraName
+
+This provides a simple way to define aliases for the same configuration
+section or parameter.
+
+> These alternative aliases are used by the decoder when looking up a field value
+> in the provided `Conf` object when there's no value defined for the primary
+> field.
+>
+> Therefore, do not use `@ExtraName` in combination with
+> [@SectionRename](#metaconfigannotationsectionrename) above if you wish it to
+> take priority over other conflicting renames, as you might end up with part
+> of the configuration undetected and unused.
+> 
+> Instead, use an equivalent `SectionRename(alias, primary)` but make sure to
+> prepend it to other `SectionRename(oldFieldName, primary.newFieldName)`
+> definitions.
+
+```scala mdoc:silent:nest
+import metaconfig.annotation._
+case class EvolvingConfig(
+    @ExtraName("isValidName")
+    isGoodName: Boolean
+)
+implicit val surface: generic.Surface[EvolvingConfig] =
+  generic.deriveSurface[EvolvingConfig]
+implicit val decoder: ConfDecoder[EvolvingConfig] =
+  generic.deriveDecoder[EvolvingConfig](EvolvingConfig(true)).noTypos
+```
+
+```scala mdoc
+decoder.read(Conf.Obj("isGoodName" -> Conf.fromBoolean(false)))
+decoder.read(Conf.Obj("isValidName" -> Conf.fromBoolean(false)))
+```
+
+### @metaconfig.annotation.DeprecatedName
+
+This annotation behaves similarly to [ExtraName](#metaconfigannotationextraname)
+but also documents the change for the developers, to prepare them for migration.
+The same caveat with respect to [SectionRename](#metaconfigannotationsectionrename)
+applies.
 
 ```scala mdoc:silent:nest
 import metaconfig.annotation._
