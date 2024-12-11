@@ -131,13 +131,14 @@ class DeriveConfDecoderExJVMSuite extends munit.FunSuite {
 
   test("nested param with rename 2") {
     implicit val nested2: ConfDecoderEx[Nested2] = generic
-      .deriveDecoderEx(Nested2()).noTypos
-      .withSectionRenames(SectionRename("B", "b") { case Conf.Obj(vals) =>
-        Conf.Obj(vals.map {
-          case ("param", Conf.Num(v)) => "param" -> Conf.Num(v * 2)
-          case x => x
-        })
-      })
+      .deriveDecoderEx(Nested2()).noTypos.withSectionRenames(
+        SectionRename { case Conf.Obj(vals) =>
+          Conf.Obj(vals.map {
+            case ("param", Conf.Num(v)) => "param" -> Conf.Num(v * 2)
+            case x => x
+          })
+        }("B", "b"),
+      )
     implicit val nested3: ConfDecoderEx[Nested3] = generic
       .deriveDecoderEx(Nested3()).noTypos
     val nested: ConfDecoderEx[Nested] = generic.deriveDecoderEx(Nested())

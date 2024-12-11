@@ -37,8 +37,10 @@ final case class TabCompleteAsPath() extends StaticAnnotation
 final case class CatchInvalidFlags() extends StaticAnnotation
 final case class TabCompleteAsOneOf(options: String*) extends StaticAnnotation
 
-final case class SectionRename(oldName: String, newName: String)(
-    val conv: PartialFunction[Conf, Conf] = PartialFunction.empty,
+final case class SectionRename(
+    oldName: String,
+    newName: String,
+    conv: PartialFunction[Conf, Conf] = PartialFunction.empty,
 ) extends StaticAnnotation {
   require(oldName.nonEmpty && newName.nonEmpty)
   val oldNameAsSeq: Seq[String] = ArraySeq.unsafeWrapArray(oldName.split('.'))
@@ -47,6 +49,10 @@ final case class SectionRename(oldName: String, newName: String)(
     s"Section '$oldName' is deprecated and renamed as '$newName'"
 }
 object SectionRename {
+  def apply(
+      conv: PartialFunction[Conf, Conf],
+  )(oldName: String, newName: String): SectionRename =
+    new SectionRename(oldName, newName, conv)
   implicit def fromTuple(obj: (String, String)): SectionRename =
-    SectionRename(obj._1, obj._2)()
+    SectionRename(obj._1, obj._2)
 }
