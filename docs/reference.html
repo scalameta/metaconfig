@@ -341,7 +341,7 @@ age = "Susan"
   <span class="hljs-keyword">if</span> (file.exists()) <span class="hljs-type">Configured</span>.ok(file)
   <span class="hljs-keyword">else</span> <span class="hljs-type">ConfError</span>.fileDoesNotExist(file).notOk
 }
-<span class="hljs-comment">// fileDecoder: ConfDecoder[java.io.File] = metaconfig.ConfDecoder$$anonfun$flatMap$2@6e58a5c</span>
+<span class="hljs-comment">// fileDecoder: ConfDecoder[java.io.File] = metaconfig.ConfDecoder$$anonfun$flatMap$2@277038b6</span>
 fileDecoder.read(<span class="hljs-type">Conf</span>.fromString(<span class="hljs-string">".scalafmt.conf"</span>))
 <span class="hljs-comment">// res11: Configured[java.io.File] = Ok(value = .scalafmt.conf)</span>
 fileDecoder.read(<span class="hljs-type">Conf</span>.fromString(<span class="hljs-string">".foobar"</span>))
@@ -379,60 +379,12 @@ decoders for <code>Option[T]</code>, <code>Seq[T]</code> and <code>Map[String, T
   }
 }
 </code></pre>
-<h3><a class="anchor" aria-hidden="true" id="renaming-sections"></a><a href="#renaming-sections" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Renaming sections</h3>
-<p><code>ConfDecoderEx</code> and <code>ConfCodecEx</code> (as well their obsolete non-<code>Ex</code> variants)
-also support renaming sections of configuration, in case they have been
-restructured but still need to provide backwards compatibility.</p>
-<p>This can be accomplished in one of two ways:</p>
-<ul>
-<li>via a call to <code>.withSectionRenames(...)</code> with explicit rename arguments,
-with each argument either:
-<ul>
-<li>a tuple with <code>(old section name, new section name)</code>, or</li>
-<li>an explicit <code>metaconfig.annotation.SectionRename</code> instance which
-also adds a partial function re-mapping <code>metaconfig.Conf</code> value</li>
-</ul></li>
-<li>via a call to <code>.detectSectionRenames</code> when the target type is provided
-with one or more <code>@SectionRename(...)</code> annotations</li>
-</ul>
-<pre><code class="hljs">@SectionRename(<span class="hljs-string">"spouse"</span> -&gt; <span class="hljs-string">"family.spouse"</span>)
-<span class="hljs-keyword">case</span> <span class="hljs-keyword">class</span> <span class="hljs-symbol">Human</span>(
-  <span class="hljs-symbol">name: <span class="hljs-symbol">String</span></span> = "",
-  <span class="hljs-symbol">family: <span class="hljs-symbol">Option</span></span>[<span class="hljs-symbol">Family</span>] = <span class="hljs-symbol">None</span>
-)
-
-<span class="hljs-symbol">case</span> <span class="hljs-symbol">class</span> <span class="hljs-symbol">Family</span>(
-  <span class="hljs-symbol">spouse: <span class="hljs-symbol">String</span>,
-  <span class="hljs-symbol">children</span>: <span class="hljs-symbol">List</span></span>[<span class="hljs-symbol">String</span>] = <span class="hljs-symbol">Nil</span>
-)
-
-<span class="hljs-symbol">object</span> <span class="hljs-symbol">Human</span> {
-  <span class="hljs-comment">/** will parse correctly:
-   *  {{{
-   *    name = "John Doe"
-   *    spouse = "Jane Doe" # maps to `family.spouse = ...`
-   *  }}}
-   */</span>
-  val decoderWithRenamesDetected =
-    generic.deriveDecoderEx(Human()).noTypos.detectSectionRenames
-  <span class="hljs-comment">// this one will also understand `kids`</span>
-  val decoderWithRenamesExplicit =
-    generic.deriveDecoderEx(Human()).noTypos.withSectionRenames(
-      <span class="hljs-string">"spouse"</span> -&gt; <span class="hljs-string">"family.spouse"</span>,
-      SectionRename(<span class="hljs-string">"kids"</span>, <span class="hljs-string">"family.children"</span>) {
-        <span class="hljs-keyword">case</span> Conf.Lst(kids) =&gt; Conf.Lst(
-          kids.zipWithIndex.map { <span class="hljs-keyword">case</span> (kid, idx) =&gt; s<span class="hljs-string">"#$idx $kid"</span> }
-        )
-      }
-    )
-}
-</code></pre>
 <h2><a class="anchor" aria-hidden="true" id="confencoder"></a><a href="#confencoder" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>ConfEncoder</h2>
 <p>To convert a class instance into <code>Conf</code> use <code>ConfEncoder[T]</code>. It's possible to
 automatically derive a <code>ConfEncoder[T]</code> instance for any case class with
 <code>generic.deriveEncoder</code>.</p>
 <pre><code class="hljs css language-scala"><span class="hljs-keyword">implicit</span> <span class="hljs-keyword">val</span> encoder: <span class="hljs-type">ConfEncoder</span>[<span class="hljs-type">User</span>] = generic.deriveEncoder[<span class="hljs-type">User</span>]
-<span class="hljs-comment">// encoder: ConfEncoder[User] = repl.MdocSession$MdocApp$$anon$1@b72b75a</span>
+<span class="hljs-comment">// encoder: ConfEncoder[User] = repl.MdocSession$MdocApp$$anon$1@30166bf2</span>
 
 <span class="hljs-type">ConfEncoder</span>[<span class="hljs-type">User</span>].write(<span class="hljs-type">User</span>(<span class="hljs-string">"John"</span>, <span class="hljs-number">42</span>))
 <span class="hljs-comment">// res13: Conf = Obj(</span>
@@ -619,13 +571,174 @@ parameterized type like <code>Option[Foo]</code> but note that the type field
 (<code>Field.tpe</code>) will be pretty-printed to the generic representation of that
 field: <code>Option[T].value: T</code>.</li>
 </ul>
-<h2><a class="anchor" aria-hidden="true" id="deprecatedname"></a><a href="#deprecatedname" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>@DeprecatedName</h2>
+<h2><a class="anchor" aria-hidden="true" id="renaming-settings"></a><a href="#renaming-settings" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Renaming settings</h2>
+<p>As your configuration evolves, you may want to rename or completely redefine
+some settings but you have existing users who are using the old name. Below
+are some ways to manage these transitions.</p>
+<h3><a class="anchor" aria-hidden="true" id="metaconfigannotationsectionrename"></a><a href="#metaconfigannotationsectionrename" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>@metaconfig.annotation.SectionRename</h3>
+<p>This functionality provides a rich way to move or transform settings
+across the configuration.</p>
 <blockquote>
-<p>See also <a href="#renaming-sections">Renaming Sections</a></p>
+<p>Since v0.14.0.</p>
+<p>These transformations are applied to the <code>Conf</code> object before passing it to
+the decoder, in the order in which they are specified.</p>
+<p>Do not use <a href="#metaconfigannotationdeprecatedname">@DeprecatedName</a>
+or <a href="#metaconfigannotationextraname">@ExtraName</a> on the same section;
+instead, define an additional <code>SectionRename</code> for the other aliases.</p>
 </blockquote>
-<p>As your configuration evolves, you may want to rename some settings but you have
-existing users who are using the old name. Use the <code>@DeprecatedName</code> annotation
-to continue supporting the old name even if you go ahead with the rename.</p>
+<p>This can be accomplished in one of two ways:</p>
+<ul>
+<li>via a call to <code>.withSectionRenames(...)</code> with explicit rename arguments,
+with each argument either:
+<ul>
+<li>a tuple with <code>(old section name, new section name)</code>, or</li>
+<li>an explicit <code>metaconfig.annotation.SectionRename</code> instance which
+also adds a partial function re-mapping <code>metaconfig.Conf</code> value</li>
+</ul></li>
+<li>via a call to <code>.detectSectionRenames</code> when the target type is provided
+with one or more <code>@SectionRename(...)</code> annotations
+<ul>
+<li>using the partial-function argument in this case requires first defining
+it as a static variable (say, in a companion object); as of this writing,
+inlining the function in the annotation leads to typechecker errors in
+the compiler</li>
+</ul></li>
+</ul>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> metaconfig.annotation._
+
+<span class="hljs-keyword">case</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Human</span>(<span class="hljs-params">
+  name: <span class="hljs-type">String</span> = "",
+  family: <span class="hljs-type">Option</span>[<span class="hljs-type">Family</span>] = <span class="hljs-type">None</span>
+</span>)</span>
+
+<span class="hljs-meta">@SectionRename</span>(<span class="hljs-string">"wife"</span>, <span class="hljs-string">"spouse"</span>)
+<span class="hljs-keyword">case</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Family</span>(<span class="hljs-params">
+  spouse: <span class="hljs-type">String</span> = "",
+  children: <span class="hljs-type">List</span>[<span class="hljs-type">String</span>] = <span class="hljs-type">Nil</span>
+</span>)</span>
+
+<span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">Human</span> </span>{
+  <span class="hljs-comment">/** will parse correctly:
+   *  {{{
+   *    name = "John Doe"
+   *    spouse = "Jane Doe" # maps to `family.spouse = ...`
+   *  }}}
+   */</span>
+  <span class="hljs-keyword">implicit</span> <span class="hljs-keyword">val</span> surface: generic.<span class="hljs-type">Surface</span>[<span class="hljs-type">Human</span>] =
+    generic.deriveSurface[<span class="hljs-type">Human</span>]
+  <span class="hljs-keyword">implicit</span> <span class="hljs-keyword">val</span> decoder: <span class="hljs-type">ConfDecoder</span>[<span class="hljs-type">Human</span>] =
+    generic.deriveDecoder(<span class="hljs-type">Human</span>()).noTypos.withSectionRenames(
+      <span class="hljs-string">"wife"</span> -&gt; <span class="hljs-string">"family.spouse"</span>,
+      <span class="hljs-string">"spouse"</span> -&gt; <span class="hljs-string">"family.spouse"</span>,
+      <span class="hljs-type">SectionRename</span> {
+        <span class="hljs-keyword">case</span> <span class="hljs-type">Conf</span>.<span class="hljs-type">Lst</span>(kids) =&gt; <span class="hljs-type">Conf</span>.<span class="hljs-type">Lst</span>(
+          kids.zipWithIndex.map {
+            <span class="hljs-keyword">case</span> (<span class="hljs-type">Conf</span>.<span class="hljs-type">Str</span>(kid), idx) =&gt;
+              <span class="hljs-type">Conf</span>.<span class="hljs-type">Str</span>(<span class="hljs-string">s"#<span class="hljs-subst">$idx</span> <span class="hljs-subst">$kid</span>"</span>)
+            <span class="hljs-keyword">case</span> (kid, _) =&gt; kid
+          }
+        )
+      } (<span class="hljs-string">"kids"</span>, <span class="hljs-string">"family.children"</span>) 
+    )
+}
+
+<span class="hljs-class"><span class="hljs-keyword">object</span> <span class="hljs-title">Family</span> </span>{
+  <span class="hljs-keyword">implicit</span> <span class="hljs-keyword">val</span> surface: generic.<span class="hljs-type">Surface</span>[<span class="hljs-type">Family</span>] =
+    generic.deriveSurface[<span class="hljs-type">Family</span>]
+  <span class="hljs-keyword">implicit</span> <span class="hljs-keyword">val</span> decoder: <span class="hljs-type">ConfDecoder</span>[<span class="hljs-type">Family</span>] =
+    generic.deriveDecoder[<span class="hljs-type">Family</span>](<span class="hljs-type">Family</span>()).noTypos.detectSectionRenames
+}
+</code></pre>
+<pre><code class="hljs css language-scala"><span class="hljs-type">Human</span>.decoder.read(<span class="hljs-type">Conf</span>.<span class="hljs-type">Obj</span>(
+  <span class="hljs-comment">// this rename takes priority as it comes first</span>
+  <span class="hljs-string">"spouse"</span> -&gt; <span class="hljs-type">Conf</span>.<span class="hljs-type">Str</span>(<span class="hljs-string">"Jane Doe (spouse)"</span>),
+  <span class="hljs-string">"family"</span> -&gt; <span class="hljs-type">Conf</span>.<span class="hljs-type">Obj</span>(
+    <span class="hljs-comment">// this rename is ignored as it is applied later in the processing</span>
+    <span class="hljs-string">"wife"</span> -&gt; <span class="hljs-type">Conf</span>.<span class="hljs-type">Str</span>(<span class="hljs-string">"Jane Doe (wife)"</span>)
+  )
+))
+<span class="hljs-comment">// res33: Configured[Human] = Ok(</span>
+<span class="hljs-comment">//   value = Human(</span>
+<span class="hljs-comment">//     name = "",</span>
+<span class="hljs-comment">//     family = Some(</span>
+<span class="hljs-comment">//       value = Family(spouse = "Jane Doe (spouse)", children = List())</span>
+<span class="hljs-comment">//     )</span>
+<span class="hljs-comment">//   )</span>
+<span class="hljs-comment">// )</span>
+<span class="hljs-type">Human</span>.decoder.read(<span class="hljs-type">Conf</span>.<span class="hljs-type">Obj</span>(
+  <span class="hljs-comment">// this rename is ignored as there's a primary parameter defined below</span>
+  <span class="hljs-string">"spouse"</span> -&gt; <span class="hljs-type">Conf</span>.<span class="hljs-type">Str</span>(<span class="hljs-string">"Jane Doe 1"</span>),
+  <span class="hljs-string">"family"</span> -&gt; <span class="hljs-type">Conf</span>.<span class="hljs-type">Obj</span>(
+    <span class="hljs-comment">// primary parameter, takes precedence over any renames</span>
+    <span class="hljs-string">"spouse"</span> -&gt; <span class="hljs-type">Conf</span>.<span class="hljs-type">Str</span>(<span class="hljs-string">"Jane Doe 2"</span>)
+  )
+))
+<span class="hljs-comment">// res34: Configured[Human] = Ok(</span>
+<span class="hljs-comment">//   value = Human(</span>
+<span class="hljs-comment">//     name = "",</span>
+<span class="hljs-comment">//     family = Some(value = Family(spouse = "Jane Doe 2", children = List()))</span>
+<span class="hljs-comment">//   )</span>
+<span class="hljs-comment">// )</span>
+<span class="hljs-type">Human</span>.decoder.read(<span class="hljs-type">Conf</span>.<span class="hljs-type">Obj</span>(
+  <span class="hljs-string">"name"</span> -&gt; <span class="hljs-type">Conf</span>.<span class="hljs-type">Str</span>(<span class="hljs-string">"Bob Parr"</span>),
+  <span class="hljs-string">"wife"</span> -&gt; <span class="hljs-type">Conf</span>.<span class="hljs-type">Str</span>(<span class="hljs-string">"Elastigirl"</span>),
+  <span class="hljs-string">"kids"</span> -&gt; <span class="hljs-type">Conf</span>.<span class="hljs-type">Lst</span>(
+    <span class="hljs-type">Conf</span>.<span class="hljs-type">Str</span>(<span class="hljs-string">"Violet"</span>),
+    <span class="hljs-type">Conf</span>.<span class="hljs-type">Str</span>(<span class="hljs-string">"Dash"</span>),
+    <span class="hljs-type">Conf</span>.<span class="hljs-type">Str</span>(<span class="hljs-string">"Jack-Jack"</span>)
+  )
+))
+<span class="hljs-comment">// res35: Configured[Human] = Ok(</span>
+<span class="hljs-comment">//   value = Human(</span>
+<span class="hljs-comment">//     name = "Bob Parr",</span>
+<span class="hljs-comment">//     family = Some(</span>
+<span class="hljs-comment">//       value = Family(</span>
+<span class="hljs-comment">//         spouse = "Elastigirl",</span>
+<span class="hljs-comment">//         children = List("#0 Violet", "#1 Dash", "#2 Jack-Jack")</span>
+<span class="hljs-comment">//       )</span>
+<span class="hljs-comment">//     )</span>
+<span class="hljs-comment">//   )</span>
+<span class="hljs-comment">// )</span>
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="metaconfigannotationextraname"></a><a href="#metaconfigannotationextraname" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>@metaconfig.annotation.ExtraName</h3>
+<p>This provides a simple way to define aliases for the same configuration
+section or parameter.</p>
+<blockquote>
+<p>These alternative aliases are used by the decoder when looking up a field value
+in the provided <code>Conf</code> object when there's no value defined for the primary
+field.</p>
+<p>Therefore, do not use <code>@ExtraName</code> in combination with
+<a href="#metaconfigannotationsectionrename">@SectionRename</a> above if you wish it to
+take priority over other conflicting renames, as you might end up with part
+of the configuration undetected and unused.</p>
+<p>Instead, use an equivalent <code>SectionRename(alias, primary)</code> but make sure to
+prepend it to other <code>SectionRename(oldFieldName, primary.newFieldName)</code>
+definitions.</p>
+</blockquote>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> metaconfig.annotation._
+<span class="hljs-keyword">case</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">EvolvingConfig</span>(<span class="hljs-params">
+    @<span class="hljs-type">ExtraName</span>("isValidName"</span>)</span>
+    isGoodName: <span class="hljs-type">Boolean</span>
+)
+<span class="hljs-keyword">implicit</span> <span class="hljs-keyword">val</span> surface: generic.<span class="hljs-type">Surface</span>[<span class="hljs-type">EvolvingConfig</span>] =
+  generic.deriveSurface[<span class="hljs-type">EvolvingConfig</span>]
+<span class="hljs-keyword">implicit</span> <span class="hljs-keyword">val</span> decoder: <span class="hljs-type">ConfDecoder</span>[<span class="hljs-type">EvolvingConfig</span>] =
+  generic.deriveDecoder[<span class="hljs-type">EvolvingConfig</span>](<span class="hljs-type">EvolvingConfig</span>(<span class="hljs-literal">true</span>)).noTypos
+</code></pre>
+<pre><code class="hljs css language-scala">decoder.read(<span class="hljs-type">Conf</span>.<span class="hljs-type">Obj</span>(<span class="hljs-string">"isGoodName"</span> -&gt; <span class="hljs-type">Conf</span>.fromBoolean(<span class="hljs-literal">false</span>)))
+<span class="hljs-comment">// res36: Configured[EvolvingConfig] = Ok(</span>
+<span class="hljs-comment">//   value = EvolvingConfig(isGoodName = false)</span>
+<span class="hljs-comment">// )</span>
+decoder.read(<span class="hljs-type">Conf</span>.<span class="hljs-type">Obj</span>(<span class="hljs-string">"isValidName"</span> -&gt; <span class="hljs-type">Conf</span>.fromBoolean(<span class="hljs-literal">false</span>)))
+<span class="hljs-comment">// res37: Configured[EvolvingConfig] = Ok(</span>
+<span class="hljs-comment">//   value = EvolvingConfig(isGoodName = false)</span>
+<span class="hljs-comment">// )</span>
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="metaconfigannotationdeprecatedname"></a><a href="#metaconfigannotationdeprecatedname" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>@metaconfig.annotation.DeprecatedName</h3>
+<p>This annotation behaves similarly to <a href="#metaconfigannotationextraname">ExtraName</a>
+but also documents the change for the developers, to prepare them for migration.
+The same caveat with respect to <a href="#metaconfigannotationsectionrename">SectionRename</a>
+applies.</p>
 <pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> metaconfig.annotation._
 <span class="hljs-keyword">case</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">EvolvingConfig</span>(<span class="hljs-params">
     @<span class="hljs-type">DeprecatedName</span>("goodName", "<span class="hljs-type">Use</span> isGoodName instead", "1.0"</span>)</span>
@@ -637,15 +750,15 @@ to continue supporting the old name even if you go ahead with the rename.</p>
   generic.deriveDecoder[<span class="hljs-type">EvolvingConfig</span>](<span class="hljs-type">EvolvingConfig</span>(<span class="hljs-literal">true</span>)).noTypos
 </code></pre>
 <pre><code class="hljs css language-scala">decoder.read(<span class="hljs-type">Conf</span>.<span class="hljs-type">Obj</span>(<span class="hljs-string">"goodName"</span> -&gt; <span class="hljs-type">Conf</span>.fromBoolean(<span class="hljs-literal">false</span>)))
-<span class="hljs-comment">// res33: Configured[EvolvingConfig] = Ok(</span>
+<span class="hljs-comment">// res38: Configured[EvolvingConfig] = Ok(</span>
 <span class="hljs-comment">//   value = EvolvingConfig(isGoodName = false)</span>
 <span class="hljs-comment">// )</span>
 decoder.read(<span class="hljs-type">Conf</span>.<span class="hljs-type">Obj</span>(<span class="hljs-string">"isGoodName"</span> -&gt; <span class="hljs-type">Conf</span>.fromBoolean(<span class="hljs-literal">false</span>)))
-<span class="hljs-comment">// res34: Configured[EvolvingConfig] = Ok(</span>
+<span class="hljs-comment">// res39: Configured[EvolvingConfig] = Ok(</span>
 <span class="hljs-comment">//   value = EvolvingConfig(isGoodName = false)</span>
 <span class="hljs-comment">// )</span>
 decoder.read(<span class="hljs-type">Conf</span>.<span class="hljs-type">Obj</span>(<span class="hljs-string">"gooodName"</span> -&gt; <span class="hljs-type">Conf</span>.fromBoolean(<span class="hljs-literal">false</span>)))
-<span class="hljs-comment">// res35: Configured[EvolvingConfig] = NotOk(</span>
+<span class="hljs-comment">// res40: Configured[EvolvingConfig] = NotOk(</span>
 <span class="hljs-comment">//   error = found option 'gooodName' which wasn't expected, or isn't valid in this context.</span>
 <span class="hljs-comment">//  Did you mean 'isGoodName'?</span>
 <span class="hljs-comment">// )</span>
@@ -693,7 +806,7 @@ decoder.read(<span class="hljs-type">Conf</span>.<span class="hljs-type">Obj</sp
 <h2><a class="anchor" aria-hidden="true" id="settingstoclihelp"></a><a href="#settingstoclihelp" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Settings.toCliHelp</h2>
 <p>Generate a --help message with a <code>Settings[T]</code>.</p>
 <pre><code class="hljs css language-scala"><span class="hljs-type">Settings</span>[<span class="hljs-type">App</span>].toCliHelp(<span class="hljs-keyword">default</span> = <span class="hljs-type">App</span>())
-<span class="hljs-comment">// res36: String = """--target: String = "out"   The directory to output files</span>
+<span class="hljs-comment">// res41: String = """--target: String = "out"   The directory to output files</span>
 <span class="hljs-comment">// --verbose: Boolean = false Print out debugging diagnostics</span>
 <span class="hljs-comment">// --files: List[String] = [] The input files for app"""</span>
 </code></pre>
@@ -732,7 +845,7 @@ It is not necessary to prefix cli args with the name of <code>@Inline</code> fie
 example above, it's possible to pass in <code>--out target</code> instead of
 <code>--common.out target</code> to override the common output directory.</p>
 <pre><code class="hljs css language-scala"><span class="hljs-type">Conf</span>.parseCliArgs[<span class="hljs-type">NameApp</span>](<span class="hljs-type">List</span>(<span class="hljs-string">"--out"</span>, <span class="hljs-string">"/tmp"</span>, <span class="hljs-string">"--cwd"</span>, <span class="hljs-string">"working-dir"</span>))
-<span class="hljs-comment">// res37: Configured[Conf] = Ok(</span>
+<span class="hljs-comment">// res42: Configured[Conf] = Ok(</span>
 <span class="hljs-comment">//   value = Obj(</span>
 <span class="hljs-comment">//     values = List(</span>
 <span class="hljs-comment">//       (</span>
@@ -764,7 +877,7 @@ example above, it's possible to pass in <code>--out target</code> instead of
 <span class="hljs-comment">//   )</span>
 <span class="hljs-comment">// )</span>
 conf.get.as[<span class="hljs-type">AgeApp</span>].get
-<span class="hljs-comment">// res38: AgeApp = AgeApp(</span>
+<span class="hljs-comment">// res43: AgeApp = AgeApp(</span>
 <span class="hljs-comment">//   age = 0,</span>
 <span class="hljs-comment">//   common = Common(cwd = "working-dir", out = "target")</span>
 <span class="hljs-comment">// )</span>
@@ -773,7 +886,7 @@ conf.get.as[<span class="hljs-type">AgeApp</span>].get
 nested fields inside the type of the <code>@Inline</code> field are shown in the --help
 message.</p>
 <pre><code class="hljs css language-scala"><span class="hljs-type">Settings</span>[<span class="hljs-type">NameApp</span>].toCliHelp(<span class="hljs-keyword">default</span> = <span class="hljs-type">NameApp</span>())
-<span class="hljs-comment">// res39: String = """--name: String = "John" The user's name</span>
+<span class="hljs-comment">// res44: String = """--name: String = "John" The user's name</span>
 <span class="hljs-comment">// --cwd: String = ""      The working directory</span>
 <span class="hljs-comment">// --out: String = ""      The output directory"""</span>
 </code></pre>
@@ -808,14 +921,14 @@ following module</p>
 </code></pre>
 <p>To generate html documentation, pass in a default value</p>
 <pre><code class="hljs css language-scala">docs.<span class="hljs-type">Docs</span>.html(<span class="hljs-type">User</span>())
-<span class="hljs-comment">// res41: String = "&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Name&lt;/th&gt;&lt;th&gt;Type&lt;/th&gt;&lt;th&gt;Description&lt;/th&gt;&lt;th&gt;Default value&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td&gt;&lt;code&gt;name&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&lt;code&gt;String&lt;/code&gt;&lt;/td&gt;&lt;td&gt;Name description&lt;/td&gt;&lt;td&gt;&amp;quot;John&amp;quot;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;code&gt;age&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&lt;code&gt;Int&lt;/code&gt;&lt;/td&gt;&lt;td&gt;Age description&lt;/td&gt;&lt;td&gt;42&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;code&gt;home.address&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&lt;code&gt;String&lt;/code&gt;&lt;/td&gt;&lt;td&gt;Address description&lt;/td&gt;&lt;td&gt;&amp;quot;Lakelands 2&amp;quot;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;code&gt;home.country&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&lt;code&gt;String&lt;/code&gt;&lt;/td&gt;&lt;td&gt;Country description&lt;/td&gt;&lt;td&gt;&amp;quot;Iceland&amp;quot;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;"</span>
+<span class="hljs-comment">// res46: String = "&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Name&lt;/th&gt;&lt;th&gt;Type&lt;/th&gt;&lt;th&gt;Description&lt;/th&gt;&lt;th&gt;Default value&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td&gt;&lt;code&gt;name&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&lt;code&gt;String&lt;/code&gt;&lt;/td&gt;&lt;td&gt;Name description&lt;/td&gt;&lt;td&gt;&amp;quot;John&amp;quot;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;code&gt;age&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&lt;code&gt;Int&lt;/code&gt;&lt;/td&gt;&lt;td&gt;Age description&lt;/td&gt;&lt;td&gt;42&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;code&gt;home.address&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&lt;code&gt;String&lt;/code&gt;&lt;/td&gt;&lt;td&gt;Address description&lt;/td&gt;&lt;td&gt;&amp;quot;Lakelands 2&amp;quot;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;code&gt;home.country&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&lt;code&gt;String&lt;/code&gt;&lt;/td&gt;&lt;td&gt;Country description&lt;/td&gt;&lt;td&gt;&amp;quot;Iceland&amp;quot;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;"</span>
 </code></pre>
 <p>The output will look like this when rendered in a markdown or html document</p>
 <table><thead><tr><th>Name</th><th>Type</th><th>Description</th><th>Default value</th></tr></thead><tbody><tr><td><code>name</code></td><td><code>String</code></td><td>Name description</td><td>&quot;John&quot;</td></tr><tr><td><code>age</code></td><td><code>Int</code></td><td>Age description</td><td>42</td></tr><tr><td><code>home.address</code></td><td><code>String</code></td><td>Address description</td><td>&quot;Lakelands 2&quot;</td></tr><tr><td><code>home.country</code></td><td><code>String</code></td><td>Country description</td><td>&quot;Iceland&quot;</td></tr></tbody></table>
 <p>The <code>Docs.html</code> method does nothing magical, it's possible to implement custom
 renderings by inspecting <code>Settings[T]</code> directly.</p>
 <pre><code class="hljs css language-scala"><span class="hljs-type">Settings</span>[<span class="hljs-type">User</span>].settings
-<span class="hljs-comment">// res43: List[Setting] = List(</span>
+<span class="hljs-comment">// res48: List[Setting] = List(</span>
 <span class="hljs-comment">//   Setting(Field(name="name",tpe="String",annotations=List(@Description(Name description)),underlying=List())),</span>
 <span class="hljs-comment">//   Setting(Field(name="age",tpe="Int",annotations=List(@Description(Age description)),underlying=List())),</span>
 <span class="hljs-comment">//   Setting(Field(name="home",tpe="Home",annotations=List(),underlying=List(List(Field(name="address",tpe="String",annotations=List(@Description(Address description)),underlying=List()), Field(name="country",tpe="String",annotations=List(@Description(Country description)),underlying=List())))))</span>
@@ -842,7 +955,7 @@ renderings by inspecting <code>Settings[T]</code> directly.</p>
 flat.map { <span class="hljs-keyword">case</span> (setting, defaultValue) =&gt;
   <span class="hljs-string">s"Setting <span class="hljs-subst">${setting.name}</span> of type <span class="hljs-subst">${setting.tpe}</span> has default value <span class="hljs-subst">$defaultValue</span>"</span>
 }.mkString(<span class="hljs-string">"\n==============\n"</span>)
-<span class="hljs-comment">// res44: String = """Setting name of type String has default value "John"</span>
+<span class="hljs-comment">// res49: String = """Setting name of type String has default value "John"</span>
 <span class="hljs-comment">// ==============</span>
 <span class="hljs-comment">// Setting age of type Int has default value 42</span>
 <span class="hljs-comment">// ==============</span>
@@ -850,4 +963,4 @@ flat.map { <span class="hljs-keyword">case</span> (setting, defaultValue) =&gt;
 <span class="hljs-comment">// ==============</span>
 <span class="hljs-comment">// Setting home.country of type String has default value "Iceland""""</span>
 </code></pre>
-</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/metaconfig/docs/getting-started.html"><span class="arrow-prev">← </span><span>Getting started</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#getting-started">Getting started</a></li><li><a href="#conf">Conf</a></li><li><a href="#confparse">Conf.parse</a></li><li><a href="#confprinthocon">Conf.printHocon</a></li><li><a href="#confpatch">Conf.patch</a></li><li><a href="#confdecoder">ConfDecoder</a></li><li><a href="#confdecoderex-and-confdecoderext">ConfDecoderEx and ConfDecoderExT</a><ul class="toc-headings"><li><a href="#decoding-collections">Decoding collections</a></li><li><a href="#renaming-sections">Renaming sections</a></li></ul></li><li><a href="#confencoder">ConfEncoder</a></li><li><a href="#confcodec">ConfCodec</a></li><li><a href="#confcodecex-and-confcodecext">ConfCodecEx and ConfCodecExT</a></li><li><a href="#conferror">ConfError</a></li><li><a href="#configured">Configured</a></li><li><a href="#genericderivesurface">generic.deriveSurface</a></li><li><a href="#genericderivedecoder">generic.deriveDecoder</a><ul class="toc-headings"><li><a href="#limitations">Limitations</a></li></ul></li><li><a href="#deprecatedname">@DeprecatedName</a></li><li><a href="#confparsecliargs">Conf.parseCliArgs</a></li><li><a href="#settingstoclihelp">Settings.toCliHelp</a></li><li><a href="#inline">@Inline</a></li><li><a href="#docs">Docs</a></li></ul></nav></div><footer class="nav-footer" id="footer" style="background-color:#290040"><section class="sitemap"><a href="/metaconfig/" class="nav-home"><img src="/metaconfig/img/scalameta-logo.png" alt="Metaconfig" width="66" height="58"/></a><div><h5>Metaconfig Docs</h5><a href="/metaconfig/docs/getting-started.html">Getting started</a></div><div><h5>Community</h5><a href="https://github.com/scalameta/metaconfig" target="_blank"><img src="https://img.shields.io/github/stars/scalameta/metaconfig.svg?color=%23087e8b&amp;label=stars&amp;logo=github&amp;style=social"/></a><a href="https://discord.gg/RFpSVth" target="_blank"><img src="https://img.shields.io/discord/632642981228314653?logo=discord&amp;style=social"/></a><a href="https://gitter.im/scalameta/metaconfig" target="_blank"><img src="https://img.shields.io/gitter/room/scalameta/metaconfig.svg?logo=gitter&amp;style=social"/></a><a href="https://twitter.com/scalameta" target="_blank"><img src="https://img.shields.io/twitter/follow/scalameta.svg?logo=twitter&amp;style=social"/></a></div></section><section class="copyright">Copyright © 2024 Scalameta</section></footer></div></body></html>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/metaconfig/docs/getting-started.html"><span class="arrow-prev">← </span><span>Getting started</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#getting-started">Getting started</a></li><li><a href="#conf">Conf</a></li><li><a href="#confparse">Conf.parse</a></li><li><a href="#confprinthocon">Conf.printHocon</a></li><li><a href="#confpatch">Conf.patch</a></li><li><a href="#confdecoder">ConfDecoder</a></li><li><a href="#confdecoderex-and-confdecoderext">ConfDecoderEx and ConfDecoderExT</a><ul class="toc-headings"><li><a href="#decoding-collections">Decoding collections</a></li></ul></li><li><a href="#confencoder">ConfEncoder</a></li><li><a href="#confcodec">ConfCodec</a></li><li><a href="#confcodecex-and-confcodecext">ConfCodecEx and ConfCodecExT</a></li><li><a href="#conferror">ConfError</a></li><li><a href="#configured">Configured</a></li><li><a href="#genericderivesurface">generic.deriveSurface</a></li><li><a href="#genericderivedecoder">generic.deriveDecoder</a><ul class="toc-headings"><li><a href="#limitations">Limitations</a></li></ul></li><li><a href="#renaming-settings">Renaming settings</a><ul class="toc-headings"><li><a href="#metaconfigannotationsectionrename">@metaconfig.annotation.SectionRename</a></li><li><a href="#metaconfigannotationextraname">@metaconfig.annotation.ExtraName</a></li><li><a href="#metaconfigannotationdeprecatedname">@metaconfig.annotation.DeprecatedName</a></li></ul></li><li><a href="#confparsecliargs">Conf.parseCliArgs</a></li><li><a href="#settingstoclihelp">Settings.toCliHelp</a></li><li><a href="#inline">@Inline</a></li><li><a href="#docs">Docs</a></li></ul></nav></div><footer class="nav-footer" id="footer" style="background-color:#290040"><section class="sitemap"><a href="/metaconfig/" class="nav-home"><img src="/metaconfig/img/scalameta-logo.png" alt="Metaconfig" width="66" height="58"/></a><div><h5>Metaconfig Docs</h5><a href="/metaconfig/docs/getting-started.html">Getting started</a></div><div><h5>Community</h5><a href="https://github.com/scalameta/metaconfig" target="_blank"><img src="https://img.shields.io/github/stars/scalameta/metaconfig.svg?color=%23087e8b&amp;label=stars&amp;logo=github&amp;style=social"/></a><a href="https://discord.gg/RFpSVth" target="_blank"><img src="https://img.shields.io/discord/632642981228314653?logo=discord&amp;style=social"/></a><a href="https://gitter.im/scalameta/metaconfig" target="_blank"><img src="https://img.shields.io/gitter/room/scalameta/metaconfig.svg?logo=gitter&amp;style=social"/></a><a href="https://twitter.com/scalameta" target="_blank"><img src="https://img.shields.io/twitter/follow/scalameta.svg?logo=twitter&amp;style=social"/></a></div></section><section class="copyright">Copyright © 2024 Scalameta</section></footer></div></body></html>
