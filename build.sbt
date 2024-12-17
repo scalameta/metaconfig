@@ -217,6 +217,9 @@ lazy val docs = project.in(file("metaconfig-docs")).settings(
     "org.scalameta" %%% "munit-scalacheck" % V.munit % Test,
   ),
   publish / skip := true,
+  dependencyOverrides +=
+    "org.scalameta" %% "metaconfig-typesafe-config" % (ThisBuild / version)
+      .value,
   moduleName := "metaconfig-docs",
   mdocVariables := Map(
     "VERSION" -> version.value.replaceFirst("\\+.*", ""),
