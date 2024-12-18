@@ -1,6 +1,4 @@
 package metaconfig
-import metaconfig.Configured.NotOk
-import metaconfig.Configured.Ok
 
 class ConfDynamicSuite extends munit.FunSuite {
 
@@ -22,8 +20,10 @@ class ConfDynamicSuite extends munit.FunSuite {
   }
   test("did you mean?") {
     conf.dynamic.banna.asConf match {
-      case NotOk(err) => assert(err.toString.contains("Did you mean 'banana'"))
-      case Ok(value) => fail("Expected \"Did you mean 'banana'\" error")
+      case Configured.NotOk(err) =>
+        assert(err.toString.contains("Did you mean 'banana'"))
+      case Configured.Ok(value) =>
+        fail("Expected \"Did you mean 'banana'\" error")
     }
   }
 }
