@@ -83,6 +83,15 @@ lazy val sharedSettings = Def.settings(
     else "-Ywarn-unused-import"
   },
   scalacOptions += "-deprecation",
+  scalacOptions += "-Xfatal-warnings",
+  scalacOptions ++= {
+    if (isScala213.value) "-Wconf:cat=deprecation:is" :: Nil
+    else if (isScala3.value) "-Wconf:cat=deprecation:silent" :: Nil
+    else Nil
+  },
+  scalacOptions ++= {
+    if (isScala3.value) Nil else "-Wconf:cat=feature:is" :: Nil
+  },
   mimaBinaryIssueFilters += languageAgnosticCompatibilityPolicy,
   crossScalaVersions := ScalaVersions,
   scalaVersion := scala213,
@@ -207,6 +216,9 @@ lazy val docs = project.in(file("metaconfig-docs")).settings(
     "org.scalameta" %%% "munit-scalacheck" % V.munit % Test,
   ),
   publish / skip := true,
+  dependencyOverrides +=
+    "org.scalameta" %% "metaconfig-typesafe-config" % (ThisBuild / version)
+      .value,
   moduleName := "metaconfig-docs",
   mdocVariables := Map(
     "VERSION" -> version.value.replaceFirst("\\+.*", ""),

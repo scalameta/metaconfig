@@ -19,7 +19,11 @@ class ConfDynamicSuite extends munit.FunSuite {
     assert(conf.dynamic.x.c.d.e.asConf.isNotOk)
   }
   test("did you mean?") {
-    val Configured.NotOk(err) = conf.dynamic.banna.asConf
-    assert(err.toString.contains("Did you mean 'banana'"))
+    conf.dynamic.banna.asConf match {
+      case Configured.NotOk(err) =>
+        assert(err.toString.contains("Did you mean 'banana'"))
+      case Configured.Ok(value) =>
+        fail("Expected \"Did you mean 'banana'\" error")
+    }
   }
 }

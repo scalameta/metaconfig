@@ -124,10 +124,10 @@ object TPrintLowPri {
           val pre = rec(tpe)
           lazy val defs = fansi.Str.join(
             refinements.collect {
-              case (name, tpe: TypeRepr) => fansi.Str("type " + name + " = ") ++
-                  rec(tpe)
               case (name, TypeBounds(lo, hi)) => fansi.Str("type " + name) ++
                   printBounds(lo, hi) ++ rec(tpe)
+              case (name, tpe: TypeRepr) => fansi.Str("type " + name + " = ") ++
+                  rec(tpe)
             },
             sep = "; ",
           )
