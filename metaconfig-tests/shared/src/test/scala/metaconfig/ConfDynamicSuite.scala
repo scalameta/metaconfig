@@ -22,8 +22,7 @@ class ConfDynamicSuite extends munit.FunSuite {
   }
   test("did you mean?") {
     conf.dynamic.banna.asConf match {
-      case NotOk(err) =>
-        assert(err.toString.contains("Did you mean 'banana'"))
+      case NotOk(err) => assert(err.toString.contains("Did you mean 'banana'"))
       case Ok(value) => fail("Expected \"Did you mean 'banana'\" error")
     }
   }
