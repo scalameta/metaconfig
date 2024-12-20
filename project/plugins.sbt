@@ -5,7 +5,7 @@ val crossProjectV = "1.3.2"
 addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.13.0")
 
 addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.10.4")
-addSbtPlugin("com.github.sbt" % "sbt-ci-release"      % "1.9.0")
+addSbtPlugin("com.github.sbt" % "sbt-ci-release"      % "1.9.2")
 
 addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "1.1.4")
 
