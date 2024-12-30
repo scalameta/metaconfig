@@ -88,9 +88,9 @@ object TPrintLowPri {
     object RefinedType {
       def unapply(tpe: TypeRepr): Option[(TypeRepr, List[(String, TypeRepr)])] =
         tpe match {
-          case Refinement(p, i, b) => unapply(p)
-              .map { case (pp, bs) => (pp, (i -> b) :: bs) }
-              .orElse(Some((p, (i -> b) :: Nil)))
+          case Refinement(p, i, b) => unapply(p).map { case (pp, bs) =>
+              (pp, (i -> b) :: bs)
+            }.orElse(Some((p, (i -> b) :: Nil)))
           case _ => None
         }
     }

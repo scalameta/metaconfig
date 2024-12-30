@@ -36,8 +36,9 @@ object HoconPrinter {
     case Conf.Obj(obj) =>
       val flattened = obj.map { case (k, v) => (k, flatten(v)) }
       val next = flattened.flatMap {
-        case (key, Conf.Obj(nested)) => nested
-            .map { case (k, v) => s"${quote(key)}.$k" -> v }
+        case (key, Conf.Obj(nested)) => nested.map { case (k, v) =>
+            s"${quote(key)}.$k" -> v
+          }
         case (key, value) => (quote(key), value) :: Nil
       }
       Conf.Obj(next)
