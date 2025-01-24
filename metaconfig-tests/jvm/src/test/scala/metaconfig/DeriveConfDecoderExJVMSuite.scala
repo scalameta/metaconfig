@@ -145,22 +145,22 @@ class DeriveConfDecoderExJVMSuite extends munit.FunSuite {
       .noTypos.withSectionRenames("E.A" -> "e.a", "E.B.C" -> "e.b.c")
     checkOkStrEx(
       decoder = nested,
-      confStr = """|E {
-                   |  A = "xxx"
-                   |  B {
-                   |    C {
-                   |      "+" = {
-                   |        k3 { param = 33 }
-                   |      }
-                   |    }
-                   |  }
-                   |
-                   |}
-                   |e {
-                   |  b { B { param = 3 } }
-                   |}
-                   |"""
-        .stripMargin,
+      confStr =
+        """|E {
+           |  A = "xxx"
+           |  B {
+           |    C {
+           |      "+" = {
+           |        k3 { param = 33 }
+           |      }
+           |    }
+           |  }
+           |
+           |}
+           |e {
+           |  b { B { param = 3 } }
+           |}
+           |""".stripMargin,
       out = Nested(e =
         Nested3(
           a = "xxx",
@@ -182,11 +182,11 @@ class DeriveConfDecoderExJVMSuite extends munit.FunSuite {
       .withSectionRenames("E.A" -> "e.a")
     checkOkStrEx(
       decoder = nested,
-      confStr = """|E {
-                   |  A = "xxx"
-                   |}
-                   |"""
-        .stripMargin,
+      confStr =
+        """|E {
+           |  A = "xxx"
+           |}
+           |""".stripMargin,
       out = Nested(e = Nested3(a = "xxx")),
       in = Nested(),
     )
