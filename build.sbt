@@ -5,7 +5,7 @@ import com.typesafe.tools.mima.core._
 import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
 lazy val V = new {
-  def munit = "1.0.0"
+  def munit = "1.1.0"
   def scalacheck = "1.18.1"
 }
 val scala212 = "2.12.20"
