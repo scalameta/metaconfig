@@ -1,0 +1,9 @@
+version = "1.2.3"
+
+newlines {
+  source = fold
+  configStyle {
+    callSite.preset = none
+    defnSite.force = true
+  }
+}

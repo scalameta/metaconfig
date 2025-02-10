@@ -2,7 +2,6 @@ package metaconfig
 
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
-import java.nio.file.Files
 import java.nio.file.Path
 
 import scala.collection.mutable
@@ -81,13 +80,9 @@ object Input {
   }
 
   final case class File(file: Path, charset: Charset)
-      extends Input(
-        file.toString,
-        new Predef.String(Files.readAllBytes(file), charset.name),
-      )
+      extends Input(file.toString, PlatformInput.readFile(file, charset.name()))
   object File {
-    def apply(file: java.io.File): Input = Input
-      .File(file.toPath, StandardCharsets.UTF_8)
+    def apply(file: java.io.File): Input = apply(file.toPath)
     def apply(path: Path): Input = Input.File(path, StandardCharsets.UTF_8)
   }
 
