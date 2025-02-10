@@ -1,5 +1,3 @@
-import java.util.Date
-
 import com.typesafe.tools.mima.core._
 
 import sbtcrossproject.CrossPlugin.autoImport.crossProject
@@ -17,7 +15,9 @@ val scala3 = "3.3.5"
 def isScala213 = Def.setting(scalaBinaryVersion.value == "2.13")
 def isScala3 = Def.setting(scalaVersion.value.startsWith("3."))
 
-val ScalaVersions = List(scala213, scala212, scala3)
+val smorg = "org.scalameta"
+val Scala2Versions = List(scala213, scala212)
+val ScalaVersions = scala3 :: Scala2Versions
 inThisBuild(List(
   version ~= { dynVer =>
     if (System.getenv("CI") != null) dynVer
@@ -28,7 +28,7 @@ inThisBuild(List(
     }
   },
   useSuperShell := false,
-  organization := "org.scalameta",
+  organization := smorg,
   licenses :=
     Seq("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
   homepage := Some(url("https://github.com/scalameta/metaconfig")),
@@ -101,8 +101,21 @@ lazy val mimaSettings = Def.settings(
   mimaPreviousArtifacts := Set("com.geirsson" %% moduleName.value % "0.9.10"),
 )
 
+lazy val sharedJSSettings = Def.settings(
+  crossScalaVersions := Scala2Versions,
+  // to support Node.JS functionality
+  scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)),
+)
+
 publish / skip := true
 disablePlugins(MimaPlugin)
+
+lazy val depPaiges = libraryDependencies +=
+  "org.typelevel" %%% "paiges-core" % "0.4.4"
+def depScalacheck = libraryDependencies ++= List(
+  "org.scalacheck" %%% "scalacheck" % V.scalacheck,
+  smorg %%% "munit-scalacheck" % V.munit % Test,
+)
 
 lazy val pprint = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .in(file("metaconfig-pprint")).settings(
@@ -124,23 +137,19 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     sharedSettings,
     mimaSettings,
     moduleName := "metaconfig-core",
-    libraryDependencies ++= List(
-      "org.typelevel" %%% "paiges-core" % "0.4.4",
+    depPaiges,
+    libraryDependencies +=
       "org.scala-lang.modules" %%% "scala-collection-compat" % "2.13.0",
-    ),
   ).settings(
     libraryDependencies += {
       val reflectVersion = if (isScala3.value) scala213 else scalaVersion.value
       "org.scala-lang" % "scala-reflect" % reflectVersion
     },
-    Compile / unmanagedSourceDirectories ++= {
+    Compile / unmanagedSourceDirectories += {
       // TODO: why isn't sbt-crossproject adding epoch scala version
       // sources? it should
-      if (scalaVersion.value.startsWith("2")) Seq(
-        (ThisBuild / baseDirectory).value / "metaconfig-core" / "shared" /
-          "src" / "main" / "scala-2",
-      )
-      else Seq.empty
+      val scalaMajor = if (isScala3.value) "scala-3" else "scala-2"
+      baseDirectory.value / "shared" / "src" / "main" / scalaMajor
     },
   ).dependsOn(pprint)
 
@@ -169,13 +178,8 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     publish / skip := true,
     Compile / packageDoc / publishArtifact := false,
     testFrameworks := List(new TestFramework("munit.Framework")),
-    libraryDependencies ++= List(
-      "org.scalacheck" %%% "scalacheck" % V.scalacheck,
-      "org.scalameta" %%% "munit-scalacheck" % V.munit % Test,
-    ),
-  )
-  .jsSettings(scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)))
-  .jvmSettings(
+    depScalacheck,
+  ).jsSettings(sharedJSSettings).jvmSettings(
     GraalVMNativeImage / mainClass := Some("metaconfig.tests.ExampleMain"),
     Compile / doc / sources := Seq.empty,
     libraryDependencies ++= {
@@ -210,15 +214,11 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform, NativePlatform)
 
 lazy val docs = project.in(file("metaconfig-docs")).settings(
   sharedSettings,
-  libraryDependencies ++= List(
-    "com.lihaoyi" %%% "scalatags" % "0.13.1",
-    "org.scalacheck" %%% "scalacheck" % V.scalacheck,
-    "org.scalameta" %%% "munit-scalacheck" % V.munit % Test,
-  ),
+  depScalacheck,
+  libraryDependencies += "com.lihaoyi" %%% "scalatags" % "0.13.1",
   publish / skip := true,
   dependencyOverrides +=
-    "org.scalameta" %% "metaconfig-typesafe-config" % (ThisBuild / version)
-      .value,
+    smorg %% "metaconfig-typesafe-config" % (ThisBuild / version).value,
   moduleName := "metaconfig-docs",
   mdocVariables := Map(
     "VERSION" -> version.value.replaceFirst("\\+.*", ""),
