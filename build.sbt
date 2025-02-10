@@ -153,6 +153,14 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     },
   ).dependsOn(pprint)
 
+lazy val cli = crossProject(JVMPlatform, NativePlatform)
+  .in(file("metaconfig-cli")).settings(
+    sharedSettings,
+    mimaSettings,
+    moduleName := "metaconfig-cli",
+    depPaiges,
+  ).dependsOn(core)
+
 lazy val typesafe = project.in(file("metaconfig-typesafe-config")).settings(
   sharedSettings,
   mimaSettings,
@@ -207,10 +215,8 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform, NativePlatform)
         "-H:+ReportExceptionStackTraces",
       )
     },
-  ).jvmConfigure(_.enablePlugins(GraalVMNativeImagePlugin).dependsOn(
-    typesafe,
-    sconfig.jvm,
-  )).dependsOn(core)
+  ).jvmEnablePlugins(GraalVMNativeImagePlugin)
+  .jvmConfigure(_.dependsOn(typesafe, cli.jvm, sconfig.jvm)).dependsOn(core)
 
 lazy val docs = project.in(file("metaconfig-docs")).settings(
   sharedSettings,
