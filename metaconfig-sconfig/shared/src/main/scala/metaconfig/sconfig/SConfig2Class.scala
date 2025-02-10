@@ -10,16 +10,22 @@ import org.ekrich.config._
 
 object SConfig2Class {
   def gimmeConfFromString(string: String): Configured[Conf] =
-    gimmeSafeConf(() => ConfigFactory.parseString(string))
+    gimmeSafeConf(ConfigFactory.parseString(string), Some(Input.String(string)))
+
+  /** Does not work under Scala.JS */
   def gimmeConfFromFile(file: java.io.File): Configured[Conf] =
     if (!file.exists()) Configured
       .NotOk(ConfError.fileDoesNotExist(file.getAbsolutePath))
     else if (file.isDirectory) Configured
       .NotOk(ConfError.message(s"File ${file.getAbsolutePath} is a directory"))
-    else gimmeSafeConf(() => ConfigFactory.parseFile(file))
-  def gimmeConf(config: Config): Configured[Conf] = gimmeSafeConf(() => config)
+    else gimmeSafeConf(ConfigFactory.parseFile(file))
 
-  private def gimmeSafeConf(config: () => Config): Configured[Conf] = {
+  def gimmeConf(config: Config): Configured[Conf] = gimmeSafeConf(config)
+
+  private[sconfig] def gimmeSafeConf(
+      config: => Config,
+      input: Option[Input] = None,
+  ): Configured[Conf] = {
     val cache = mutable.Map.empty[Input, Array[Int]]
     def loop(value: ConfigValue): Conf = {
       val conf = value match {
@@ -39,29 +45,27 @@ object SConfig2Class {
               )
           }
       }
-      getPositionOpt(value.origin, cache).fold(conf)(conf.withPos)
+      getPosition(value.origin, cache, input).fold(conf)(conf.withPos)
     }
-    try Configured.Ok(loop(config().resolve().root))
+    try Configured.Ok(loop(config.resolve().root))
     catch {
-      case e: ConfigException.Parse => Configured
-          .NotOk(ConfError.parseError(getPosition(e.origin, cache), e.getMessage))
+      case e: ConfigException.Parse =>
+        val pos = getPosition(e.origin, cache, input).getOrElse(Position.None)
+        Configured.NotOk(ConfError.parseError(pos, e.getMessage))
     }
   }
 
   private def getPosition(
       originOrNull: ConfigOrigin,
       cache: mutable.Map[Input, Array[Int]],
-  ): Position = getPositionOpt(originOrNull, cache).getOrElse(Position.None)
-
-  private def getPositionOpt(
-      originOrNull: ConfigOrigin,
-      cache: mutable.Map[Input, Array[Int]],
+      input: Option[Input] = None,
   ): Option[Position] = for {
     origin <- Option(originOrNull)
-    url <- Option(origin.url)
-    linePlus1 <- Option(origin.lineNumber)
-    line = linePlus1 - 1
-    input = Input.File(new java.io.File(url.toURI))
+    line = origin.lineNumber - 1 if line >= 0
+    input <- Option(origin.filename).flatMap { f =>
+      if (input.exists(_.path == f)) None
+      else Some(Input.VirtualFile(f, PlatformInput.readFile(f, "utf-8")))
+    }.orElse(Option(origin.url).flatMap(PlatformFileOps.fromURL)).orElse(input)
     offsetByLine = cache
       .getOrElseUpdate(input, ConfGet.getOffsetByLine(input.chars))
     if line < offsetByLine.length

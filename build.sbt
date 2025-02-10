@@ -151,7 +151,11 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
       val scalaMajor = if (isScala3.value) "scala-3" else "scala-2"
       baseDirectory.value / "shared" / "src" / "main" / scalaMajor
     },
-  ).dependsOn(pprint)
+  ).dependsOn(pprint).jsSettings(
+    sharedJSSettings,
+    libraryDependencies += smorg %%% "io" % "4.13.0" cross
+      CrossVersion.for3Use2_13,
+  )
 
 lazy val cli = crossProject(JVMPlatform, NativePlatform)
   .in(file("metaconfig-cli")).settings(
@@ -181,7 +185,7 @@ lazy val sconfig = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     ),
   ).platformsSettings(JSPlatform, NativePlatform)(
     libraryDependencies += "org.ekrich" %%% "sjavatime" % "1.3.0",
-  ).dependsOn(core)
+  ).jsSettings(sharedJSSettings).dependsOn(core)
 
 lazy val tests = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .in(file("metaconfig-tests")).disablePlugins(MimaPlugin).settings(
@@ -219,7 +223,7 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform, NativePlatform)
       )
     },
   ).jvmEnablePlugins(GraalVMNativeImagePlugin)
-  .jvmConfigure(_.dependsOn(typesafe, cli.jvm, sconfig.jvm)).dependsOn(core)
+  .jvmConfigure(_.dependsOn(typesafe, cli.jvm)).dependsOn(core, sconfig)
 
 lazy val docs = project.in(file("metaconfig-docs")).settings(
   sharedSettings,
