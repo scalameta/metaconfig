@@ -89,9 +89,8 @@ lazy val sharedSettings = Def.settings(
     else if (isScala3.value) "-Wconf:cat=deprecation:silent" :: Nil
     else Nil
   },
-  scalacOptions ++= {
-    if (isScala3.value) Nil else "-Wconf:cat=feature:is" :: Nil
-  },
+  scalacOptions ++=
+    { if (isScala3.value) Nil else "-Wconf:cat=feature:is" :: Nil },
   mimaBinaryIssueFilters += languageAgnosticCompatibilityPolicy,
   crossScalaVersions := ScalaVersions,
   scalaVersion := scala213,
