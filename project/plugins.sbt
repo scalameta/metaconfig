@@ -12,7 +12,7 @@ addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "1.1.4")
 addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject"      % crossProjectV)
 addSbtPlugin("org.portable-scala" % "sbt-scala-native-crossproject" % crossProjectV)
 
-addSbtPlugin("org.scalameta"    % "sbt-mdoc"         % "2.6.5")
+addSbtPlugin("org.scalameta"    % "sbt-mdoc"         % "2.7.0")
 addSbtPlugin("org.scala-js"     % "sbt-scalajs"      % "1.18.2")
 addSbtPlugin("org.scala-native" % "sbt-scala-native" % "0.5.7")
 addSbtPlugin("org.xerial.sbt"   % "sbt-sonatype"     % "3.12.2")
