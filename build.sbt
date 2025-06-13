@@ -178,7 +178,7 @@ lazy val sconfig = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     mimaSettings,
     moduleName := "metaconfig-sconfig",
     description := "Integration for HOCON using ekrich/sconfig.",
-    libraryDependencies += ("org.ekrich" %%% "sconfig" % "1.9.1").excludeAll(
+    libraryDependencies += ("org.ekrich" %%% "sconfig" % "1.10.0").excludeAll(
       "org.scala-lang.modules" %
         s"scala-collection-compat_${scalaBinaryVersion.value}",
     ),
