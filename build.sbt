@@ -121,7 +121,7 @@ lazy val pprint = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     sharedSettings,
     mimaSettings,
     moduleName := "metaconfig-pprint",
-    libraryDependencies += "com.lihaoyi" %%% "fansi" % "0.5.0",
+    libraryDependencies += "com.lihaoyi" %%% "fansi" % "0.5.1",
     libraryDependencies ++= {
       if (scalaVersion.value.startsWith("2.")) List(
         "org.scala-lang" % "scala-reflect" % scalaVersion.value,
