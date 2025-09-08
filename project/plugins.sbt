@@ -13,6 +13,6 @@ addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject"      % crossProje
 addSbtPlugin("org.portable-scala" % "sbt-scala-native-crossproject" % crossProjectV)
 
 addSbtPlugin("org.scalameta"    % "sbt-mdoc"         % "2.7.2")
-addSbtPlugin("org.scala-js"     % "sbt-scalajs"      % "1.19.0")
+addSbtPlugin("org.scala-js"     % "sbt-scalajs"      % "1.20.1")
 addSbtPlugin("org.scala-native" % "sbt-scala-native" % "0.5.8")
 addSbtPlugin("org.xerial.sbt"   % "sbt-sonatype"     % "3.12.2")
