@@ -152,7 +152,7 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     },
   ).dependsOn(pprint).jsSettings(
     sharedJSSettings,
-    libraryDependencies += smorg %%% "io" % "4.13.9" cross
+    libraryDependencies += smorg %%% "io" % "4.13.10" cross
       CrossVersion.for3Use2_13,
   )
 
