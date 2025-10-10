@@ -138,7 +138,7 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     moduleName := "metaconfig-core",
     depPaiges,
     libraryDependencies +=
-      "org.scala-lang.modules" %%% "scala-collection-compat" % "2.13.0",
+      "org.scala-lang.modules" %%% "scala-collection-compat" % "2.14.0",
   ).settings(
     libraryDependencies += {
       val reflectVersion = if (isScala3.value) scala213 else scalaVersion.value
