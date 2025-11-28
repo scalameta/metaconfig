@@ -188,7 +188,7 @@ lazy val sconfig = crossProject(JVMPlatform, JSPlatform, NativePlatform)
         s"scala-collection-compat_${scalaBinaryVersion.value}",
     ),
   ).platformsSettings(JSPlatform, NativePlatform)(
-    libraryDependencies += "org.ekrich" %%% "sjavatime" % "1.4.0",
+    libraryDependencies += "org.ekrich" %%% "sjavatime" % "1.5.0",
   ).jsSettings(sharedJSSettings).dependsOn(core)
 
 lazy val tests = crossProject(JVMPlatform, JSPlatform, NativePlatform)
