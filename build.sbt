@@ -8,7 +8,7 @@ lazy val V = new {
 }
 val scala212 = "2.12.20"
 
-val scala213 = "2.13.17"
+val scala213 = "2.13.18"
 
 val scala3 = "3.3.7"
 
