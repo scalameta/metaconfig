@@ -6,7 +6,7 @@ lazy val V = new {
   def munit = "1.2.0"
   def scalacheck = "1.19.0"
 }
-val scala212 = "2.12.20"
+val scala212 = "2.12.21"
 
 val scala213 = "2.13.18"
 
