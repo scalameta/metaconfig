@@ -7,12 +7,15 @@ import metaconfig.annotation.Inline
 import metaconfig.generic.Setting
 import metaconfig.generic.Settings
 
+import scala.annotation.tailrec
+
 class CliParser[T](settings: Settings[T]) {
 
   import CliParser._
 
   private val toInline: Map[String, Setting] = inlinedSettings(settings)
 
+  @tailrec
   private def loop(
       curr: Conf.Obj,
       xs: List[String],
@@ -64,39 +67,35 @@ class CliParser[T](settings: Settings[T]) {
     camel.split("\\.").toList match {
       case Nil => ConfError.message(s"Flag '$head' must not be empty").notOk
       case flag :: flags =>
-        val (key, keys) = toInline.get(flag) match {
-          case Some(setting) => setting.name -> (flag :: flags)
-          case _ => flag -> flags
-        }
-        settings.get(key, keys) match {
-          case None => settings.settings.find(_.isCatchInvalidFlags) match {
-              case None =>
-                val closestCandidate = Levenshtein
-                  .closestCandidate(camel, settings.nonHiddenNames)
-                val didYouMean = closestCandidate match {
-                  case None => ""
-                  case Some(candidate) =>
-                    val kebab = Case.camelToKebab(candidate)
-                    s"\n\tDid you mean '--$kebab'?"
-                }
-                ConfError.message(s"found argument '--$flag' which wasn't expected, or isn't valid in this context.$didYouMean")
-                  .notOk
-              case Some(fallback) =>
-                val values = appendValues(
-                  curr,
-                  PositionalArgument,
-                  (head :: tail).map(Conf.fromString),
-                )
-                ok(add(curr, PositionalArgument, values))
+        val (key, keys) = toInline.get(flag)
+          .fold(flag -> flags)(_.name -> (flag :: flags))
+        settings.get(key, keys).fold {
+          if (!settings.settings.exists(_.isCatchInvalidFlags)) {
+            val closestCandidate = Levenshtein
+              .closestCandidate(camel, settings.nonHiddenNames)
+            val didYouMean = closestCandidate match {
+              case None => ""
+              case Some(candidate) =>
+                val kebab = Case.camelToKebab(candidate)
+                s"\n\tDid you mean '--$kebab'?"
             }
-          case Some(setting) =>
-            val prefix = toInline.get(flag).fold("")(_.name + ".")
-            val toAdd = prefix + camel
-            if (setting.isBoolean) {
-              val newCurr =
-                add(curr, toAdd, Conf.fromBoolean(defaultBooleanValue))
-              loop(newCurr, tail, NoFlag)
-            } else loop(curr, tail, Flag(toAdd, setting))
+            ConfError.message(s"found argument '--$flag' which wasn't expected, or isn't valid in this context.$didYouMean")
+              .notOk
+          } else {
+            val values = appendValues(
+              curr,
+              PositionalArgument,
+              (head :: tail).map(Conf.fromString),
+            )
+            ok(add(curr, PositionalArgument, values))
+          }
+        } { setting =>
+          val prefix = toInline.get(flag).fold("")(_.name + ".")
+          val toAdd = prefix + camel
+          if (setting.isBoolean) {
+            val newCurr = add(curr, toAdd, Conf.fromBoolean(defaultBooleanValue))
+            loop(newCurr, tail, NoFlag)
+          } else loop(curr, tail, Flag(toAdd, setting))
         }
     }
   }
@@ -123,14 +122,14 @@ object CliParser {
       case _ => Conf.Lst(values)
     }
 
-  def inlinedSettings(settings: Settings[_]): Map[String, Setting] = settings
-    .settings.iterator.flatMap { setting =>
-      if (setting.annotations.exists(_.isInstanceOf[Inline])) for {
-        underlying <- setting.underlying.toList
-        name <- underlying.names
-      } yield name -> setting
-      else Nil
-    }.toMap
+  def inlinedSettings(settings: Settings[_]): Map[String, Setting] = {
+    val res = Map.newBuilder[String, Setting]
+    settings.settings.foreach { setting =>
+      if (setting.annotations.exists(_.isInstanceOf[Inline])) setting.underlying
+        .foreach(_.names.foreach(res += _ -> setting))
+    }
+    res.result()
+  }
 
   def allSettings(settings: Settings[_]): Map[String, Setting] =
     inlinedSettings(settings) ++ settings.settings.map(s => s.name -> s)

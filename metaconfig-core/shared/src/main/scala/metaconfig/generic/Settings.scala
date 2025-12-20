@@ -10,6 +10,7 @@ import metaconfig.annotation.Usage
 import metaconfig.internal.Cli
 
 import scala.annotation.StaticAnnotation
+import scala.annotation.tailrec
 import scala.collection.mutable
 
 import org.typelevel.paiges.Doc
@@ -56,17 +57,9 @@ final class Settings[T](
 
   def get(name: String): Option[Setting] = settings.find(_.matchesLowercase(name))
 
-  def get(name: String, rest: List[String]): Option[Setting] = get(name)
-    .flatMap { setting =>
-      if (setting.isDynamic) Some(setting)
-      else rest match {
-        case Nil => Some(setting)
-        case head :: tail => for {
-            underlying <- setting.underlying
-            next <- underlying.get(head, tail)
-          } yield next
-      }
-    }
+  def get(name: String, rest: List[String]): Option[Setting] = Settings
+    .get(name, rest)(this)
+
   def unsafeGet(name: String): Setting = get(name).get
   @deprecated("Use ConfEncoder[T].write instead", "0.8.1")
   def withDefault(default: T)(implicit
@@ -128,5 +121,21 @@ object Settings {
 
   @inline
   def validate(settings: Settings[_]): Seq[String] = validate(settings.settings)
+
+  @tailrec
+  private def get(name: String, rest: List[String])(
+      settings: Settings[_],
+  ): Option[Setting] = settings.get(name) match {
+    case None => None
+    case Some(setting) =>
+      if (setting.isDynamic) Some(setting)
+      else rest match {
+        case Nil => Some(setting)
+        case head :: tail => setting.underlying match {
+            case None => None
+            case Some(underlying) => get(head, tail)(underlying)
+          }
+      }
+  }
 
 }
