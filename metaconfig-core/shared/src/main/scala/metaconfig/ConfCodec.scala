@@ -59,4 +59,16 @@ object ConfCodec {
 
   }
 
+  def oneOf[A](options: sourcecode.Text[A]*): ConfCodec[A] =
+    oneOfCustom[A](options: _*)(PartialFunction.empty)
+
+  def oneOfCustom[A](
+      options: sourcecode.Text[A]*,
+  )(fconv: PartialFunction[Conf, Conf]): ConfCodec[A] = ConfEnum
+    .oneOfCustom[A, ConfDecoder, ConfCodec](options: _*) { f =>
+      ConfDecoder.fromPartialConverted[A]("String")(fconv) { case x: Conf.Str =>
+        f(x)
+      }
+    }(new Pair(_, _))
+
 }
