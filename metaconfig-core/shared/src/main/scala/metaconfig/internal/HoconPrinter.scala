@@ -25,7 +25,9 @@ object HoconPrinter {
         }
         wrap('[', ']', intercalate(line, elems))
       case Conf.Obj(obj) =>
-        val elems = obj.map { case (k, v) => text(k) + text(" = ") + loop(v) }
+        val elems = obj.sortBy(_._1).map { case (k, v) =>
+          text(k) + text(" = ") + loop(v)
+        }
         intercalate(line, elems)
     }
 
