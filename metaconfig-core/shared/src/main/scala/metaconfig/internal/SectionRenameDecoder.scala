@@ -7,11 +7,12 @@ import scala.annotation.tailrec
 
 trait SectionRenameDecoder[A] extends Transformable[A] { self: A =>
   protected val renames: List[annotation.SectionRename]
-  protected def renameSectionsAnd[B](
+  protected final def renameSectionsAnd[B](
       conf: Conf,
       func: Conf => Configured[B],
-  ): Configured[B] = SectionRenameDecoder.renameSections(renames)(conf)
-    .andThen(func)
+  ): Configured[B] = func(renameSections(conf))
+  private def renameSections(conf: Conf): Conf = SectionRenameDecoder
+    .renameSections(renames)(conf)
 }
 
 object SectionRenameDecoder {
@@ -74,7 +75,7 @@ object SectionRenameDecoder {
   @tailrec
   private def renameSections(
       values: List[annotation.SectionRename],
-  )(conf: Conf): Configured[Conf] = values match {
+  )(conf: Conf): Conf = values match {
     case head :: rest =>
       val oldName = head.oldNameAsSeq
       conf.getNestedConf(oldName: _*) match {
@@ -86,7 +87,7 @@ object SectionRenameDecoder {
           renameSections(rest)(ConfOps.merge(add, ConfOps.merge(conf, del)))
         case _ => renameSections(rest)(conf)
       }
-    case _ => Configured.Ok(conf)
+    case _ => conf
   }
 
 }
