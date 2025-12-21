@@ -7,12 +7,12 @@ import metaconfig.annotation.Inline
 import metaconfig.generic.Setting
 import metaconfig.generic.Settings
 
-class CliParser[T](
-    args: List[String],
-    settings: Settings[T],
-    toInline: Map[String, Setting],
-) {
+class CliParser[T](settings: Settings[T]) {
+
   import CliParser._
+
+  private val toInline: Map[String, Setting] = inlinedSettings(settings)
+
   private def loop(
       curr: Conf.Obj,
       xs: List[String],
@@ -31,13 +31,14 @@ class CliParser[T](
         val value = head.substring(equal + 1)
         loop(curr, key :: value :: tail, NoFlag)
       } else if (head.startsWith("-"))
-        tryFlag(curr, head, tail, s, defaultBooleanValue = true) match {
+        tryFlag(curr, head, tail, defaultBooleanValue = true) match {
           case nok: NotOk if head.startsWith("--") =>
+            val withoutNoPrefix = head.stripPrefix(noPrefix)
             val fallbackFlag =
-              if (head.startsWith(noPrefix)) "--" + head.stripPrefix(noPrefix)
+              if (head ne withoutNoPrefix) "--" + withoutNoPrefix
               else noPrefix + head.stripPrefix("--")
             val fallback =
-              tryFlag(curr, fallbackFlag, tail, s, defaultBooleanValue = false)
+              tryFlag(curr, fallbackFlag, tail, defaultBooleanValue = false)
             fallback.orElse(nok)
           case ok => ok
         }
@@ -57,7 +58,6 @@ class CliParser[T](
       curr: Conf.Obj,
       head: String,
       tail: List[String],
-      s: State,
       defaultBooleanValue: Boolean,
   ): Configured[Conf.Obj] = {
     val camel = Case.kebabToCamel(dash.replaceFirstIn(head, ""))
@@ -105,13 +105,10 @@ class CliParser[T](
 object CliParser {
   val PositionalArgument = "remainingArgs"
 
-  def parseArgs[T](
-      args: List[String],
-  )(implicit settings: Settings[T]): Configured[Conf] = {
-    val toInline = inlinedSettings(settings)
-    val parser = new CliParser[T](args, settings, toInline)
-    parser.loop(Conf.Obj(), args, NoFlag).map(_.normalize)
-  }
+  def parseArgs[T](args: List[String])(implicit
+      settings: Settings[T],
+  ): Configured[Conf] = new CliParser[T](settings).loop(Conf.Obj(), args, NoFlag)
+    .map(_.normalize)
 
   private def add(curr: Conf.Obj, key: String, value: Conf): Conf.Obj = {
     val values = curr.values.filterNot { case (k, _) => k == key }
@@ -119,7 +116,6 @@ object CliParser {
   }
 
   val noPrefix = "--no-"
-  def isNegatedBoolean(flag: String): Boolean = flag.startsWith(noPrefix)
 
   def appendValues(obj: Conf.Obj, key: String, values: List[Conf]): Conf.Lst =
     obj.map.get(key) match {
