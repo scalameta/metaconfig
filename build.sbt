@@ -45,7 +45,7 @@ inThisBuild(List(
     "olafurpg@gmail.com",
     url("https://geirsson.com"),
   ),
-  resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
+  resolvers += Resolver.sonatypeCentralSnapshots,
   versionScheme := Some("early-semver"),
 ))
 
