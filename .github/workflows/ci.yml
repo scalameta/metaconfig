@@ -29,7 +29,7 @@ jobs:
       # reserved memory cannot exceed the amount of physically available storage.
       - name: Configure Pagefile
         if: matrix.os == 'windows-2019'
-        uses: al-cheb/configure-pagefile-action@v1.4
+        uses: al-cheb/configure-pagefile-action@v1.5
         with:
           minimum-size: 4GB
           maximum-size: 16GB
