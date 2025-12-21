@@ -20,7 +20,8 @@ class HoconPrinterSuite extends FunSuite {
       "e" -> Conf.Obj("f" -> Conf.Num(3)),
       "f.g" -> Conf.Num(2),
     ),
-    """|a = true
+    """|"f.g" = 2
+       |a = true
        |b = null
        |c = 1
        |d = [
@@ -28,7 +29,6 @@ class HoconPrinterSuite extends FunSuite {
        |  ""
        |]
        |e.f = 3
-       |"f.g" = 2
        |""".stripMargin.trim,
   )
 
