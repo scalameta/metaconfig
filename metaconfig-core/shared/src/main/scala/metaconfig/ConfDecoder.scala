@@ -17,10 +17,14 @@ trait ConfDecoder[A] { self =>
 
   final def read(conf: Configured[Conf]): Configured[A] = conf.andThen(self.read)
 
-  final def map[B](f: A => B): ConfDecoder[B] = self.read(_).map(f)
+  final def map[B](f: A => B): ConfDecoder[B] = new ConfDecoder[B] {
+    override def read(conf: Conf): Configured[B] = self.read(conf).map(f)
+  }
 
-  final def flatMap[B](f: A => Configured[B]): ConfDecoder[B] = self.read(_)
-    .andThen(f)
+  final def flatMap[B](f: A => Configured[B]): ConfDecoder[B] =
+    new ConfDecoder[B] {
+      override def read(conf: Conf): Configured[B] = self.read(conf).andThen(f)
+    }
 
   final def orElse(other: ConfDecoder[A]): ConfDecoder[A] = ConfDecoder
     .orElse(this, other)
@@ -92,11 +96,12 @@ object ConfDecoder {
   implicit def canBuildFromOption[A](implicit
       ev: ConfDecoder[A],
       classTag: ClassTag[A],
-  ): ConfDecoder[Option[A]] = (conf: Conf) =>
-    conf match {
+  ): ConfDecoder[Option[A]] = new ConfDecoder[Option[A]] {
+    override def read(conf: Conf): Configured[Option[A]] = conf match {
       case Conf.Null() => Configured.ok(None)
       case _ => ev.read(conf).map(Some(_))
     }
+  }
 
   implicit def canBuildEither[A, B](implicit
       evA: ConfDecoder[A],
@@ -119,7 +124,10 @@ object ConfDecoder {
   ): ConfDecoder[C[A]] = CanBuildFromDecoder.list[C, A]
 
   def orElse[A](a: ConfDecoder[A], b: ConfDecoder[A]): ConfDecoder[A] =
-    conf => a.read(conf).recoverWithOrCombine(b.read(conf))
+    new ConfDecoder[A] {
+      override def read(conf: Conf): Configured[A] = a.read(conf)
+        .recoverWithOrCombine(b.read(conf))
+    }
 
   implicit final class Implicits[A](private val self: ConfDecoder[A])
       extends AnyVal {

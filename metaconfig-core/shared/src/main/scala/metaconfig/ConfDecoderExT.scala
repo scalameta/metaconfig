@@ -66,19 +66,25 @@ object ConfDecoderExT {
 
   implicit def canBuildOptionT[S, A](implicit
       ev: ConfDecoderExT[S, A],
-  ): ConfDecoderExT[S, Option[A]] = (state, conf) =>
-    conf match {
-      case Conf.Null() => Configured.ok(None)
-      case _ => ev.read(state, conf).map(Some.apply)
-    }
+  ): ConfDecoderExT[S, Option[A]] = new ConfDecoderExT[S, Option[A]] {
+    override def read(state: Option[S], conf: Conf): Configured[Option[A]] =
+      conf match {
+        case Conf.Null() => Configured.ok(None)
+        case _ => ev.read(state, conf).map(Some.apply)
+      }
+  }
 
   implicit def canBuildOption[A](implicit
       ev: ConfDecoderEx[A],
-  ): ConfDecoderEx[Option[A]] = (state, conf) =>
-    conf match {
+  ): ConfDecoderEx[Option[A]] = new ConfDecoderEx[Option[A]] {
+    override def read(
+        state: Option[Option[A]],
+        conf: Conf,
+    ): Configured[Option[A]] = conf match {
       case Conf.Null() => Configured.ok(None)
       case _ => ev.read(state.flatten, conf).map(Some.apply)
     }
+  }
 
   implicit def canBuildEitherT[S, A, B](implicit
       evA: ConfDecoderExT[S, A],
@@ -89,16 +95,21 @@ object ConfDecoderExT {
   implicit def canBuildEither[A, B](implicit
       evA: ConfDecoderEx[A],
       evB: ConfDecoderEx[B],
-  ): ConfDecoderEx[Either[A, B]] = (state, conf) => {
-    @inline
-    def asA(s: Option[A]) = evA.read(s, conf).map(x => Left(x))
-    @inline
-    def asB(s: Option[B]) = evB.read(s, conf).map(x => Right(x))
-    state.fold(asA(None).recoverWithOrCombine(asB(None))) {
-      _.fold(
-        a => asA(Some(a)).recoverWithOrCombine(asB(None)),
-        b => asB(Some(b)).recoverWithOrCombine(asA(None)),
-      )
+  ): ConfDecoderEx[Either[A, B]] = new ConfDecoderEx[Either[A, B]] {
+    override def read(
+        state: Option[Either[A, B]],
+        conf: Conf,
+    ): Configured[Either[A, B]] = {
+      @inline
+      def asA(s: Option[A]) = evA.read(s, conf).map(x => Left(x))
+      @inline
+      def asB(s: Option[B]) = evB.read(s, conf).map(x => Right(x))
+      state.fold(asA(None).recoverWithOrCombine(asB(None))) {
+        _.fold(
+          a => asA(Some(a)).recoverWithOrCombine(asB(None)),
+          b => asB(Some(b)).recoverWithOrCombine(asA(None)),
+        )
+      }
     }
   }
 
@@ -106,10 +117,15 @@ object ConfDecoderExT {
       ev: ConfDecoderExT[S, A],
       factory: Factory[(String, A), CC[String, A]],
       classTag: ClassTag[A],
-  ): ConfDecoderExT[S, CC[String, A]] = fromPartial(
-    s"Map[String, ${classTag.runtimeClass.getName}]",
-  ) { case (state, Conf.Obj(values)) =>
-    buildFrom(state, values, ev, factory)(_._2, (x, y) => (x._1, y))
+  ): ConfDecoderExT[S, CC[String, A]] = new ConfDecoderExT[S, CC[String, A]] {
+    override def read(state: Option[S], conf: Conf): Configured[CC[String, A]] =
+      conf match {
+        case Conf.Obj(values) =>
+          buildFrom(state, values, ev, factory)(_._2, (x, y) => (x._1, y))
+        case _ =>
+          val expect = s"Map[String, ${classTag.runtimeClass.getName}]"
+          Configured.NotOk(ConfError.typeMismatch(expect, conf))
+      }
   }
 
   implicit def canBuildStringMap[A, CC[x, y] <: collection.Iterable[(x, y)]](
@@ -117,21 +133,26 @@ object ConfDecoderExT {
       ev: ConfDecoderEx[A],
       factory: Factory[(String, A), CC[String, A]],
       classTag: ClassTag[A],
-  ): ConfDecoderEx[CC[String, A]] = {
+  ): ConfDecoderEx[CC[String, A]] = new ConfDecoderEx[CC[String, A]] {
     val none: Option[A] = None
-    fromPartial(s"Map[String, ${classTag.runtimeClass.getName}]") {
-      case (stateOpt, Conf.Obj(List(("+", Conf.Obj(values))))) =>
-        val res = buildFrom(none, values, ev, factory)(_._2, (x, y) => (x._1, y))
-        res.map { x =>
-          stateOpt.fold(x) { state =>
+    override def read(
+        state: Option[CC[String, A]],
+        conf: Conf,
+    ): Configured[CC[String, A]] = conf match {
+      case Conf.Obj(List(("+", Conf.Obj(values)))) =>
+        buildFrom(none, values, ev, factory)(_._2, (x, y) => (x._1, y)).map { x =>
+          state.fold(x) { state =>
             val builder = factory.newBuilder
             builder ++= state
             builder ++= x
             builder.result()
           }
         }
-      case (_, Conf.Obj(values)) =>
+      case Conf.Obj(values) =>
         buildFrom(none, values, ev, factory)(_._2, (x, y) => (x._1, y))
+      case _ =>
+        val expect = s"Map[String, ${classTag.runtimeClass.getName}]"
+        Configured.NotOk(ConfError.typeMismatch(expect, conf))
     }
   }
 
@@ -139,31 +160,40 @@ object ConfDecoderExT {
       ev: ConfDecoderExT[S, A],
       factory: Factory[A, C[A]],
       classTag: ClassTag[A],
-  ): ConfDecoderExT[S, C[A]] = fromPartial(
-    s"List[${classTag.runtimeClass.getName}]",
-  ) { case (state, Conf.Lst(values)) =>
-    buildFrom(state, values, ev, factory)(identity, (_, x) => x)
+  ): ConfDecoderExT[S, C[A]] = new ConfDecoderExT[S, C[A]] {
+    override def read(state: Option[S], conf: Conf): Configured[C[A]] =
+      conf match {
+        case Conf.Lst(values) =>
+          buildFrom(state, values, ev, factory)(identity, (_, x) => x)
+        case _ =>
+          val expect = s"List[${classTag.runtimeClass.getName}]"
+          Configured.NotOk(ConfError.typeMismatch(expect, conf))
+      }
   }
 
   implicit def canBuildSeq[A, C[x] <: collection.Iterable[x]](implicit
       ev: ConfDecoderEx[A],
       factory: Factory[A, C[A]],
       classTag: ClassTag[A],
-  ): ConfDecoderEx[C[A]] = {
-    val none: Option[A] = None
-    fromPartial(s"List[${classTag.runtimeClass.getName}]") {
-      case (stateOpt, Conf.Obj(List(("+", Conf.Lst(values))))) =>
-        buildFrom(none, values, ev, factory)(identity, (_, x) => x).map { x =>
-          stateOpt.fold(x) { state =>
-            val builder = factory.newBuilder
-            builder ++= state
-            builder ++= x
-            builder.result()
+  ): ConfDecoderEx[C[A]] = new ConfDecoderEx[C[A]] {
+    private val none: Option[A] = None
+    override def read(state: Option[C[A]], conf: Conf): Configured[C[A]] =
+      conf match {
+        case Conf.Obj(List(("+", Conf.Lst(values)))) =>
+          buildFrom(none, values, ev, factory)(identity, (_, x) => x).map { x =>
+            state.fold(x) { state =>
+              val builder = factory.newBuilder
+              builder ++= state
+              builder ++= x
+              builder.result()
+            }
           }
-        }
-      case (_, Conf.Lst(values)) =>
-        buildFrom(none, values, ev, factory)(identity, (_, x) => x)
-    }
+        case Conf.Lst(values) =>
+          buildFrom(none, values, ev, factory)(identity, (_, x) => x)
+        case _ =>
+          val expect = s"List[${classTag.runtimeClass.getName}]"
+          Configured.NotOk(ConfError.typeMismatch(expect, conf))
+      }
   }
 
   implicit final class Implicits[S, A](private val self: ConfDecoderExT[S, A])
@@ -172,15 +202,22 @@ object ConfDecoderExT {
     def read(state: Option[S], conf: Configured[Conf]): Configured[A] = conf
       .andThen(self.read(state, _))
 
-    def map[B](f: A => B): ConfDecoderExT[S, B] =
-      (state, conf) => self.read(state, conf).map(f)
+    def map[B](f: A => B): ConfDecoderExT[S, B] = new ConfDecoderExT[S, B] {
+      override def read(state: Option[S], conf: Conf): Configured[B] = self
+        .read(state, conf).map(f)
+    }
 
     def flatMap[B](f: A => Configured[B]): ConfDecoderExT[S, B] =
-      (state, conf) => self.read(state, conf).andThen(f)
+      new ConfDecoderExT[S, B] {
+        override def read(state: Option[S], conf: Conf): Configured[B] = self
+          .read(state, conf).andThen(f)
+      }
 
     def orElse(other: ConfDecoderExT[S, A]): ConfDecoderExT[S, A] =
-      (state, conf) =>
-        self.read(state, conf).recoverWithOrCombine(other.read(state, conf))
+      new ConfDecoderExT[S, A] {
+        override def read(state: Option[S], conf: Conf): Configured[A] = self
+          .read(state, conf).recoverWithOrCombine(other.read(state, conf))
+      }
 
     def noTypos(implicit settings: generic.Settings[A]): ConfDecoderExT[S, A] =
       NoTyposDecoder(self)
