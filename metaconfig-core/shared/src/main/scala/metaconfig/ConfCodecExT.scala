@@ -21,6 +21,7 @@ class ConfCodecExT[S, A](encoder: ConfEncoder[A], decoder: ConfDecoderExT[S, A])
   def noTypos(implicit settings: Settings[A]): ConfCodecExT[S, A] =
     withDecoder(_.noTypos)
 
+  override def convert(conf: Conf): Conf = decoder.convert(conf)
 }
 
 object ConfCodecExT {

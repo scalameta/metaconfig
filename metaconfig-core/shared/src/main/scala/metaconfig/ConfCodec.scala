@@ -6,6 +6,7 @@ trait ConfCodec[A] extends ConfDecoder[A] with ConfEncoder[A] { self =>
   def bimap[B](in: B => A, out: A => B): ConfCodec[B] = new ConfCodec[B] {
     override def write(value: B): Conf = self.write(in(value))
     override def read(conf: Conf): Configured[B] = self.read(conf).map(out)
+    override def convert(conf: Conf): Conf = self.convert(conf)
   }
 }
 
@@ -18,6 +19,7 @@ object ConfCodec {
   ) extends ConfCodec[A] {
     override def write(value: A): Conf = encoder.write(value)
     override def read(conf: Conf): Configured[A] = decoder.read(conf)
+    override def convert(conf: Conf): Conf = decoder.convert(conf)
 
     private[metaconfig] def getPair(): (ConfEncoder[A], ConfDecoder[A]) =
       (encoder, decoder)

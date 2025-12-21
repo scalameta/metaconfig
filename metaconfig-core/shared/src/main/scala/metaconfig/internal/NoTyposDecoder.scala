@@ -36,12 +36,14 @@ object NoTyposDecoder {
       extends ConfDecoder[A] {
     override def read(conf: Conf): Configured[A] =
       checkTypos(conf, dec.read(conf))
+    override def convert(conf: Conf): Conf = dec.convert(conf)
   }
 
   private class DecoderEx[-S, A: generic.Settings](dec: ConfDecoderExT[S, A])
       extends ConfDecoderExT[S, A] {
     override def read(state: Option[S], conf: Conf): Configured[A] =
       checkTypos(conf, dec.read(state, conf))
+    override def convert(conf: Conf): Conf = dec.convert(conf)
   }
 
 }

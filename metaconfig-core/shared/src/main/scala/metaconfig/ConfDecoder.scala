@@ -11,19 +11,23 @@ import java.nio.file.Paths
 import scala.collection.compat._
 import scala.reflect.ClassTag
 
-trait ConfDecoder[A] { self =>
+trait ConfDecoder[A] extends ConfConverter { self =>
 
   def read(conf: Conf): Configured[A]
+
+  override def convert(conf: Conf): Conf = conf
 
   final def read(conf: Configured[Conf]): Configured[A] = conf.andThen(self.read)
 
   final def map[B](f: A => B): ConfDecoder[B] = new ConfDecoder[B] {
     override def read(conf: Conf): Configured[B] = self.read(conf).map(f)
+    override def convert(conf: Conf): Conf = self.convert(conf)
   }
 
   final def flatMap[B](f: A => Configured[B]): ConfDecoder[B] =
     new ConfDecoder[B] {
       override def read(conf: Conf): Configured[B] = self.read(conf).andThen(f)
+      override def convert(conf: Conf): Conf = self.convert(conf)
     }
 
   final def orElse(other: ConfDecoder[A]): ConfDecoder[A] = ConfDecoder
@@ -58,6 +62,14 @@ object ConfDecoder {
 
   def from[T](f: Conf => Configured[T]): ConfDecoder[T] = f(_)
 
+  def fromConverted[A](
+      fconv: PartialFunction[Conf, Conf],
+  )(f: Conf => Configured[A]): ConfDecoder[A] = new ConfDecoder[A] {
+    override def read(conf: Conf): Configured[A] = f(convert(conf))
+    override def convert(conf: Conf): Conf = fconv
+      .applyOrElse(conf, identity[Conf])
+  }
+
   @deprecated("Use fromPartial instead", "0.9.12")
   def instanceExpect[T: ClassTag](expect: String)(
       f: PartialFunction[Conf, Configured[T]],
@@ -67,6 +79,15 @@ object ConfDecoder {
       f: PartialFunction[Conf, Configured[A]],
   ): ConfDecoder[A] = readWithPartial(expect)(f)(_)
 
+  def fromPartialConverted[A](expect: String)(
+      fconv: PartialFunction[Conf, Conf],
+  )(f: PartialFunction[Conf, Configured[A]]): ConfDecoder[A] = new ConfDecoder[A] {
+    override def read(conf: Conf): Configured[A] =
+      readWithPartial(expect)(f)(convert(conf))
+    override def convert(conf: Conf): Conf = fconv
+      .applyOrElse(conf, identity[Conf])
+  }
+
   def readWithPartial[A](
       expect: String,
   )(f: PartialFunction[Conf, Configured[A]]): Conf => Configured[A] =
@@ -75,21 +96,20 @@ object ConfDecoder {
   def constant[T](value: T): ConfDecoder[T] = _ => Configured.ok(value)
 
   implicit val confDecoder: ConfDecoder[Conf] = Configured.Ok(_)
-  implicit val intConfDecoder: ConfDecoder[Int] = fromPartial[Int]("Number") {
-    case Conf.Num(x) => Ok(x.toInt)
-    case Conf.Str(Number(n)) => Ok(n.toInt)
-  }
+  implicit val intConfDecoder: ConfDecoder[Int] =
+    fromPartialConverted[Int]("Number") { case Conf.Str(Number(n)) => Conf.Num(n) } {
+      case Conf.Num(x) => Ok(x.toInt)
+    }
   implicit val bigDecimalConfDecoder: ConfDecoder[BigDecimal] =
     fromPartial[BigDecimal]("Number") { case Conf.Num(x) => Ok(x) }
   implicit val stringConfDecoder: ConfDecoder[String] =
     fromPartial[String]("String") { case Conf.Str(x) => Ok(x) }
   implicit val unitConfDecoder: ConfDecoder[Unit] = from[Unit] { case _ => Ok(()) }
   implicit val booleanConfDecoder: ConfDecoder[Boolean] =
-    fromPartial[Boolean]("Bool") {
-      case Conf.Bool(x) => Ok(x)
-      case Conf.Str("true" | "on" | "yes") => Ok(true)
-      case Conf.Str("false" | "off" | "no") => Ok(false)
-    }
+    fromPartialConverted[Boolean]("Bool") {
+      case Conf.Str("true" | "on" | "yes") => Conf.Bool(true)
+      case Conf.Str("false" | "off" | "no") => Conf.Bool(false)
+    } { case Conf.Bool(x) => Ok(x) }
   implicit lazy val pathConfDecoder: ConfDecoder[Path] = stringConfDecoder
     .flatMap(path => Configured.fromExceptionThrowing(Paths.get(path)))
 
@@ -101,6 +121,7 @@ object ConfDecoder {
       case Conf.Null() => Configured.ok(None)
       case _ => ev.read(conf).map(Some(_))
     }
+    override def convert(conf: Conf): Conf = ev.convert(conf)
   }
 
   implicit def canBuildEither[A, B](implicit
@@ -127,6 +148,7 @@ object ConfDecoder {
     new ConfDecoder[A] {
       override def read(conf: Conf): Configured[A] = a.read(conf)
         .recoverWithOrCombine(b.read(conf))
+      override def convert(conf: Conf): Conf = b.convert(a.convert(conf))
     }
 
   implicit final class Implicits[A](private val self: ConfDecoder[A])

@@ -120,6 +120,45 @@ object Conf {
       setting: Setting,
   ): Configured[A] = getEx(state, conf, setting.allNames)
 
+  private def renameAlternatives(
+      conf: Conf,
+      setting: Setting,
+      ev: ConfConverter,
+  ): Conf = conf match {
+    case obj: Conf.Obj =>
+      val name = setting.name
+      val map = (name :: setting.alternativeNames).zipWithIndex.toMap
+      var minidx = Int.MaxValue
+      var value: Conf = null
+      val values = obj.values.filter { case (k, v) =>
+        map.get(k) match {
+          case Some(idx) =>
+            if (idx < minidx) {
+              minidx = idx
+              value = v
+            }
+            false
+          case _ => true
+        }
+      }
+      Conf.Obj(
+        if (value eq null) values else (name -> ev.convert(value)) :: values,
+      )
+    case _ => conf
+  }
+
+  def convert[A](conf: Conf, setting: Setting)(implicit
+      ev: ConfDecoder[A],
+  ): Conf = renameAlternatives(conf, setting, ev)
+
+  def convertEx[A](conf: Conf, setting: Setting)(implicit
+      ev: ConfDecoderEx[A],
+  ): Conf = renameAlternatives(conf, setting, ev)
+
+  def convertExT[S, A](conf: Conf, setting: Setting)(implicit
+      ev: ConfDecoderExT[S, A],
+  ): Conf = renameAlternatives(conf, setting, ev)
+
   implicit class ConfImplicit(private val conf: Conf) extends AnyVal {
 
     def getEx[A](state: Option[A])(implicit

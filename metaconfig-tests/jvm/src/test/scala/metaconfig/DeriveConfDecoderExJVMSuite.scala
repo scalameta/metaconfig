@@ -4,21 +4,30 @@ import metaconfig.annotation.SectionRename
 
 class DeriveConfDecoderExJVMSuite extends munit.FunSuite {
 
-  def checkOkStr[T, A](confStr: String, out: A, in: T = null)(implicit
-      loc: munit.Location,
-      decoder: ConfDecoderExT[T, A],
-  ): Unit = checkOkStrEx(decoder, confStr, out, in)
+  def checkOkStr[T, A](
+      confStr: String,
+      out: A,
+      in: T = null,
+      convConfStr: String = null,
+  )(implicit loc: munit.Location, decoder: ConfDecoderExT[T, A]): Unit =
+    checkOkStrEx(decoder, confStr, out, in, convConfStr = convConfStr)
 
   def checkOkStrEx[T, A](
       decoder: ConfDecoderExT[T, A],
       confStr: String,
       out: A,
       in: T = null,
+      convConfStr: String = null,
   )(implicit loc: munit.Location): Unit = {
     val cfg = Input.String(confStr).parse(Hocon)
     cfg.andThen(decoder.read(Option(in), _)) match {
       case Configured.NotOk(err) => fail(err.toString)
       case Configured.Ok(obtained) => assertEquals[Any, Any](obtained, out)
+    }
+    if (convConfStr ne null) cfg match {
+      case Configured.Ok(cfg) =>
+        assertNoDiff(Conf.printHocon(decoder.convert(cfg)), convConfStr)
+      case _ =>
     }
   }
 
@@ -126,6 +135,10 @@ class DeriveConfDecoderExJVMSuite extends munit.FunSuite {
       Nested(e =
         Nested3(a = "yyy", b = Nested2(a = "zzz", c = Map("k2" -> OneParam(2)))),
       ),
+      convConfStr =
+        """|e.a = xxx
+           |e.b.b.param = 3
+           |e.b.c.+.k3.param = 33""".stripMargin,
     )
   }
 
@@ -174,6 +187,10 @@ class DeriveConfDecoderExJVMSuite extends munit.FunSuite {
       in = Nested(e =
         Nested3(a = "yyy", b = Nested2(a = "zzz", c = Map("k2" -> OneParam(2)))),
       ),
+      convConfStr =
+        """|e.a = xxx
+           |e.b.b.param = 6
+           |e.b.c.+.k3.param = 33""".stripMargin,
     )
   }
 
@@ -189,6 +206,7 @@ class DeriveConfDecoderExJVMSuite extends munit.FunSuite {
            |""".stripMargin,
       out = Nested(e = Nested3(a = "xxx")),
       in = Nested(),
+      convConfStr = "e.a = xxx",
     )
   }
 

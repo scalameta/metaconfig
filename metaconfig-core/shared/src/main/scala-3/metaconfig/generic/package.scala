@@ -80,23 +80,37 @@ private[generic] def deriveConfDecoderImpl[T: Type](default: Expr[T])(using
           .getSettingOrElse[t]($settings.unsafeGet($name), $fallback)(using $dec)
       }
 
+  def convert(p: ValDef): Expr[Conf => Conf] = p.tpt.tpe.asType match
+    case '[t] =>
+      val name = Expr(p.name)
+      val dec = Expr.summon[ConfDecoder[t]].getOrElse {
+        report.error(
+          "Could not find an implicit decoder for type" +
+            s"'${TypeTree.of[t].show}' for field ${p.name} of class ${clsTpt.show}",
+        )
+        ???
+      }
+      '{ conf => Conf.convert[t](conf, $settings.unsafeGet($name))(using $dec) }
+
   if paramss.head.isEmpty then '{ ConfDecoder.constant($default) }
   else
-    val (head :: params) :: Nil = paramss: @unchecked
-    val vds = paramss.head.map(_.tree).collect { case vd: ValDef => next(vd) }
-
+    val vds = paramss.head.map(_.tree).collect { case vd: ValDef => vd }
     val mir = Expr.summon[Mirror.ProductOf[T]].get
 
-    val parameters = Expr.ofList(vds)
+    val parameters = Expr.ofList(vds.map(next))
     val merged = '{ (conf: Conf) =>
       $parameters.map(f => f(conf).map(Array.apply(_)))
         .reduceLeft((acc, nx) => acc.product(nx).map(x => x._1 ++ x._2))
         .map(Tuple.fromArray).map($mir.fromProduct)
     }
+    val convertParameters = Expr.ofList(vds.map(convert))
+    val converted =
+      '{ (conf: Conf) => $convertParameters.foldLeft(conf)((acc, f) => f(acc)) }
 
     '{
       new ConfDecoder[T]:
         def read(conf: Conf): Configured[T] = $merged(conf)
+        override def convert(conf: Conf): Conf = $converted(conf)
     }
   end if
 end deriveConfDecoderImpl
@@ -139,6 +153,18 @@ private[generic] def deriveConfDecoderExImpl[T: Type](default: Expr[T])(using
           )(using $dec)
         }
 
+  def convert(p: ValDef): Expr[Conf => Conf] = p.tpt.tpe.asType match
+    case '[t] =>
+      val name = Expr(p.name)
+      val dec = Expr.summon[ConfDecoderEx[t]].getOrElse {
+        report.error(
+          "Could not find an implicit decoder for type" +
+            s"'${TypeTree.of[t].show}' for field ${p.name} of class ${clsTpt.show}",
+        )
+        ???
+      }
+      '{ conf => Conf.convertEx[t](conf, $settings.unsafeGet($name))(using $dec) }
+
   if paramss.head.isEmpty then
     '{
       new ConfDecoderEx[T]:
@@ -146,22 +172,24 @@ private[generic] def deriveConfDecoderExImpl[T: Type](default: Expr[T])(using
           .Ok(state.getOrElse($default))
     }
   else
-    val (head :: params) :: Nil = paramss: @unchecked
-    val vds = paramss.head.map(_.tree).collect { case vd: ValDef => next(vd) }
-
+    val vds = paramss.head.map(_.tree).collect { case vd: ValDef => vd }
     val mir = Expr.summon[Mirror.ProductOf[T]].get
 
-    val parameters = Expr.ofList(vds)
+    val parameters = Expr.ofList(vds.map(next))
     val merged = '{ (conf: Conf, from: T) =>
       $parameters.map(f => f(conf, from).map(Array.apply(_)))
         .reduceLeft((acc, nx) => acc.product(nx).map(x => x._1 ++ x._2))
         .map(Tuple.fromArray).map($mir.fromProduct)
     }
+    val convertParameters = Expr.ofList(vds.map(convert))
+    val converted =
+      '{ (conf: Conf) => $convertParameters.foldLeft(conf)((acc, f) => f(acc)) }
 
     '{
       new ConfDecoderExT[T, T]:
         def read(state: Option[T], conf: Conf): Configured[T] =
           $merged(conf, state.getOrElse($default))
+        override def convert(conf: Conf): Conf = $converted(conf)
     }
   end if
 end deriveConfDecoderExImpl

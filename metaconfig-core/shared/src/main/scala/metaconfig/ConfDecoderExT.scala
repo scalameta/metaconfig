@@ -8,9 +8,10 @@ import java.nio.file.Paths
 import scala.collection.compat._
 import scala.reflect.ClassTag
 
-trait ConfDecoderExT[-S, A] {
+trait ConfDecoderExT[-S, A] extends ConfConverter {
 
   def read(state: Option[S], conf: Conf): Configured[A]
+  override def convert(conf: Conf): Conf = conf
 
 }
 
@@ -21,14 +22,34 @@ object ConfDecoderExT {
   def from[S, A](f: (Option[S], Conf) => Configured[A]): ConfDecoderExT[S, A] =
     (state, conf) => f(state, conf)
 
+  def fromConverted[S, A](fconv: PartialFunction[Conf, Conf])(
+      f: (Option[S], Conf) => Configured[A],
+  ): ConfDecoderExT[S, A] = new ConfDecoderExT[S, A] {
+    override def read(state: Option[S], conf: Conf): Configured[A] =
+      f(state, convert(conf))
+    override def convert(conf: Conf): Conf = fconv
+      .applyOrElse(conf, identity[Conf])
+  }
+
   def fromPartial[S, A](expect: String)(
       f: PartialFunction[(Option[S], Conf), Configured[A]],
-  ): ConfDecoderExT[S, A] = (state, conf) =>
-    f.applyOrElse(
-      (state, conf),
-      (_: (Option[S], Conf)) =>
-        Configured.NotOk(ConfError.typeMismatch(expect, conf)),
-    )
+  ): ConfDecoderExT[S, A] =
+    fromPartialConverted[S, A](expect)(PartialFunction.empty)(f)
+
+  def fromPartialConverted[S, A](
+      expect: String,
+  )(fconv: PartialFunction[Conf, Conf])(
+      f: PartialFunction[(Option[S], Conf), Configured[A]],
+  ): ConfDecoderExT[S, A] = new ConfDecoderExT[S, A] {
+    override def read(state: Option[S], conf: Conf): Configured[A] = f
+      .applyOrElse(
+        (state, convert(conf)),
+        (_: (Option[S], Conf)) =>
+          Configured.NotOk(ConfError.typeMismatch(expect, conf)),
+      )
+    override def convert(conf: Conf): Conf = fconv
+      .applyOrElse(conf, identity[Conf])
+  }
 
   def constant[S, A](value: A): ConfDecoderExT[S, A] =
     (_, _) => Configured.ok(value)
@@ -40,10 +61,9 @@ object ConfDecoderExT {
     fromPartial("Config") { case (_, x: A) => Configured.Ok(x) }
 
   implicit def bigDecimalConfDecoder[S]: ConfDecoderExT[S, BigDecimal] =
-    fromPartial[S, BigDecimal]("Number") {
-      case (_, Conf.Num(x)) => Configured.Ok(x)
-      case (_, Conf.Str(Extractors.Number(n))) => Configured.Ok(n)
-    }
+    fromPartialConverted[S, BigDecimal]("Number") {
+      case Conf.Str(Extractors.Number(n)) => Conf.Num(n)
+    } { case (_, Conf.Num(x)) => Configured.Ok(x) }
 
   implicit def intConfDecoder[S]: ConfDecoderExT[S, Int] =
     bigDecimalConfDecoder[S].map(_.toInt)
@@ -55,11 +75,10 @@ object ConfDecoderExT {
     from[S, Unit] { case _ => Configured.unit }
 
   implicit def booleanConfDecoder[S]: ConfDecoderExT[S, Boolean] =
-    fromPartial[S, Boolean]("Bool") {
-      case (_, Conf.Bool(x)) => Configured.Ok(x)
-      case (_, Conf.Str("true" | "on" | "yes")) => Configured.Ok(true)
-      case (_, Conf.Str("false" | "off" | "no")) => Configured.Ok(false)
-    }
+    fromPartialConverted[S, Boolean]("Bool") {
+      case Conf.Str("true" | "on" | "yes") => Conf.Bool(true)
+      case Conf.Str("false" | "off" | "no") => Conf.Bool(false)
+    } { case (_, Conf.Bool(x)) => Configured.Ok(x) }
 
   implicit def pathConfDecoder[S]: ConfDecoderExT[S, Path] = stringConfDecoder[S]
     .flatMap(path => Configured.fromExceptionThrowing(Paths.get(path)))
@@ -72,6 +91,7 @@ object ConfDecoderExT {
         case Conf.Null() => Configured.ok(None)
         case _ => ev.read(state, conf).map(Some.apply)
       }
+    override def convert(conf: Conf): Conf = ev.convert(conf)
   }
 
   implicit def canBuildOption[A](implicit
@@ -84,6 +104,7 @@ object ConfDecoderExT {
       case Conf.Null() => Configured.ok(None)
       case _ => ev.read(state.flatten, conf).map(Some.apply)
     }
+    override def convert(conf: Conf): Conf = ev.convert(conf)
   }
 
   implicit def canBuildEitherT[S, A, B](implicit
@@ -111,6 +132,8 @@ object ConfDecoderExT {
         )
       }
     }
+
+    override def convert(conf: Conf): Conf = evB.convert(evA.convert(conf))
   }
 
   implicit def canBuildStringMapT[S, A, CC[_, _]](implicit
@@ -126,6 +149,11 @@ object ConfDecoderExT {
           val expect = s"Map[String, ${classTag.runtimeClass.getName}]"
           Configured.NotOk(ConfError.typeMismatch(expect, conf))
       }
+
+    override def convert(conf: Conf): Conf = conf match {
+      case v: Conf.Obj => CanBuildFromDecoder.convertMap(v, ev)
+      case _ => conf
+    }
   }
 
   implicit def canBuildStringMap[A, CC[x, y] <: collection.Iterable[(x, y)]](
@@ -154,6 +182,13 @@ object ConfDecoderExT {
         val expect = s"Map[String, ${classTag.runtimeClass.getName}]"
         Configured.NotOk(ConfError.typeMismatch(expect, conf))
     }
+
+    override def convert(conf: Conf): Conf = conf match {
+      case Conf.Obj(List((k @ "+", v: Conf.Obj))) => Conf
+          .Obj(k -> CanBuildFromDecoder.convertMap(v, ev))
+      case v: Conf.Obj => CanBuildFromDecoder.convertMap(v, ev)
+      case _ => conf
+    }
   }
 
   implicit def canBuildSeqT[S, A, C[_]](implicit
@@ -169,6 +204,11 @@ object ConfDecoderExT {
           val expect = s"List[${classTag.runtimeClass.getName}]"
           Configured.NotOk(ConfError.typeMismatch(expect, conf))
       }
+
+    override def convert(conf: Conf): Conf = conf match {
+      case v: Conf.Lst => CanBuildFromDecoder.convertSeq(v, ev)
+      case _ => conf
+    }
   }
 
   implicit def canBuildSeq[A, C[x] <: collection.Iterable[x]](implicit
@@ -194,6 +234,13 @@ object ConfDecoderExT {
           val expect = s"List[${classTag.runtimeClass.getName}]"
           Configured.NotOk(ConfError.typeMismatch(expect, conf))
       }
+
+    override def convert(conf: Conf): Conf = conf match {
+      case Conf.Obj(List((k @ "+", v: Conf.Lst))) => Conf
+          .Obj(k -> CanBuildFromDecoder.convertSeq(v, ev))
+      case v: Conf.Lst => CanBuildFromDecoder.convertSeq(v, ev)
+      case _ => conf
+    }
   }
 
   implicit final class Implicits[S, A](private val self: ConfDecoderExT[S, A])
@@ -205,18 +252,21 @@ object ConfDecoderExT {
     def map[B](f: A => B): ConfDecoderExT[S, B] = new ConfDecoderExT[S, B] {
       override def read(state: Option[S], conf: Conf): Configured[B] = self
         .read(state, conf).map(f)
+      override def convert(conf: Conf): Conf = self.convert(conf)
     }
 
     def flatMap[B](f: A => Configured[B]): ConfDecoderExT[S, B] =
       new ConfDecoderExT[S, B] {
         override def read(state: Option[S], conf: Conf): Configured[B] = self
           .read(state, conf).andThen(f)
+        override def convert(conf: Conf): Conf = self.convert(conf)
       }
 
     def orElse(other: ConfDecoderExT[S, A]): ConfDecoderExT[S, A] =
       new ConfDecoderExT[S, A] {
         override def read(state: Option[S], conf: Conf): Configured[A] = self
           .read(state, conf).recoverWithOrCombine(other.read(state, conf))
+        override def convert(conf: Conf): Conf = other.convert(self.convert(conf))
       }
 
     def noTypos(implicit settings: generic.Settings[A]): ConfDecoderExT[S, A] =
@@ -260,5 +310,10 @@ object ConfDecoderEx {
   def fromPartial[A](expect: String)(
       f: PartialFunction[(Option[A], Conf), Configured[A]],
   ): ConfDecoderEx[A] = ConfDecoderExT.fromPartial[A, A](expect)(f)
+
+  def fromPartialConverted[A](expect: String)(fconv: PartialFunction[Conf, Conf])(
+      f: PartialFunction[(Option[A], Conf), Configured[A]],
+  ): ConfDecoderEx[A] = ConfDecoderExT
+    .fromPartialConverted[A, A](expect)(fconv)(f)
 
 }
