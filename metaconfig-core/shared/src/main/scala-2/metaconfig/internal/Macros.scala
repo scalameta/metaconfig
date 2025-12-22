@@ -98,6 +98,12 @@ class Macros(val c: blackbox.Context) {
     val product = params.foldLeft(next(head)) { case (accum, param) =>
       q"$accum.product(${next(param)})"
     }
+    val converted = (head :: params).foldLeft[Tree](q"conf") {
+      case (accum, param) =>
+        val P = param.info.resultType
+        val name = param.name.decodedName.toString
+        q"_root_.metaconfig.Conf.convert[$P]($accum, settings.unsafeGet($name))"
+    }
     val tupleExtract = 1.to(params.length)
       .foldLeft(q"t": Tree) { case (accum, _) => q"$accum._1" }
     var curr = tupleExtract
@@ -121,6 +127,13 @@ class Macros(val c: blackbox.Context) {
           val settings = $settings
           val tmp = $default
           $product.map { t => $ctor }
+        }
+
+        override def convert(
+          conf: _root_.metaconfig.Conf
+        ): _root_.metaconfig.Conf = {
+          val settings = $settings
+          $converted
         }
       }
     """
@@ -163,6 +176,12 @@ class Macros(val c: blackbox.Context) {
     val product = params.foldLeft(next(head)) { case (accum, param) =>
       q"$accum.product(${next(param)})"
     }
+    val converted = (head :: params).foldLeft[Tree](q"conf") {
+      case (accum, param) =>
+        val P = param.info.resultType
+        val name = param.name.decodedName.toString
+        q"Conf.convertEx[$P]($accum, settings.unsafeGet($name))"
+    }
     val tupleExtract = 1.to(params.length)
       .foldLeft(q"t": Tree) { case (accum, _) => q"$accum._1" }
     var curr = tupleExtract
@@ -187,6 +206,13 @@ class Macros(val c: blackbox.Context) {
           val settings = $settings
           val tmp = state.getOrElse($default)
           $product.map { t => $ctor }
+        }
+
+        override def convert(
+          conf: _root_.metaconfig.Conf
+        ): _root_.metaconfig.Conf = {
+          val settings = $settings
+          $converted
         }
       }
     """

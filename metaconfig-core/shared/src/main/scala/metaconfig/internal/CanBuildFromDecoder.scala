@@ -1,6 +1,7 @@
 package metaconfig.internal
 
 import metaconfig.Conf
+import metaconfig.ConfConverter
 import metaconfig.ConfDecoder
 import metaconfig.ConfError
 import metaconfig.Configured
@@ -10,23 +11,32 @@ import scala.reflect.ClassTag
 
 object CanBuildFromDecoder {
 
+  def convertMap(conf: Conf.Obj, ev: ConfConverter): Conf.Obj = Conf
+    .Obj(conf.values.map { case (k, v) => k -> ev.convert(v) })
+
   def map[A, CC[_, _]](implicit
       ev: ConfDecoder[A],
       factory: Factory[(String, A), CC[String, A]],
       classTag: ClassTag[A],
   ): ConfDecoder[CC[String, A]] = ConfDecoder
-    .fromPartial(s"Map[String, ${classTag.runtimeClass.getName}]") {
-      case Conf.Obj(values) =>
-        build(values, ev, factory)(_._2, (x, y) => (x._1, y))
+    .fromPartialConverted(s"Map[String, ${classTag.runtimeClass.getName}]") {
+      case v: Conf.Obj => convertMap(v, ev)
+    } { case Conf.Obj(values) =>
+      build(values, ev, factory)(_._2, (x, y) => (x._1, y))
     }
+
+  def convertSeq(conf: Conf.Lst, ev: ConfConverter): Conf.Lst = Conf
+    .Lst(conf.values.map(ev.convert))
 
   def list[C[_], A](implicit
       ev: ConfDecoder[A],
       factory: Factory[A, C[A]],
       classTag: ClassTag[A],
   ): ConfDecoder[C[A]] = ConfDecoder
-    .fromPartial(s"List[${classTag.runtimeClass.getName}]") {
-      case Conf.Lst(values) => build(values, ev, factory)(identity, (_, x) => x)
+    .fromPartialConverted(s"List[${classTag.runtimeClass.getName}]") {
+      case v: Conf.Lst => convertSeq(v, ev)
+    } { case Conf.Lst(values) =>
+      build(values, ev, factory)(identity, (_, x) => x)
     }
 
   private def build[A, B, C, Coll](

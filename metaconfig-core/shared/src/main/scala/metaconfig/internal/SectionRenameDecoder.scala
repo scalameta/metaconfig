@@ -11,6 +11,8 @@ trait SectionRenameDecoder[A] extends Transformable[A] { self: A =>
       conf: Conf,
       func: Conf => Configured[B],
   ): Configured[B] = func(renameSections(conf))
+  protected final def convertWith(conf: Conf, dec: ConfConverter): Conf = dec
+    .convert(renameSections(conf))
   private def renameSections(conf: Conf): Conf = SectionRenameDecoder
     .renameSections(renames)(conf)
 }
@@ -60,6 +62,7 @@ object SectionRenameDecoder {
       renameSectionsAnd(conf, dec.read)
     override def transform(f: SelfType => SelfType): SelfType =
       apply(f(dec), renames)
+    override def convert(conf: Conf): Conf = convertWith(conf, dec)
   }
 
   private class DecoderEx[S, A](
@@ -70,6 +73,7 @@ object SectionRenameDecoder {
       renameSectionsAnd(conf, dec.read(state, _))
     override def transform(f: SelfType => SelfType): SelfType =
       apply(f(dec), renames)
+    override def convert(conf: Conf): Conf = convertWith(conf, dec)
   }
 
   @tailrec
