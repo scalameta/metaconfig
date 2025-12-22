@@ -55,6 +55,10 @@ object Conf {
   def apply(value: Int): Num = Num(value)
   def apply(value: BigDecimal): Num = Num(value)
   def apply(value: String): Str = Str(value)
+  def nameOf(value: sourcecode.Text[_]): Str = {
+    val src = value.source
+    Str(src.substring(src.lastIndexOf('.') + 1))
+  }
 
   def parseCliArgs[T: Settings](args: List[String]): Configured[Conf] =
     CliParser.parseArgs[T](args)
