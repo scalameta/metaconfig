@@ -162,13 +162,13 @@ object ConfDecoderExT {
       factory: Factory[(String, A), CC[String, A]],
       classTag: ClassTag[A],
   ): ConfDecoderEx[CC[String, A]] = new ConfDecoderEx[CC[String, A]] {
-    val none: Option[A] = None
+    def decode(obj: Conf.Obj) =
+      buildFrom(None, obj.values, ev, factory)(_._2, (x, y) => (x._1, y))
     override def read(
         state: Option[CC[String, A]],
         conf: Conf,
     ): Configured[CC[String, A]] = conf match {
-      case Conf.Obj(List(("+", Conf.Obj(values)))) =>
-        buildFrom(none, values, ev, factory)(_._2, (x, y) => (x._1, y)).map { x =>
+      case Conf.Obj(List(("+", obj: Conf.Obj))) => decode(obj).map { x =>
           state.fold(x) { state =>
             val builder = factory.newBuilder
             builder ++= state
@@ -176,8 +176,7 @@ object ConfDecoderExT {
             builder.result()
           }
         }
-      case Conf.Obj(values) =>
-        buildFrom(none, values, ev, factory)(_._2, (x, y) => (x._1, y))
+      case obj: Conf.Obj => decode(obj)
       case _ =>
         val expect = s"Map[String, ${classTag.runtimeClass.getName}]"
         Configured.NotOk(ConfError.typeMismatch(expect, conf))
@@ -216,11 +215,11 @@ object ConfDecoderExT {
       factory: Factory[A, C[A]],
       classTag: ClassTag[A],
   ): ConfDecoderEx[C[A]] = new ConfDecoderEx[C[A]] {
-    private val none: Option[A] = None
+    def decode(lst: Conf.Lst) =
+      buildFrom(None, lst.values, ev, factory)(identity, (_, x) => x)
     override def read(state: Option[C[A]], conf: Conf): Configured[C[A]] =
       conf match {
-        case Conf.Obj(List(("+", Conf.Lst(values)))) =>
-          buildFrom(none, values, ev, factory)(identity, (_, x) => x).map { x =>
+        case Conf.Obj(List(("+", lst: Conf.Lst))) => decode(lst).map { x =>
             state.fold(x) { state =>
               val builder = factory.newBuilder
               builder ++= state
@@ -228,8 +227,7 @@ object ConfDecoderExT {
               builder.result()
             }
           }
-        case Conf.Lst(values) =>
-          buildFrom(none, values, ev, factory)(identity, (_, x) => x)
+        case lst: Conf.Lst => decode(lst)
         case _ =>
           val expect = s"List[${classTag.runtimeClass.getName}]"
           Configured.NotOk(ConfError.typeMismatch(expect, conf))
