@@ -44,4 +44,17 @@ object ConfCodecExT {
 
 object ConfCodecEx {
   def apply[A](implicit obj: ConfCodecEx[A]): ConfCodecEx[A] = obj
+
+  def oneOf[A](options: sourcecode.Text[A]*): ConfCodecEx[A] =
+    oneOfCustom[A](options: _*)(PartialFunction.empty)
+
+  def oneOfCustom[A](
+      options: sourcecode.Text[A]*,
+  )(fconv: PartialFunction[Conf, Conf]): ConfCodecEx[A] = ConfEnum
+    .oneOfCustom[A, ConfDecoderEx, ConfCodecEx](options: _*) { f =>
+      ConfDecoderEx.fromPartialConverted[A]("String")(fconv) {
+        case (_, x: Conf.Str) => f(x)
+      }
+    }(new ConfCodecEx(_, _))
+
 }
