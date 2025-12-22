@@ -280,6 +280,14 @@ object ConfDecoderExT {
         renames: annotation.SectionRename*,
     ): ConfDecoderExT[S, A] = SectionRenameDecoder(self, renames.toList)
 
+    def except(
+        f: PartialFunction[(Option[S], Conf), Configured[A]],
+    ): ConfDecoderExT[S, A] = new ConfDecoderExT[S, A] {
+      override def read(state: Option[S], conf: Conf): Configured[A] = f
+        .lift((state, conf)).getOrElse(self.read(state, conf))
+      override def convert(conf: Conf): Conf = self.convert(conf)
+    }
+
   }
 
   private[metaconfig] def buildFrom[V, S, A, B, Coll](

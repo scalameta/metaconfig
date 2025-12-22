@@ -161,6 +161,13 @@ object ConfDecoder {
     def withSectionRenames(renames: annotation.SectionRename*): ConfDecoder[A] =
       SectionRenameDecoder(self, renames.toList)
 
+    def except(f: PartialFunction[Conf, Configured[A]]): ConfDecoder[A] =
+      new ConfDecoder[A] {
+        override def read(conf: Conf): Configured[A] = f.lift(conf)
+          .getOrElse(self.read(conf))
+        override def convert(conf: Conf): Conf = self.convert(conf)
+      }
+
   }
 
 }
