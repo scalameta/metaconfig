@@ -143,6 +143,10 @@ class DeriveConfDecoderExJVMSuite extends munit.FunSuite {
   }
 
   test("nested param with rename 2") {
+    implicit val oneParam: ConfDecoderEx[OneParam] = generic
+      .deriveDecoderEx(OneParam()).noTypos.withSectionRenames(
+        SectionRename { case Conf.Num(v) => Conf.Num(v * 3) }("Param", "param"),
+      )
     implicit val nested2: ConfDecoderEx[Nested2] = generic
       .deriveDecoderEx(Nested2()).noTypos.withSectionRenames(
         SectionRename { case Conf.Obj(vals) =>
@@ -170,12 +174,23 @@ class DeriveConfDecoderExJVMSuite extends munit.FunSuite {
            |  }
            |
            |}
+           |d."+" = [
+           |  { b { Param = 2 } }
+           |]
            |e {
            |  b { B { param = 3 } }
            |}
            |""".stripMargin,
-      out = Nested(e =
-        Nested3(
+      out = Nested(
+        d = List(
+          Nested2(
+            a = "n1",
+            b = OneParam(param = 2),
+            c = Map("k1" -> OneParam(param = 1)),
+          ),
+          Nested2(b = OneParam(param = 6), c = Map("k2" -> OneParam(param = 2))),
+        ),
+        e = Nested3(
           a = "xxx",
           b = Nested2(
             a = "zzz",
@@ -188,7 +203,12 @@ class DeriveConfDecoderExJVMSuite extends munit.FunSuite {
         Nested3(a = "yyy", b = Nested2(a = "zzz", c = Map("k2" -> OneParam(2)))),
       ),
       convConfStr =
-        """|e.a = xxx
+        """|d.+ = [
+           |  {
+           |    b.param = 6
+           |  }
+           |]
+           |e.a = xxx
            |e.b.b.param = 6
            |e.b.c.+.k3.param = 33""".stripMargin,
     )
