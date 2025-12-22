@@ -40,14 +40,21 @@ sealed abstract class Conf extends Product with Serializable {
 }
 
 object Conf {
-  def fromMap(map: Map[String, Conf]): Conf = Conf.Obj(map.toList)
-  def fromList(lst: List[Conf]): Conf = Conf.Lst(lst)
-  def fromBoolean(bool: Boolean): Conf = Conf.Bool(bool)
-  def fromInt(n: Int): Conf = Conf.Num(n)
-  def fromBigDecimal(n: BigDecimal): Conf = Conf.Num(n)
-  def fromNumberOrString(str: String): Conf =
-    Try(fromBigDecimal(BigDecimal(str.toDouble))).getOrElse(fromString(str))
-  def fromString(str: String): Conf = Conf.Str(str)
+  def fromMap(value: Map[String, Conf]): Conf = apply(value)
+  def fromList(value: List[Conf]): Conf = apply(value)
+  def fromBoolean(value: Boolean): Conf = apply(value)
+  def fromInt(value: Int): Conf = apply(value)
+  def fromBigDecimal(value: BigDecimal): Conf = apply(value)
+  def fromNumberOrString(value: String): Conf = Try(apply(BigDecimal(value)))
+    .getOrElse(apply(value))
+  def fromString(value: String): Conf = apply(value)
+
+  def apply(value: Map[String, Conf]): Obj = Obj(value.toList)
+  def apply(value: List[Conf]): Lst = Lst(value)
+  def apply(value: Boolean): Bool = Bool(value)
+  def apply(value: Int): Num = Num(value)
+  def apply(value: BigDecimal): Num = Num(value)
+  def apply(value: String): Str = Str(value)
 
   def parseCliArgs[T: Settings](args: List[String]): Configured[Conf] =
     CliParser.parseArgs[T](args)
