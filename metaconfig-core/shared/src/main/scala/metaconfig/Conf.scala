@@ -248,8 +248,12 @@ object ConfOps {
 
   def foreach(conf: Conf)(f: Conf => Unit): Unit = conf match {
     case Str(_) | Bool(_) | Num(_) | Null() => f(conf)
-    case Lst(values) => f(conf); values.foreach(x => foreach(x)(f))
-    case Obj(values) => f(conf); values.foreach(x => foreach(x._2)(f))
+    case Lst(values) =>
+      f(conf)
+      values.foreach(x => foreach(x)(f))
+    case Obj(values) =>
+      f(conf)
+      values.foreach(x => foreach(x._2)(f))
   }
   def fold(conf: Conf)(
       str: Str => Str = identity,
