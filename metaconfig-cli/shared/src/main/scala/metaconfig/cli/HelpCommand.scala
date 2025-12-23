@@ -1,7 +1,6 @@
 package metaconfig.cli
 
-import metaconfig.internal.Levenshtein
-import metaconfig.internal.TermInfo
+import metaconfig.internal.{Levenshtein, TermInfo}
 
 import org.typelevel.paiges.Doc
 

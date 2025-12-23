@@ -1,11 +1,8 @@
 package metaconfig.internal
 
-import metaconfig.Conf
-import metaconfig.ConfEncoder
-import metaconfig.ConfError
 import metaconfig.annotation.Inline
-import metaconfig.generic.Setting
-import metaconfig.generic.Settings
+import metaconfig.generic.{Setting, Settings}
+import metaconfig.{Conf, ConfEncoder, ConfError}
 
 import org.typelevel.paiges.Doc
 import org.typelevel.paiges.Doc._

@@ -1,14 +1,10 @@
 package metaconfig.cli
 
 import metaconfig.ConfCodec
-import metaconfig.annotation.Description
-import metaconfig.annotation.Hidden
-import metaconfig.annotation.Inline
-import metaconfig.annotation.Section
+import metaconfig.annotation.{Description, Hidden, Inline, Section}
 import metaconfig.generic.Surface
 
-import java.io.ByteArrayOutputStream
-import java.io.PrintStream
+import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.charset.StandardCharsets
 
 import org.typelevel.paiges.Doc

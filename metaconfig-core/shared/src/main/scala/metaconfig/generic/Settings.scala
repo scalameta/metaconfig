@@ -1,16 +1,12 @@
 package metaconfig.generic
 
-import metaconfig.Conf
-import metaconfig.ConfEncoder
-import metaconfig.annotation.DeprecatedName
-import metaconfig.annotation.Description
-import metaconfig.annotation.DescriptionDoc
-import metaconfig.annotation.ExampleUsage
-import metaconfig.annotation.Usage
+import metaconfig.annotation.{
+  DeprecatedName, Description, DescriptionDoc, ExampleUsage, Usage,
+}
 import metaconfig.internal.Cli
+import metaconfig.{Conf, ConfEncoder}
 
-import scala.annotation.StaticAnnotation
-import scala.annotation.tailrec
+import scala.annotation.{StaticAnnotation, tailrec}
 import scala.collection.mutable
 
 import org.typelevel.paiges.Doc

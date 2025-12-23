@@ -1,13 +1,9 @@
 package metaconfig.cli
 
-import metaconfig.Conf
-import metaconfig.ConfEncoder
-import metaconfig.annotation.Hidden
-import metaconfig.annotation.Inline
-import metaconfig.annotation.Section
-import metaconfig.generic.Setting
-import metaconfig.generic.Settings
+import metaconfig.annotation.{Hidden, Inline, Section}
+import metaconfig.generic.{Setting, Settings}
 import metaconfig.internal.Case
+import metaconfig.{Conf, ConfEncoder}
 
 import scala.collection.mutable.ListBuffer
 

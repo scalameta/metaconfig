@@ -1,7 +1,6 @@
 package metaconfig
 
-import metaconfig.generic.Settings
-import metaconfig.generic.Surface
+import metaconfig.generic.{Settings, Surface}
 import metaconfig.pprint.TPrintColors
 
 class DeriveSurfaceSuite extends munit.FunSuite {

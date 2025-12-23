@@ -1,9 +1,7 @@
 package metaconfig
 
 import scala.language.implicitConversions
-import scala.util.Failure
-import scala.util.Success
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 sealed abstract class Configured[+A] extends Product with Serializable {
   import Configured._

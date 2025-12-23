@@ -1,10 +1,6 @@
 package metaconfig.internal
 
-import metaconfig.Conf
-import metaconfig.ConfConverter
-import metaconfig.ConfDecoder
-import metaconfig.ConfError
-import metaconfig.Configured
+import metaconfig.{Conf, ConfConverter, ConfDecoder, ConfError, Configured}
 
 import scala.collection.compat._
 import scala.reflect.ClassTag

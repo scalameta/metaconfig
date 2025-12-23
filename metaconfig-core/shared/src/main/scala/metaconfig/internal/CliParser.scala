@@ -1,11 +1,9 @@
 package metaconfig.internal
 
-import metaconfig.Configured.NotOk
-import metaconfig.Configured.ok
+import metaconfig.Configured.{NotOk, ok}
 import metaconfig._
 import metaconfig.annotation.Inline
-import metaconfig.generic.Setting
-import metaconfig.generic.Settings
+import metaconfig.generic.{Setting, Settings}
 
 import scala.annotation.tailrec
 

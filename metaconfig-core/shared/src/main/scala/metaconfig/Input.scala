@@ -1,7 +1,6 @@
 package metaconfig
 
-import java.nio.charset.Charset
-import java.nio.charset.StandardCharsets
+import java.nio.charset.{Charset, StandardCharsets}
 import java.nio.file.Path
 
 import scala.collection.mutable

@@ -1,11 +1,8 @@
 package metaconfig
 
-import metaconfig.annotation.Deprecated
-import metaconfig.annotation.DeprecatedName
-import metaconfig.annotation.Description
-import metaconfig.annotation.ExampleValue
-import metaconfig.annotation.ExtraName
-import metaconfig.annotation.SinceVersion
+import metaconfig.annotation.{
+  Deprecated, DeprecatedName, Description, ExampleValue, ExtraName, SinceVersion,
+}
 import metaconfig.generic.Surface
 
 case class AllTheAnnotations(

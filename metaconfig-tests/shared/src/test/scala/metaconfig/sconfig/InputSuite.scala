@@ -1,9 +1,6 @@
 package metaconfig.sconfig
 
-import metaconfig.Conf
-import metaconfig.Configured
-import metaconfig.Input
-import metaconfig.PlatformInput
+import metaconfig.{Conf, Configured, Input, PlatformInput}
 
 import java.nio.file.Paths
 

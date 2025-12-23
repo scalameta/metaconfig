@@ -1,11 +1,7 @@
 package metaconfig
 
-import metaconfig.annotation.Deprecated
-import metaconfig.annotation.DeprecatedName
-import metaconfig.annotation.ExtraName
-import metaconfig.generic.Setting
-import metaconfig.generic.Settings
-import metaconfig.generic.Surface
+import metaconfig.annotation.{Deprecated, DeprecatedName, ExtraName}
+import metaconfig.generic.{Setting, Settings, Surface}
 
 class SettingsSuite extends munit.FunSuite {
 

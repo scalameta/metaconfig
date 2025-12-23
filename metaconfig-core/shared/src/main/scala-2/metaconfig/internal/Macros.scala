@@ -1,9 +1,7 @@
 package metaconfig.internal
 
 import metaconfig._
-import metaconfig.generic.Field
-import metaconfig.generic.Settings
-import metaconfig.generic.Surface
+import metaconfig.generic.{Field, Settings, Surface}
 
 import java.io.File
 import java.nio.file.Path

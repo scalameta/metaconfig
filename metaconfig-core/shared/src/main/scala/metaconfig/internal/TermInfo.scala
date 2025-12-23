@@ -1,7 +1,6 @@
 package metaconfig.internal
 
-import java.nio.file.Files
-import java.nio.file.Paths
+import java.nio.file.{Files, Paths}
 
 import scala.util.Try
 

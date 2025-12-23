@@ -1,12 +1,9 @@
 package metaconfig.cli
 
-import metaconfig.internal.Case
-import metaconfig.internal.CliParser
+import metaconfig.internal.{Case, CliParser}
 
 import java.io.File
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
+import java.nio.file.{Files, Path, Paths}
 
 import scala.collection.immutable.Nil
 
