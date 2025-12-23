@@ -286,10 +286,10 @@ object ConfDecoderExT {
     ): ConfDecoderExT[S, A] = SectionRenameDecoder(self, renames.toList)
 
     def except(
-        f: PartialFunction[(Option[S], Conf), Configured[A]],
+        f: (Option[S], Conf) => Option[Configured[A]],
     ): ConfDecoderExT[S, A] = new ConfDecoderExT[S, A] {
-      override def read(state: Option[S], conf: Conf): Configured[A] = f
-        .lift((state, conf)).getOrElse(self.read(state, conf))
+      override def read(state: Option[S], conf: Conf): Configured[A] =
+        f(state, conf).getOrElse(self.read(state, conf))
       override def convert(conf: Conf): Conf = self.convert(conf)
     }
 
