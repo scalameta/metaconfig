@@ -1,12 +1,9 @@
 package metaconfig.cli
 
-import metaconfig.ConfDecoder
-import metaconfig.ConfEncoder
-import metaconfig.generic.Settings
-import metaconfig.generic.Surface
+import metaconfig.generic.{Settings, Surface}
+import metaconfig.{ConfDecoder, ConfEncoder}
 
-import java.io.ByteArrayOutputStream
-import java.io.PrintStream
+import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.charset.StandardCharsets
 
 import org.typelevel.paiges.Doc

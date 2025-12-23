@@ -2,8 +2,7 @@ package metaconfig
 
 import metaconfig.internal._
 
-import java.nio.file.Path
-import java.nio.file.Paths
+import java.nio.file.{Path, Paths}
 
 import scala.collection.compat._
 import scala.reflect.ClassTag

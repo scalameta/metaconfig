@@ -1,12 +1,8 @@
 package metaconfig
 
 import metaconfig.Extractors._
-import metaconfig.generic.Setting
-import metaconfig.generic.Settings
-import metaconfig.internal.CliParser
-import metaconfig.internal.ConfGet
-import metaconfig.internal.ConfPatch
-import metaconfig.internal.HoconPrinter
+import metaconfig.generic.{Setting, Settings}
+import metaconfig.internal.{CliParser, ConfGet, ConfPatch, HoconPrinter}
 
 import java.io.File
 

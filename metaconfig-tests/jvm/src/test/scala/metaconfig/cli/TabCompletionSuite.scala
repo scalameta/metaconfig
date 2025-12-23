@@ -1,19 +1,13 @@
 package metaconfig.cli
 
-import metaconfig.ConfCodec
 import metaconfig.annotation._
-import metaconfig.generic
+import metaconfig.{ConfCodec, generic}
 
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.PrintStream
+import java.io.{ByteArrayOutputStream, File, PrintStream}
 import java.nio.charset.StandardCharsets
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
+import java.nio.file.{Files, Path, Paths}
 
-import munit.FunSuite
-import munit.TestOptions
+import munit.{FunSuite, TestOptions}
 
 class TabCompletionSuite extends FunSuite {
 

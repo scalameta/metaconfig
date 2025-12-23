@@ -1,15 +1,11 @@
 package metaconfig.cli
 
-import metaconfig.Conf
-import metaconfig.Configured
+import metaconfig.{Conf, Configured}
 
-import java.io.InputStream
-import java.io.PrintStream
-import java.nio.file.Path
-import java.nio.file.Paths
+import java.io.{InputStream, PrintStream}
+import java.nio.file.{Path, Paths}
 
-import fansi.Color
-import fansi.Str
+import fansi.{Color, Str}
 
 case class CliApp(
     version: String,

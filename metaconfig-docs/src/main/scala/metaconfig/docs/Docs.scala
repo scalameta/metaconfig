@@ -1,8 +1,7 @@
 package metaconfig.docs
 
 import metaconfig.ConfEncoder
-import metaconfig.generic.Setting
-import metaconfig.generic.Settings
+import metaconfig.generic.{Setting, Settings}
 
 import scalatags.Text
 import scalatags.Text.all._

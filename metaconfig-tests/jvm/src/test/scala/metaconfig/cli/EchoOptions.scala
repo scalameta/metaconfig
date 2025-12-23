@@ -1,9 +1,8 @@
 package metaconfig.cli
 
-import metaconfig.ConfDecoder
-import metaconfig.ConfEncoder
 import metaconfig.annotation._
 import metaconfig.generic.Surface
+import metaconfig.{ConfDecoder, ConfEncoder}
 
 @BinaryName("echo") @Usage("echo [OPTIONS] [ARGUMENTS ...]")
 @ExampleUsage(

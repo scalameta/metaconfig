@@ -2,15 +2,12 @@ package metaconfig.tests
 
 import metaconfig.ConfCodec
 import metaconfig.annotation.ExtraName
-import metaconfig.cli.CliApp
-import metaconfig.cli.Command
-import metaconfig.cli.HelpCommand
-import metaconfig.cli.TabCompleteCommand
-import metaconfig.cli.VersionCommand
+import metaconfig.cli.{
+  CliApp, Command, HelpCommand, TabCompleteCommand, VersionCommand,
+}
 import metaconfig.generic.Surface
 
-import java.nio.file.Path
-import java.nio.file.Paths
+import java.nio.file.{Path, Paths}
 
 case class ExampleOptions(
     path: Path = Paths.get(".").toAbsolutePath().normalize(),

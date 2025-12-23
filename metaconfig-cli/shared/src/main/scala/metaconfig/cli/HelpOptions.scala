@@ -1,13 +1,9 @@
 package metaconfig.cli
 
-import metaconfig.Conf
 import metaconfig.Conf.Obj
-import metaconfig.ConfDecoder
-import metaconfig.ConfEncoder
-import metaconfig.Configured
 import metaconfig.annotation.ExtraName
-import metaconfig.generic.Field
-import metaconfig.generic.Surface
+import metaconfig.generic.{Field, Surface}
+import metaconfig.{Conf, ConfDecoder, ConfEncoder, Configured}
 
 case class HelpOptions(
     @ExtraName("remainingArgs")

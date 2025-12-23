@@ -1,9 +1,8 @@
 package metaconfig.cli
 
-import metaconfig.ConfCodec
 import metaconfig.annotation.Description
-import metaconfig.generic
 import metaconfig.generic.Surface
+import metaconfig.{ConfCodec, generic}
 
 case class Markdownish(
     @Description(

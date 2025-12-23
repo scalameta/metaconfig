@@ -1,7 +1,6 @@
 package metaconfig.internal
 
-import metaconfig.Conf
-import metaconfig.ConfEncoder
+import metaconfig.{Conf, ConfEncoder}
 
 import org.typelevel.paiges.Doc
 import org.typelevel.paiges.Doc._

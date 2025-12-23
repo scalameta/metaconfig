@@ -5,11 +5,9 @@ import metaconfig.annotation.DeprecatedName
 import metaconfig.error.CompositeException
 import metaconfig.internal.Levenshtein
 
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.PrintStream
-import java.io.PrintWriter
-import java.io.StringWriter
+import java.io.{
+  ByteArrayOutputStream, File, PrintStream, PrintWriter, StringWriter,
+}
 import java.nio.file.Path
 
 // TODO(olafur) I think ConfError needs to be rethinked from scratch.

@@ -1,8 +1,7 @@
 package metaconfig.typesafeconfig
 
-import metaconfig.Conf
-import metaconfig.ConfShow
 import metaconfig.Generators.argConfShow
+import metaconfig.{Conf, ConfShow}
 
 import org.scalacheck.Prop.forAll
 

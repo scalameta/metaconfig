@@ -1,11 +1,9 @@
 package metaconfig.sconfig
 
-import metaconfig.Conf
-import metaconfig.Position
+import metaconfig.{Conf, Position}
 
 import java.io.File
-import java.nio.file.Files
-import java.nio.file.Paths
+import java.nio.file.{Files, Paths}
 
 class SConfig2ClassSuite extends munit.FunSuite {
   test("basic") {

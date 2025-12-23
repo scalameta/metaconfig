@@ -1,9 +1,6 @@
 package metaconfig.internal
 
-import metaconfig.Conf
-import metaconfig.ConfDecoder
-import metaconfig.ConfError
-import metaconfig.Configured
+import metaconfig.{Conf, ConfDecoder, ConfError, Configured}
 
 import scala.annotation.tailrec
 import scala.collection.mutable
