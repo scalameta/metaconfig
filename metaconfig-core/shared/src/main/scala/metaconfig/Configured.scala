@@ -46,7 +46,10 @@ sealed abstract class Configured[+A] extends Product with Serializable {
     case Ok(value) => fromExceptionThrowingFlatten(f(value))
     case x: NotOk => x
   }
-  def isOk: Boolean = this match { case Ok(_) => true; case _ => false }
+  def isOk: Boolean = this match {
+    case Ok(_) => true
+    case _ => false
+  }
   def isNotOk: Boolean = !isOk
 }
 

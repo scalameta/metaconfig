@@ -57,7 +57,8 @@ private[generic] def deriveConfDecoderImpl[T: Type](default: Expr[T])(using
   val clsTpt = TypeRepr.of[T]
   val settings = Expr.summon[Settings[T]] match
     case None =>
-      report.error(s"Missing Implicit for Settings[${Type.show[T]}]"); ???
+      report.error(s"Missing Implicit for Settings[${Type.show[T]}]")
+      ???
     case Some(v) => v
 
   val paramss = TypeRepr.of[T].classSymbol.get.primaryConstructor.paramSymss
@@ -125,7 +126,8 @@ private[generic] def deriveConfDecoderExImpl[T: Type](default: Expr[T])(using
   val clsTpt = TypeRepr.of[T]
   val settings = Expr.summon[Settings[T]] match
     case None =>
-      report.error(s"Missing Implicit for Settings[${Type.show[T]}]"); ???
+      report.error(s"Missing Implicit for Settings[${Type.show[T]}]")
+      ???
     case Some(v) => v
 
   val paramss = TypeRepr.of[T].classSymbol.get.primaryConstructor.paramSymss
@@ -198,8 +200,12 @@ private[generic] def deriveSurfaceImpl[T: Type](using q: Quotes) =
   import q.reflect.*
   val target = TypeRepr.of[T] match
     case at: AppliedType => at.tycon.asType match
-        case '[t] => assumeCaseClass[t]; at.tycon
-        case other => report.error(at.tycon.show); ???
+        case '[t] =>
+          assumeCaseClass[t]
+          at.tycon
+        case other =>
+          report.error(at.tycon.show)
+          ???
     case other => other
 
   val cls = target.classSymbol.get
