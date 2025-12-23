@@ -158,8 +158,6 @@ object ConfDecoder {
       override def read(conf: Conf): Configured[A] = self.read(f(conf))
       override def convert(conf: Conf): Conf = self.convert(f(conf))
     }
-    def contramap(f: PartialFunction[Conf, Conf]): ConfDecoder[A] =
-      contramap(x => f.applyOrElse(x, identity[Conf]))
 
     def detectSectionRenames(implicit
         settings: generic.Settings[A],
