@@ -230,4 +230,35 @@ class DeriveConfDecoderExJVMSuite extends munit.FunSuite {
     )
   }
 
+  test("nested param with rename 4") {
+    val nested = generic.deriveDecoderEx[Nested](Nested()).noTypos
+      .withSectionRenames(
+        SectionRename
+          .apply { case Conf.Str("xxx") => Conf.Str("yyy") }("E.A", "c.a"),
+        "E.A" -> "e.a",
+      )
+    checkOkStrEx(
+      decoder = nested,
+      confStr =
+        """|E {
+           |  A = "xxx"
+           |}
+           |""".stripMargin,
+      out = Nested(c = Nested2(a = "yyy")),
+      in = Nested(),
+      convConfStr = "c.a = yyy",
+    )
+    checkOkStrEx(
+      decoder = nested,
+      confStr =
+        """|E {
+           |  A = "zzz"
+           |}
+           |""".stripMargin,
+      out = Nested(c = Nested2(a = "zzz")),
+      in = Nested(),
+      convConfStr = "c.a = zzz",
+    )
+  }
+
 }
