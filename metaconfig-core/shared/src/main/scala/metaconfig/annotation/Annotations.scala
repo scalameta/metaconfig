@@ -1,6 +1,5 @@
-package metaconfig.annotation
-
-import metaconfig.Conf
+package metaconfig
+package annotation
 
 import scala.annotation.StaticAnnotation
 import scala.collection.compat.immutable.ArraySeq
@@ -47,7 +46,14 @@ final case class SectionRename(
   val newNameAsSeq: Seq[String] = ArraySeq.unsafeWrapArray(newName.split('.'))
   override def toString: String =
     s"Section '$oldName' is deprecated and renamed as '$newName'"
+  private[metaconfig] def convert(conf: Conf): Conf = conv
+    .applyOrElse(conf, identity[Conf])
+  private[metaconfig] def convert(conf: Configured[Conf]): Conf = conf match {
+    case Configured.Ok(conf) => convert(conf)
+    case _ => null
+  }
 }
+
 object SectionRename {
   def apply(
       conv: PartialFunction[Conf, Conf],
