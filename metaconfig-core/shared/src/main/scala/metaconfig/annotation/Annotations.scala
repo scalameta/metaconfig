@@ -36,18 +36,38 @@ final case class TabCompleteAsPath() extends StaticAnnotation
 final case class CatchInvalidFlags() extends StaticAnnotation
 final case class TabCompleteAsOneOf(options: String*) extends StaticAnnotation
 
-final case class SectionRename(
+/**   - if conv is null, conf value is moved as-is
+  *   - if conv returns null, value is not moved at all
+  *   - otherwise, old value is removed, and converted is inserted
+  */
+final class SectionRename(
     oldName: String,
     newName: String,
-    conv: PartialFunction[Conf, Conf] = PartialFunction.empty,
+    conv: Conf => Conf = null,
 ) extends StaticAnnotation {
+  def this(
+      oldName: String,
+      newName: String,
+      conv: PartialFunction[Conf, Conf],
+      orElse: Conf => Conf,
+  ) = this(oldName, newName, SectionRename.toFunc(conv, orElse))
+
+  /**   - if conv doesn't match, conf value is moved as-is
+    *   - if conv returns null, value is not moved at all
+    */
+  def this(
+      oldName: String,
+      newName: String,
+      conv: PartialFunction[Conf, Conf],
+  ) = this(oldName, newName, conv, identity[Conf])
+
   require(oldName.nonEmpty && newName.nonEmpty)
   val oldNameAsSeq: Seq[String] = ArraySeq.unsafeWrapArray(oldName.split('.'))
   val newNameAsSeq: Seq[String] = ArraySeq.unsafeWrapArray(newName.split('.'))
   override def toString: String =
     s"Section '$oldName' is deprecated and renamed as '$newName'"
-  private[metaconfig] def convert(conf: Conf): Conf = conv
-    .applyOrElse(conf, identity[Conf])
+  private[metaconfig] def convert(conf: Conf): Conf =
+    if (conv eq null) conf else conv(conf)
   private[metaconfig] def convert(conf: Configured[Conf]): Conf = conf match {
     case Configured.Ok(conf) => convert(conf)
     case _ => null
@@ -55,10 +75,31 @@ final case class SectionRename(
 }
 
 object SectionRename {
+
+  private def toFunc(
+      conv: PartialFunction[Conf, Conf],
+      orElse: Conf => Conf,
+  ): Conf => Conf =
+    if ((conv eq null) || (conv eq PartialFunction.empty)) orElse
+    else conv.applyOrElse(_, orElse)
+
+  def apply(
+      oldName: String,
+      newName: String,
+      conv: Conf => Conf = null,
+  ): SectionRename = new SectionRename(oldName, newName, conv)
+
+  def apply(
+      oldName: String,
+      newName: String,
+      conv: PartialFunction[Conf, Conf],
+  ): SectionRename = new SectionRename(oldName, newName, conv)
+
   def apply(
       conv: PartialFunction[Conf, Conf],
   )(oldName: String, newName: String): SectionRename =
     new SectionRename(oldName, newName, conv)
+
   implicit def fromTuple(obj: (String, String)): SectionRename =
-    SectionRename(obj._1, obj._2)
+    apply(obj._1, obj._2)
 }
