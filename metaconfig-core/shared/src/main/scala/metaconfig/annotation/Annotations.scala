@@ -100,6 +100,12 @@ object SectionRename {
   )(oldName: String, newName: String): SectionRename =
     new SectionRename(oldName, newName, conv)
 
+  /** - if conv doesn't match, or returns null, value is not moved at all */
+  def partial(
+      conv: PartialFunction[Conf, Conf],
+  )(oldName: String, newName: String): SectionRename =
+    apply(oldName, newName, toFunc(conv, (_: Conf) => null))
+
   implicit def fromTuple(obj: (String, String)): SectionRename =
     apply(obj._1, obj._2)
 }
