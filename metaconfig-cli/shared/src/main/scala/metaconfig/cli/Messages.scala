@@ -32,15 +32,15 @@ object Messages {
     else {
       var doc = Doc.empty
       setting.annotations.foreach {
-        case section: Section => doc += Doc.line + Doc.text(section.name) +
-            Doc.char(':') + Doc.line
+        case section: Section => doc +=
+            Doc.line + Doc.text(section.name) + Doc.char(':') + Doc.line
         case _ =>
       }
       val name = Case.camelToKebab(setting.name)
       doc += Doc.text("--") + Doc.text(name)
       setting.extraNames.foreach { name =>
-        if (name.length == 1) doc += Doc.text(" | -") +
-          Doc.text(Case.camelToKebab(name))
+        if (name.length == 1) doc +=
+          Doc.text(" | -") + Doc.text(Case.camelToKebab(name))
       }
       if (!setting.isBoolean) doc = doc + {
         Doc.space + Doc.text(setting.tpe) + Doc.text(" (default: ") +
