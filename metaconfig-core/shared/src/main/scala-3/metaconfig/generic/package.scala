@@ -149,7 +149,7 @@ private[generic] def deriveConfDecoderExImpl[T: Type](default: Expr[T])(using
 
         '{ (conf, from) =>
           Conf.getSettingEx[t](
-            ${ fallback('{ from }) },
+            ${ fallback('from) },
             conf,
             $settings.unsafeGet($name),
           )(using $dec)
@@ -254,7 +254,7 @@ private[generic] def deriveSurfaceImpl[T: Type](using q: Quotes) =
 
             val underlying: Expr[List[List[Field]]] = vd.tpt.tpe.asType match
               case '[t] => Expr.summon[Surface[t]] match
-                  case None => '{ Nil }
+                  case None => 'Nil
                   case Some(e) => '{ $e.fields }
 
             val fieldName = Expr(vd.name)
@@ -305,7 +305,7 @@ private[generic] def params[T: Type](using q: Quotes) =
           report.error(
             s"can't find conversion for ${tp.show(using Printer.TypeReprCode)}",
           )
-          '{ ??? }
+          '???
     }
   }
 
