@@ -149,7 +149,7 @@ private[generic] def deriveConfDecoderExImpl[T: Type](default: Expr[T])(using
 
         '{ (conf, from) =>
           Conf.getSettingEx[t](
-            ${ fallback('{ from }) },
+            ${ fallback('from) },
             conf,
             $settings.unsafeGet($name),
           )(using $dec)
