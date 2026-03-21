@@ -55,6 +55,11 @@ object Conf {
     val src = value.source
     Str(src.substring(src.lastIndexOf('.') + 1))
   }
+  def nameOfCond(
+      flag: Boolean,
+      valueT: => sourcecode.Text[_],
+      valueF: => sourcecode.Text[_],
+  ): Str = if (flag) nameOf(valueT) else nameOf(valueF)
 
   def parseCliArgs[T: Settings](args: List[String]): Configured[Conf] =
     CliParser.parseArgs[T](args)
