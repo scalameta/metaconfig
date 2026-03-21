@@ -109,12 +109,30 @@ object Conf {
         ev: ConfDecoder[T],
     ): Configured[Option[T]] = ConfGet
       .getOrOK(this, path +: extraNames, ev.read(_).map(Some.apply), None)
+    def removeKeyIf(f: String => Boolean): Obj.Removed = Obj
+      .removeKeyIf(values)(f)
+    def removeKey(key: String): Obj.Removed = Obj.removeKey(values)(key)
+    def removeKeyIgnoreCase(key: String): Obj.Removed = Obj
+      .removeKeyIgnoreCase(values)(key)
   }
   object Obj {
     type Elem = (String, Conf)
+    type Removed = Option[(Conf, List[Elem])]
+
     val empty: Obj = Obj(Nil)
     def apply(values: Elem*): Obj =
       if (values.isEmpty) empty else Obj(values.toList)
+
+    def removeKeyIf(values: List[Elem])(f: String => Boolean): Removed = {
+      val res = List.newBuilder[Elem]
+      var vOpt = Option.empty[Conf] // will use last
+      values.foreach { x => if (f(x._1)) vOpt = Some(x._2) else res += x }
+      vOpt.map(_ -> res.result())
+    }
+    def removeKey(values: List[Elem])(key: String): Removed =
+      removeKeyIf(values)(key.contentEquals)
+    def removeKeyIgnoreCase(values: List[Elem])(key: String): Removed =
+      removeKeyIf(values)(key.equalsIgnoreCase)
   }
 
   def getEx[A](state: A, conf: Conf, path: Seq[String])(implicit
@@ -316,15 +334,15 @@ object ConfOps {
   final def merge(a: Conf, b: Conf): Conf = (a, b) match {
     case (Obj(elemsA), Obj(elemsB)) => Obj(
         Iterable.concat(elemsA, elemsB).foldLeft(List.empty[Obj.Elem]) {
-          case (merged, (key, Obj(Nil))) => merged.filter(_._1 != key)
-          case (merged, elemB @ (key, valB)) => merged
-              .collectFirst { case (`key`, valA) =>
-                val filtered = merged.filter(_._1 != key)
+          case (merged, (key, Obj(Nil))) => Obj.removeKey(merged)(key)
+              .fold(merged)(_._2)
+          case (merged, elemB @ (key, valB)) => Obj.removeKey(merged)(key)
+              .fold(elemB :: merged) { case (valA, filtered) =>
                 merge(valA, valB) match {
                   case Conf.Obj(Nil) => filtered
                   case x => (key -> x) :: filtered
                 }
-              }.getOrElse(elemB :: merged)
+              }
         },
       )
     case (_, _) => b
