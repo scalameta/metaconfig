@@ -7,6 +7,7 @@ import metaconfig.internal.{CliParser, ConfGet, ConfPatch, HoconPrinter}
 import java.io.File
 
 import scala.annotation.tailrec
+import scala.language.implicitConversions
 import scala.util.Try
 
 sealed abstract class Conf extends Product with Serializable {
@@ -90,6 +91,7 @@ object Conf {
 
   case class Null() extends Conf
   case class Str(value: String) extends Conf
+  implicit def confStrToStr(conf: Str): String = conf.value
   case class Num(value: BigDecimal) extends Conf
   case class Bool(value: Boolean) extends Conf
   case class Lst(values: List[Conf]) extends Conf
