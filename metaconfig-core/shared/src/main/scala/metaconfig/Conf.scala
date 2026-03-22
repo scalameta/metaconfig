@@ -116,6 +116,8 @@ object Conf {
         ev: ConfDecoder[T],
     ): Configured[Option[T]] = ConfGet
       .getOrOK(this, path +: extraNames, ev.read(_).map(Some.apply), None)
+    def removeIf(f: PartialFunction[Obj.Elem, Conf]): Obj.Removed = Obj
+      .removeIf(values)(f)
     def removeKeyIf(f: String => Boolean): Obj.Removed = Obj
       .removeKeyIf(values)(f)
     def removeKey(key: String): Obj.Removed = Obj.removeKey(values)(key)
@@ -130,12 +132,15 @@ object Conf {
     def apply(values: Elem*): Obj =
       if (values.isEmpty) empty else Obj(values.toList)
 
-    def removeKeyIf(values: List[Elem])(f: String => Boolean): Removed = {
-      val res = List.newBuilder[Elem]
+    def removeIf(
+        values: List[Elem],
+    )(f: PartialFunction[Elem, Conf]): Removed = {
       var vOpt = Option.empty[Conf] // will use last
-      values.foreach { x => if (f(x._1)) vOpt = Some(x._2) else res += x }
-      vOpt.map(_ -> res.result())
+      val res = values.filterNot(f.runWith(x => vOpt = Some(x)))
+      vOpt.map(_ -> res)
     }
+    def removeKeyIf(values: List[Elem])(f: String => Boolean): Removed =
+      removeIf(values) { case (k, v) if f(k) => v }
     def removeKey(values: List[Elem])(key: String): Removed =
       removeKeyIf(values)(key.equals)
     def removeKeyIgnoreCase(values: List[Elem])(key: String): Removed =
