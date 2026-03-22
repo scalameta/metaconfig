@@ -137,7 +137,7 @@ object Conf {
       vOpt.map(_ -> res.result())
     }
     def removeKey(values: List[Elem])(key: String): Removed =
-      removeKeyIf(values)(key.contentEquals)
+      removeKeyIf(values)(key.equals)
     def removeKeyIgnoreCase(values: List[Elem])(key: String): Removed =
       removeKeyIf(values)(key.equalsIgnoreCase)
   }
