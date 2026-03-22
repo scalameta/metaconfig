@@ -118,6 +118,8 @@ object Conf {
       .getOrOK(this, path +: extraNames, ev.read(_).map(Some.apply), None)
     def removeMapIf[A](f: PartialFunction[Obj.Elem, A]): Obj.Remapped[A] = Obj
       .removeMapIf(values)(f)
+    def removeIf[A](fk: String => Boolean)(fv: Conf => Boolean): Obj.Removed =
+      Obj.removeIf(values)(fk)(fv)
     def removeKeyIf(f: String => Boolean): Obj.Removed = Obj
       .removeKeyIf(values)(f)
     def removeKey(key: String): Obj.RemovedVal = Obj.removeKey(values)(key)
@@ -142,6 +144,10 @@ object Conf {
       val res = values.filterNot(f.runWith(x => vOpt = Some(x)))
       vOpt.map(_ -> res)
     }
+    def removeIf(
+        values: Elems,
+    )(fk: String => Boolean)(fv: Conf => Boolean): Removed =
+      removeMapIf(values) { case kv @ (k, v) if fk(k) && fv(v) => kv }
     def removeKeyIf(values: Elems)(fk: String => Boolean): Removed =
       removeMapIf(values) { case kv if fk(kv._1) => kv }
     def removeKey(values: Elems)(key: String): RemovedVal =
