@@ -116,11 +116,11 @@ object Conf {
         ev: ConfDecoder[T],
     ): Configured[Option[T]] = ConfGet
       .getOrOK(this, path +: extraNames, ev.read(_).map(Some.apply), None)
-    def removeIf(f: PartialFunction[Obj.Elem, Conf]): Obj.Removed = Obj
-      .removeIf(values)(f)
+    def removeMapIf[A](f: PartialFunction[Obj.Elem, A]): Obj.Remapped[A] = Obj
+      .removeMapIf(values)(f)
     def removeKeyIf(f: String => Boolean): Obj.Removed = Obj
       .removeKeyIf(values)(f)
-    def removeKey(key: String): Obj.Removed = Obj.removeKey(values)(key)
+    def removeKey(key: String): Obj.RemovedVal = Obj.removeKey(values)(key)
     def removeKeyIgnoreCase(key: String): Obj.Removed = Obj
       .removeKeyIgnoreCase(values)(key)
   }
@@ -128,21 +128,24 @@ object Conf {
     type Elem = (String, Conf)
     type Elems = List[Elem]
     type Remapped[A] = Option[(A, Elems)]
-    type Removed = Remapped[Conf]
+    type Removed = Remapped[Elem]
+    type RemovedVal = Remapped[Conf]
 
     val empty: Obj = Obj(Nil)
     def apply(values: Elem*): Obj =
       if (values.isEmpty) empty else Obj(values.toList)
 
-    def removeIf(values: Elems)(f: PartialFunction[Elem, Conf]): Removed = {
-      var vOpt = Option.empty[Conf] // will use last
+    def removeMapIf[A](
+        values: Elems,
+    )(f: PartialFunction[Elem, A]): Remapped[A] = {
+      var vOpt = Option.empty[A] // will use last
       val res = values.filterNot(f.runWith(x => vOpt = Some(x)))
       vOpt.map(_ -> res)
     }
-    def removeKeyIf(values: Elems)(f: String => Boolean): Removed =
-      removeIf(values) { case (k, v) if f(k) => v }
-    def removeKey(values: Elems)(key: String): Removed =
-      removeKeyIf(values)(key.equals)
+    def removeKeyIf(values: Elems)(fk: String => Boolean): Removed =
+      removeMapIf(values) { case kv if fk(kv._1) => kv }
+    def removeKey(values: Elems)(key: String): RemovedVal =
+      removeMapIf(values) { case (`key`, v) => v }
     def removeKeyIgnoreCase(values: Elems)(key: String): Removed =
       removeKeyIf(values)(key.equalsIgnoreCase)
   }
