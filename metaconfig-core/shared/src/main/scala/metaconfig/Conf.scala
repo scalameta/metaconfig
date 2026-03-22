@@ -98,7 +98,7 @@ object Conf {
   object Lst {
     def apply(values: Conf*): Lst = Lst(values.toList)
   }
-  case class Obj(values: List[Obj.Elem]) extends Conf {
+  case class Obj(values: Obj.Elems) extends Conf {
     override final def equals(obj: scala.Any): Boolean = this
       .eq(obj.asInstanceOf[AnyRef]) || {
       obj match {
@@ -126,24 +126,24 @@ object Conf {
   }
   object Obj {
     type Elem = (String, Conf)
-    type Removed = Option[(Conf, List[Elem])]
+    type Elems = List[Elem]
+    type Remapped[A] = Option[(A, Elems)]
+    type Removed = Remapped[Conf]
 
     val empty: Obj = Obj(Nil)
     def apply(values: Elem*): Obj =
       if (values.isEmpty) empty else Obj(values.toList)
 
-    def removeIf(
-        values: List[Elem],
-    )(f: PartialFunction[Elem, Conf]): Removed = {
+    def removeIf(values: Elems)(f: PartialFunction[Elem, Conf]): Removed = {
       var vOpt = Option.empty[Conf] // will use last
       val res = values.filterNot(f.runWith(x => vOpt = Some(x)))
       vOpt.map(_ -> res)
     }
-    def removeKeyIf(values: List[Elem])(f: String => Boolean): Removed =
+    def removeKeyIf(values: Elems)(f: String => Boolean): Removed =
       removeIf(values) { case (k, v) if f(k) => v }
-    def removeKey(values: List[Elem])(key: String): Removed =
+    def removeKey(values: Elems)(key: String): Removed =
       removeKeyIf(values)(key.equals)
-    def removeKeyIgnoreCase(values: List[Elem])(key: String): Removed =
+    def removeKeyIgnoreCase(values: Elems)(key: String): Removed =
       removeKeyIf(values)(key.equalsIgnoreCase)
   }
 
