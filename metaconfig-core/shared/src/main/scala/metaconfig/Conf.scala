@@ -7,6 +7,7 @@ import metaconfig.internal.{CliParser, ConfGet, ConfPatch, HoconPrinter}
 import java.io.File
 
 import scala.annotation.tailrec
+import scala.collection.mutable.ListBuffer
 import scala.language.implicitConversions
 import scala.util.Try
 
@@ -99,6 +100,7 @@ object Conf {
     def apply(values: Conf*): Lst = Lst(values.toList)
   }
   case class Obj(values: Obj.Elems) extends Conf {
+    def isEmpty: Boolean = values.isEmpty
     override final def equals(obj: scala.Any): Boolean = this
       .eq(obj.asInstanceOf[AnyRef]) || {
       obj match {
@@ -116,6 +118,10 @@ object Conf {
         ev: ConfDecoder[T],
     ): Configured[Option[T]] = ConfGet
       .getOrOK(this, path +: extraNames, ev.read(_).map(Some.apply), None)
+    def replace(f: PartialFunction[Obj.Elem, Obj.Elems]): Obj = replaceIf(f)
+      .getOrElse(this)
+    def replaceIf(f: PartialFunction[Obj.Elem, Obj.Elems]): Option[Obj] = Obj
+      .replaceIf(values)(f)
     def replaceKeyIfVal(key: String)(
         f: PartialFunction[Conf, Conf],
     ): Option[Obj] = Obj.replaceKeyIfVal(values)(key)(f)
@@ -143,6 +149,12 @@ object Conf {
     def apply(values: Elem*): Obj =
       if (values.isEmpty) empty else Obj(values.toList)
 
+    def replaceIf(values: Elems)(f: PartialFunction[Elem, Elems]): Option[Obj] = {
+      val add = new ListBuffer[Elems]
+      val old = values.filterNot(f.runWith(add += _))
+      if (old eq values) None
+      else Some(Obj(if (add.isEmpty) old else ConfOps.merge(add += old)))
+    }
     def replaceKeyIfVal(values: Elems)(key: String)(
         fv: PartialFunction[Conf, Conf],
     ): Option[Obj] = removeKeyIfVal(values)(key)(fv).map { case (v, rest) =>
