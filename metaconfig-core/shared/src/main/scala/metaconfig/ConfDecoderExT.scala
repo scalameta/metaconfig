@@ -252,9 +252,11 @@ object ConfDecoderExT {
           .read(state, f(conf))
         override def convert(conf: Conf): Conf = self.convert(f(conf))
       }
-    def contramap(f: PartialFunction[Conf, Conf]): ConfDecoderExT[S, A] =
+    def contramapOpt(f: Conf => Option[Conf]): ConfDecoderExT[S, A] =
+      contramap(x => f(x).getOrElse(x))
+    def contramapPartial(f: PartialFunction[Conf, Conf]): ConfDecoderExT[S, A] =
       contramap(x => f.applyOrElse(x, identity[Conf]))
-    def contramapOpt(
+    def contramapPartialOpt(
         f: PartialFunction[Conf, Option[Conf]],
     ): ConfDecoderExT[S, A] =
       contramap(x => f.applyOrElse(x, (_: Conf) => None).getOrElse(x))
