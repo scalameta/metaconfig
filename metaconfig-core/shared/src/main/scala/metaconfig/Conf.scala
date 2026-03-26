@@ -116,6 +116,9 @@ object Conf {
         ev: ConfDecoder[T],
     ): Configured[Option[T]] = ConfGet
       .getOrOK(this, path +: extraNames, ev.read(_).map(Some.apply), None)
+    def replaceKeyIfVal(key: String)(
+        f: PartialFunction[Conf, Conf],
+    ): Option[Obj] = Obj.replaceKeyIfVal(values)(key)(f)
     def removeMapIf[A](f: PartialFunction[Obj.Elem, A]): Obj.Remapped[A] = Obj
       .removeMapIf(values)(f)
     def removeIf[A](fk: String => Boolean)(fv: Conf => Boolean): Obj.Removed =
@@ -123,6 +126,9 @@ object Conf {
     def removeKeyIf(f: String => Boolean): Obj.Removed = Obj
       .removeKeyIf(values)(f)
     def removeKey(key: String): Obj.RemovedVal = Obj.removeKey(values)(key)
+    def removeKeyIfVal(key: String)(
+        fv: PartialFunction[Conf, Conf],
+    ): Obj.RemovedVal = Obj.removeKeyIfVal(values)(key)(fv)
     def removeKeyIgnoreCase(key: String): Obj.Removed = Obj
       .removeKeyIgnoreCase(values)(key)
   }
@@ -137,6 +143,11 @@ object Conf {
     def apply(values: Elem*): Obj =
       if (values.isEmpty) empty else Obj(values.toList)
 
+    def replaceKeyIfVal(values: Elems)(key: String)(
+        fv: PartialFunction[Conf, Conf],
+    ): Option[Obj] = removeKeyIfVal(values)(key)(fv).map { case (v, rest) =>
+      Obj((key -> v) :: rest)
+    }
     def removeMapIf[A](
         values: Elems,
     )(f: PartialFunction[Elem, A]): Remapped[A] = {
@@ -152,6 +163,14 @@ object Conf {
       removeMapIf(values) { case kv if fk(kv._1) => kv }
     def removeKey(values: Elems)(key: String): RemovedVal =
       removeMapIf(values) { case (`key`, v) => v }
+    def removeKeyIfVal(
+        values: Elems,
+    )(key: String)(fv: PartialFunction[Conf, Conf]): RemovedVal = {
+      object extractor {
+        def unapply(conf: Conf): Option[Conf] = fv.lift(conf)
+      }
+      removeMapIf(values) { case (`key`, extractor(v)) => v }
+    }
     def removeKeyIgnoreCase(values: Elems)(key: String): Removed =
       removeKeyIf(values)(key.equalsIgnoreCase)
   }
