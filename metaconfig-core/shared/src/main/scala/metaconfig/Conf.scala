@@ -352,20 +352,25 @@ object ConfOps {
     sortKeys(mergeKeys(expandKeys(conf)))
   }
 
+  final def merge(groups: Iterable[Obj.Elems]): Obj.Elems = groups.flatten
+    .foldLeft(List.empty[Obj.Elem]) {
+      case (merged, (key, Obj(Nil))) => Obj.removeKey(merged)(key)
+          .fold(merged)(_._2)
+      case (merged, elemB @ (key, valB)) => Obj.removeKey(merged)(key)
+          .fold(elemB :: merged) { case (valA, filtered) =>
+            merge(valA, valB) match {
+              case Conf.Obj(Nil) => filtered
+              case x => (key -> x) :: filtered
+            }
+          }
+    }
+
+  final def merge(groups: Obj.Elems*): Obj.Elems = merge(groups)
+
+  final def merge(a: Obj, b: Obj): Obj = Obj(merge(a.values, b.values))
+
   final def merge(a: Conf, b: Conf): Conf = (a, b) match {
-    case (Obj(elemsA), Obj(elemsB)) => Obj(
-        Iterable.concat(elemsA, elemsB).foldLeft(List.empty[Obj.Elem]) {
-          case (merged, (key, Obj(Nil))) => Obj.removeKey(merged)(key)
-              .fold(merged)(_._2)
-          case (merged, elemB @ (key, valB)) => Obj.removeKey(merged)(key)
-              .fold(elemB :: merged) { case (valA, filtered) =>
-                merge(valA, valB) match {
-                  case Conf.Obj(Nil) => filtered
-                  case x => (key -> x) :: filtered
-                }
-              }
-        },
-      )
+    case (a: Obj, b: Obj) => merge(a, b)
     case (_, _) => b
   }
 
