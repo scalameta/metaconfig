@@ -24,11 +24,20 @@ inline def deriveSurface[T]: Surface[T] = ${ deriveSurfaceImpl[T] }
 inline def deriveCodec[T](inline default: T): metaconfig.ConfCodec[T] =
   ${ deriveCodecImpl[T]('default) }
 
+inline def deriveCodecEx[T](inline default: T): metaconfig.ConfCodecEx[T] =
+  ${ deriveCodecExImpl[T]('default) }
+
 private[generic] def deriveCodecImpl[T: Type](default: Expr[T])(using Quotes) =
   val encoder = deriveEncoderImpl[T]
   val decoder = deriveConfDecoderImpl[T](default)
-
   '{ ConfCodec.EncoderDecoderToCodec[T]($encoder, $decoder) }
+
+private[generic] def deriveCodecExImpl[T: Type](default: Expr[T])(using
+    Quotes,
+) =
+  val encoder = deriveEncoderImpl[T]
+  val decoder = deriveConfDecoderExImpl[T](default)
+  '{ new metaconfig.ConfCodecEx[T]($encoder, $decoder) }
 
 private[generic] def deriveEncoderImpl[T](using tp: Type[T])(using q: Quotes) =
   assumeCaseClass[T]
