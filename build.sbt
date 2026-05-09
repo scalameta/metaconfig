@@ -16,8 +16,7 @@ def isScala213 = Def.setting(scalaBinaryVersion.value == "2.13")
 def isScala3 = Def.setting(scalaVersion.value.startsWith("3."))
 
 val smorg = "org.scalameta"
-val Scala2Versions = List(scala213, scala212)
-val ScalaVersions = scala3 :: Scala2Versions
+val ScalaVersions = List(scala213, scala212, scala3)
 inThisBuild(List(
   // version is set dynamically by sbt-dynver, but let's adjust it
   version := {
@@ -106,7 +105,7 @@ lazy val mimaSettings = Def.settings(
 )
 
 lazy val sharedJSSettings = Def.settings(
-  crossScalaVersions := Scala2Versions,
+  crossScalaVersions := ScalaVersions,
   // to support Node.JS functionality
   scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)),
 )
