@@ -204,7 +204,7 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform, NativePlatform)
       if (scalaVersion.value.startsWith("2.")) Seq(
         "com.github.alexarchambault" %%% "scalacheck-shapeless_1.15" % "1.3.0",
       )
-      else Seq("org.typelevel" %% "shapeless3-deriving" % "3.5.0")
+      else Seq("org.typelevel" %% "shapeless3-deriving" % "3.6.0")
     },
     graalVMNativeImageOptions ++= {
       val reflectionFile = (Compile / Keys.sourceDirectory).value / "graal" /
