@@ -173,7 +173,7 @@ lazy val typesafe = project.in(file("metaconfig-typesafe-config")).settings(
   mimaSettings,
   moduleName := "metaconfig-typesafe-config",
   description := "Integration for HOCON using typesafehub/config.",
-  libraryDependencies += "com.typesafe" % "config" % "1.4.6",
+  libraryDependencies += "com.typesafe" % "config" % "1.4.9",
 ).dependsOn(core.jvm)
 
 lazy val sconfig = crossProject(JVMPlatform, JSPlatform, NativePlatform)
