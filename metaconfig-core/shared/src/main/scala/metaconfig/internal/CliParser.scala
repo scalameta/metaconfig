@@ -115,8 +115,8 @@ object CliParser {
   val noPrefix = "--no-"
 
   def appendValues(obj: Conf.Obj, key: String, values: List[Conf]): Conf.Lst =
-    obj.map.get(key) match {
-      case Some(Conf.Lst(oldValues)) => Conf.Lst(oldValues ++ values)
+    obj.field(key) match {
+      case Some(old: Conf.Lst) => old ++ values
       case _ => Conf.Lst(values)
     }
 
