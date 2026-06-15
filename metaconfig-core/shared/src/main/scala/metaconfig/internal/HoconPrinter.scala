@@ -34,16 +34,14 @@ object HoconPrinter {
   }
 
   def flatten(c: Conf): Conf = c match {
-    case Conf.Obj(obj) =>
-      val flattened = obj.map { case (k, v) => (k, flatten(v)) }
-      val next = flattened.flatMap {
-        case (key, Conf.Obj(nested)) => nested.map { case (k, v) =>
-            s"${quote(key)}.$k" -> v
-          }
-        case (key, value) => (quote(key), value) :: Nil
+    case x: Conf.Obj => x.flatMap { case (xkey, xval) =>
+        val key = quote(xkey)
+        flatten(xval) match {
+          case Conf.Obj(elems) => elems.map { case (k, v) => s"$key.$k" -> v }
+          case value => (key, value) :: Nil
+        }
       }
-      Conf.Obj(next)
-    case Conf.Lst(lst) => Conf.Lst(lst.map(flatten))
+    case x: Conf.Lst => x.map(flatten)
     case x => x
   }
 

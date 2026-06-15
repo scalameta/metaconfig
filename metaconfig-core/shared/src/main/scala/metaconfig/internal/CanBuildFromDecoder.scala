@@ -7,8 +7,8 @@ import scala.reflect.ClassTag
 
 object CanBuildFromDecoder {
 
-  def convertMap(conf: Conf.Obj, ev: ConfConverter): Conf.Obj = Conf
-    .Obj(conf.values.map { case (k, v) => k -> ev.convert(v) })
+  def convertMap(conf: Conf.Obj, ev: ConfConverter): Conf.Obj = conf
+    .transform { case (k, v) => k -> ev.convert(v) }
 
   def map[A, CC[_, _]](implicit
       ev: ConfDecoder[A],
@@ -21,8 +21,8 @@ object CanBuildFromDecoder {
       build(values, ev, factory)(_._2, (x, y) => (x._1, y))
     }
 
-  def convertSeq(conf: Conf.Lst, ev: ConfConverter): Conf.Lst = Conf
-    .Lst(conf.values.map(ev.convert))
+  def convertSeq(conf: Conf.Lst, ev: ConfConverter): Conf.Lst = conf
+    .map(ev.convert)
 
   def list[C[_], A](implicit
       ev: ConfDecoder[A],
