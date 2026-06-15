@@ -91,31 +91,38 @@ object Conf {
     .merge(original, patch)
 
   case class Null() extends Conf
-  case class Str(value: String) extends Conf
+  case class Str(value: String) extends Conf {
+    def map(f: String => String): Str = Str(f(value))
+  }
   implicit def confStrToStr(conf: Str): String = conf.value
-  case class Num(value: BigDecimal) extends Conf
-  case class Bool(value: Boolean) extends Conf
-  case class Lst(values: List[Conf]) extends Conf
+  case class Num(value: BigDecimal) extends Conf {
+    def map(f: BigDecimal => BigDecimal): Num = Num(f(value))
+  }
+  case class Bool(value: Boolean) extends Conf {
+    def map(f: Boolean => Boolean): Bool = Bool(f(value))
+  }
+  case class Lst(values: List[Conf]) extends Conf {
+    def map(f: Conf => Conf): Lst = Lst(values.map(f))
+    def flatMap(f: Conf => Iterable[Conf]): Lst = Lst(values.flatMap(f))
+  }
   object Lst {
     def apply(values: Conf*): Lst = apply(values)
     def apply(values: Iterable[Conf]): Lst = Lst(values.toList)
     def apply(values: Iterator[Conf]): Lst = Lst(values.toList)
   }
   case class Obj(values: Obj.Elems) extends Conf {
+    // can't name it `map` as there's a pre-existing field
+    def transform(f: Obj.Elem => Obj.Elem): Obj = Obj(values.map(f))
+    def flatMap(f: Obj.Elem => Iterable[Obj.Elem]): Obj = Obj(values.flatMap(f))
     def isEmpty: Boolean = values.isEmpty
-    override final def equals(obj: scala.Any): Boolean = this
-      .eq(obj.asInstanceOf[AnyRef]) || {
-      obj match {
-        case o: Conf.Obj => map.equals(o.map) // Ignore key ordering.
-        case _ => false
-      }
+    override final def equals(obj: scala.Any): Boolean = obj match {
+      case o: Conf.Obj => map.equals(o.map) // Ignore key ordering.
+      case _ => false
     }
     lazy val map: Map[String, Conf] = values.toMap
     def field(key: String): Option[Conf] = map.get(key)
     def keys: List[String] = values.map(_._1)
-    def mapValues(f: Conf => Conf): Obj = Obj(values.map { case (k, v) =>
-      k -> f(v)
-    })
+    def mapValues(f: Conf => Conf): Obj = transform { case (k, v) => k -> f(v) }
     def getOption[T](path: String, extraNames: String*)(implicit
         ev: ConfDecoder[T],
     ): Configured[Option[T]] = ConfGet
@@ -368,21 +375,16 @@ object ConfOps {
 
   final def normalize(conf: Conf): Conf = {
     def expandKeys(conf: Conf): Conf = conf match {
-      case Conf.Num(_) => conf
-      case Conf.Bool(_) => conf
-      case Conf.Str(_) => conf
-      case Conf.Null() => conf
-      case Conf.Lst(values) => Conf.Lst(values.map(normalize))
-      case Conf.Obj(values) =>
-        val expandedKeys = values.map {
+      case x: Conf.Lst => x.map(normalize)
+      case x: Conf.Obj => x.transform {
           case (NestedKey(key, rest), value) => key ->
               normalize(Obj(rest -> value))
           case (key, value) => key -> normalize(value)
         }
-        Obj(expandedKeys)
+      case _ => conf
     }
     def mergeKeys(conf: Conf): Conf = conf match {
-      case x @ Obj(_) => merge(Obj.empty, x)
+      case x: Obj => merge(Obj.empty, x)
       case x => x
     }
     sortKeys(mergeKeys(expandKeys(conf)))
