@@ -96,12 +96,27 @@ object Conf {
   }
   implicit def confStrToStr(conf: Str): String = conf.value
   case class Num(value: BigDecimal) extends Conf {
+    def abs: Num = Num(value.abs)
+    def unary_- : Num = Num(-value)
+    def +(other: BigDecimal): Num = Num(value + other)
+    def -(other: BigDecimal): Num = Num(value - other)
+    def *(other: BigDecimal): Num = Num(value * other)
+    def /(other: BigDecimal): Num = Num(value / other)
+    def %(other: BigDecimal): Num = Num(value % other)
+    def min(other: BigDecimal): Num = Num(value.min(other))
+    def max(other: BigDecimal): Num = Num(value.max(other))
     def map(f: BigDecimal => BigDecimal): Num = Num(f(value))
   }
   case class Bool(value: Boolean) extends Conf {
+    def unary_! : Bool = Bool(!value)
+    def &&(other: Boolean): Bool = Bool(value && other)
+    def ||(other: Boolean): Bool = Bool(value || other)
     def map(f: Boolean => Boolean): Bool = Bool(f(value))
   }
   case class Lst(values: List[Conf]) extends Conf {
+    def ::(value: Conf): Lst = Lst(value :: values)
+    def :::(other: List[Conf]): Lst = Lst(other ::: values)
+    def ++(other: List[Conf]): Lst = Lst(values ::: other)
     def map(f: Conf => Conf): Lst = Lst(values.map(f))
     def flatMap(f: Conf => Iterable[Conf]): Lst = Lst(values.flatMap(f))
   }
@@ -111,6 +126,9 @@ object Conf {
     def apply(values: Iterator[Conf]): Lst = Lst(values.toList)
   }
   case class Obj(values: Obj.Elems) extends Conf {
+    def ::(value: Obj.Elem): Obj = Obj(value :: values)
+    def :::(other: Obj.Elems): Obj = Obj(other ::: values)
+    def ++(other: Obj.Elems): Obj = Obj(values ::: other)
     // can't name it `map` as there's a pre-existing field
     def transform(f: Obj.Elem => Obj.Elem): Obj = Obj(values.map(f))
     def flatMap(f: Obj.Elem => Iterable[Obj.Elem]): Obj = Obj(values.flatMap(f))
