@@ -203,23 +203,22 @@ object Conf {
       ev: ConfConverter,
   ): Conf = conf match {
     case obj: Conf.Obj =>
-      val name = setting.name
-      val map = (name :: setting.alternativeNames).zipWithIndex.toMap
+      val map = setting.allNames.zipWithIndex.toMap
       var minidx = Int.MaxValue
       var value: Conf = null
       val values = obj.values.filter { case (k, v) =>
-        map.get(k) match {
-          case Some(idx) =>
-            if (idx < minidx) {
-              minidx = idx
-              value = v
-            }
-            false
-          case _ => true
+        val foundIdx = map.get(k)
+        foundIdx.foreach { idx =>
+          if (idx < minidx) {
+            minidx = idx
+            value = v
+          }
         }
+        foundIdx.isEmpty
       }
       Conf.Obj(
-        if (value eq null) values else (name -> ev.convert(value)) :: values,
+        if (value eq null) values
+        else (setting.name -> ev.convert(value)) :: values,
       )
     case _ => conf
   }
@@ -332,13 +331,12 @@ object ConfOps {
       lst: Lst => Lst = identity,
       obj: Obj => Obj = identity,
   ): Conf = conf match {
-    case x @ Str(_) => str(x)
-    case x @ Bool(_) => bool(x)
-    case x @ Num(_) => num(x)
-    case Null() => Null()
-    case x @ Lst(_) =>
-      Lst(lst(x).values.map(y => fold(y)(str, num, bool, lst, obj)))
-    case x @ Obj(_) => obj(x).mapValues(y => fold(y)(str, num, bool, lst, obj))
+    case x: Str => str(x)
+    case x: Bool => bool(x)
+    case x: Num => num(x)
+    case x: Null => x
+    case x: Lst => Lst(lst(x).values.map(y => fold(y)(str, num, bool, lst, obj)))
+    case x: Obj => obj(x).mapValues(y => fold(y)(str, num, bool, lst, obj))
   }
 
   def escape(str: String): String =
