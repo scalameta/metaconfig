@@ -30,9 +30,8 @@ object SConfig2Class {
     def loop(value: ConfigValue): Conf = {
       val conf = value match {
         case obj: ConfigObject => Conf
-            .Obj(obj.asScala.toList.map { case (k, v) => k -> loop(v) })
-        case lst: ConfigList => Conf
-            .Lst(lst.listIterator().asScala.map(loop).toList)
+            .Obj(obj.asScala.view.map { case (k, v) => k -> loop(v) })
+        case lst: ConfigList => Conf.Lst(lst.listIterator().asScala.map(loop))
         case _ => value.unwrapped match {
             case x: String => Conf.Str(x)
             case x: java.lang.Integer => Conf.Num(BigDecimal(x))

@@ -97,7 +97,9 @@ object Conf {
   case class Bool(value: Boolean) extends Conf
   case class Lst(values: List[Conf]) extends Conf
   object Lst {
-    def apply(values: Conf*): Lst = Lst(values.toList)
+    def apply(values: Conf*): Lst = apply(values)
+    def apply(values: Iterable[Conf]): Lst = Lst(values.toList)
+    def apply(values: Iterator[Conf]): Lst = Lst(values.toList)
   }
   case class Obj(values: Obj.Elems) extends Conf {
     def isEmpty: Boolean = values.isEmpty
@@ -146,8 +148,11 @@ object Conf {
     type RemovedVal = Remapped[Conf]
 
     val empty: Obj = Obj(Nil)
-    def apply(values: Elem*): Obj =
+    def apply(values: Elem*): Obj = apply(values)
+    def apply(values: Iterable[Elem]): Obj =
       if (values.isEmpty) empty else Obj(values.toList)
+    def apply(values: Iterator[Elem]): Obj =
+      if (values.hasNext) Obj(values.toList) else empty
 
     def replaceIf(values: Elems)(f: PartialFunction[Elem, Elems]): Option[Obj] = {
       val add = new ListBuffer[Elems]

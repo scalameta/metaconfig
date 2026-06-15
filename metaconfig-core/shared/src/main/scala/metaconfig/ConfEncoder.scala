@@ -35,12 +35,11 @@ object ConfEncoder {
   implicit val StringEncoder: ConfEncoder[String] = Conf.Str(_)
 
   implicit lazy val PathEncoder: ConfEncoder[Path] =
-    (value: Path) => Conf.Str(value.toString())
+    (value: Path) => Conf.Str(value.toString)
 
   implicit def IterableEncoder[A, C[x] <: Iterable[x]](implicit
       ev: ConfEncoder[A],
-  ): ConfEncoder[C[A]] =
-    (value: C[A]) => Conf.Lst(value.view.map(ev.write).toList)
+  ): ConfEncoder[C[A]] = (value: C[A]) => Conf.Lst(value.view.map(ev.write))
 
   implicit def OptionEncoder[A](implicit
       ev: ConfEncoder[A],
@@ -49,6 +48,6 @@ object ConfEncoder {
   implicit def MapEncoder[A, CC[String, A] <: collection.Map[String, A]](
       implicit ev: ConfEncoder[A],
   ): ConfEncoder[CC[String, A]] = (value: CC[String, A]) =>
-    Conf.Obj(value.view.map { case (k, v) => k -> ev.write(v) }.toList)
+    Conf.Obj(value.view.map { case (k, v) => k -> ev.write(v) })
 
 }
