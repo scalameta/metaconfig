@@ -12,7 +12,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04, windows-2022]
-        java: [11, 21]
+        # Build on modern JDKs; -release (see build.sbt) keeps the published
+        # artifacts JDK 8-compatible, so a JDK 8/11 runner isn't needed.
+        java: [17, 21]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-java@v5
@@ -42,7 +44,7 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
-          java-version: 11
+          java-version: 17
       - run: ./bin/scalafmt --check
       - run: sbt scalafixCheckAll
       - run: sbt coreJVM/mimaReportBinaryIssues

@@ -104,6 +104,15 @@ lazy val mimaSettings = Def.settings(
   mimaPreviousArtifacts := Set("com.geirsson" %% moduleName.value % "0.9.10"),
 )
 
+// sbt 2.x requires JDK 17+ to run, but our published artifacts must keep
+// running on JDK 8. -release pins both the emitted bytecode version and the
+// visible JDK API, so building on a newer JDK cannot leak newer APIs in.
+// JVM-only: -release is meaningless for the Scala.js/Native back ends.
+lazy val jvmReleaseSettings = Def.settings(
+  scalacOptions ++= Seq("-release", "8"),
+  javacOptions ++= Seq("--release", "8"),
+)
+
 lazy val sharedJSSettings = Def.settings(
   crossScalaVersions := ScalaVersions,
   // to support Node.JS functionality
@@ -133,7 +142,7 @@ lazy val pprint = crossProject(JVMPlatform, JSPlatform, NativePlatform)
       )
       else Nil
     },
-  )
+  ).jvmSettings(jvmReleaseSettings)
 
 lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .in(file("metaconfig-core")).settings(
@@ -154,7 +163,7 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
       val scalaMajor = if (isScala3.value) "scala-3" else "scala-2"
       baseDirectory.value / "shared" / "src" / "main" / scalaMajor
     },
-  ).dependsOn(pprint).jsSettings(
+  ).dependsOn(pprint).jvmSettings(jvmReleaseSettings).jsSettings(
     sharedJSSettings,
     libraryDependencies +=
       smorg %%% "io" % "4.17.2" cross CrossVersion.for3Use2_13,
@@ -166,11 +175,12 @@ lazy val cli = crossProject(JVMPlatform, NativePlatform)
     mimaSettings,
     moduleName := "metaconfig-cli",
     depPaiges,
-  ).dependsOn(core)
+  ).jvmSettings(jvmReleaseSettings).dependsOn(core)
 
 lazy val typesafe = project.in(file("metaconfig-typesafe-config")).settings(
   sharedSettings,
   mimaSettings,
+  jvmReleaseSettings,
   moduleName := "metaconfig-typesafe-config",
   description := "Integration for HOCON using typesafehub/config.",
   libraryDependencies += "com.typesafe" % "config" % "1.4.9",
@@ -188,7 +198,7 @@ lazy val sconfig = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     ),
   ).platformsSettings(JSPlatform, NativePlatform)(
     libraryDependencies += "org.ekrich" %%% "sjavatime" % "1.5.0",
-  ).jsSettings(sharedJSSettings).dependsOn(core)
+  ).jvmSettings(jvmReleaseSettings).jsSettings(sharedJSSettings).dependsOn(core)
 
 lazy val tests = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .in(file("metaconfig-tests")).disablePlugins(MimaPlugin).settings(
