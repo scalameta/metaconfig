@@ -1,6 +1,6 @@
 // scalafmt: { maxColumn = 100, align.preset = more, align.allowOverflow = true }
 
-val crossProjectV = "1.3.2"
+val crossProjectV = "1.4.0"
 
 addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.14.7")
 
