@@ -47,5 +47,5 @@ jobs:
           java-version: 17
       - run: ./bin/scalafmt --check
       - run: sbt scalafixCheckAll
-      - run: sbt coreJVM/mimaReportBinaryIssues
+      - run: sbt mimaReportBinaryIssues
       - run: sbt docs/docusaurusCreateSite
