@@ -69,11 +69,11 @@ commands += Command.command("taskready") { s =>
 }
 
 val languageAgnosticCompatibilityPolicy: ProblemFilter = (problem: Problem) => {
-  val (ref, fullName) = problem match {
-    case problem: TemplateProblem => (problem.ref, problem.ref.fullName)
-    case problem: MemberProblem => (problem.ref, problem.ref.fullName)
+  val public = problem match {
+    case problem: TemplateProblem => problem.ref.isPublic
+    case problem: MemberProblem => problem.ref.isPublic
   }
-  val public = ref.isPublic
+  val fullName = problem.matchName.getOrElse("")
   val include = fullName.startsWith("metaconfig.")
   val exclude = fullName.contains(".internal.") ||
     fullName.startsWith("metaconfig.cli")
@@ -101,7 +101,8 @@ lazy val sharedSettings = Def.settings(
 )
 
 lazy val mimaSettings = Def.settings(
-  mimaPreviousArtifacts := Set("com.geirsson" %% moduleName.value % "0.9.10"),
+  mimaPreviousArtifacts :=
+    previousStableVersion.value.map(smorg %% moduleName.value % _).toSet,
 )
 
 // sbt 2.x requires JDK 17+ to run, but our published artifacts must keep
