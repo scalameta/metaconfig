@@ -80,6 +80,30 @@ val languageAgnosticCompatibilityPolicy: ProblemFilter = (problem: Problem) => {
   public && include && !exclude
 }
 
+def srcWithRoot(root: File, dir: String) = root / dir / "src"
+
+// crossProject's layout, wired by hand: a matrix has one base directory, so
+// each cell names the trees it shares. Absent directories are harmless.
+def roots(name: String, cfg: String, dirs: String*) = Def.setting[Seq[File]] {
+  val variants =
+    List("scala", "java", if (isScala3.value) "scala-3" else "scala-2")
+  val root = (ThisBuild / baseDirectory).value / name
+  for (dir <- dirs; base = srcWithRoot(root, dir) / cfg; variant <- variants)
+    yield base / variant
+}
+
+def unmanagedSources(name: String, dirs: String*) = Def.settings(
+  Compile / unmanagedSourceDirectories ++= roots(name, "main", dirs: _*).value,
+  Test / unmanagedSourceDirectories ++= roots(name, "test", dirs: _*).value,
+)
+
+def jvmSources(name: String) =
+  unmanagedSources(name, "shared", "jvm", "js-jvm", "jvm-native")
+def jsSources(name: String) =
+  unmanagedSources(name, "shared", "js", "js-jvm", "js-native")
+def nativeSources(name: String) =
+  unmanagedSources(name, "shared", "native", "jvm-native", "js-native")
+
 lazy val sharedSettings = Def.settings(
   scalacOptions ++= { if (isScala3.value) Nil else Seq("-Yrangepos") },
   scalacOptions += {
@@ -143,7 +167,9 @@ lazy val pprint = crossProject(JVMPlatform, JSPlatform, NativePlatform)
       )
       else Nil
     },
-  ).jvmSettings(jvmReleaseSettings)
+  ).jvmSettings(jvmReleaseSettings, jvmSources("metaconfig-pprint"))
+  .jsSettings(jsSources("metaconfig-pprint"))
+  .nativeSettings(nativeSources("metaconfig-pprint"))
 
 lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .in(file("metaconfig-core")).settings(
@@ -153,19 +179,13 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     depPaiges,
     libraryDependencies +=
       "org.scala-lang.modules" %%% "scala-collection-compat" % "2.14.0",
-  ).settings(
-    libraryDependencies += {
-      val reflectVersion = if (isScala3.value) scala213 else scalaVersion.value
-      "org.scala-lang" % "scala-reflect" % reflectVersion
-    },
-    Compile / unmanagedSourceDirectories += {
-      // TODO: why isn't sbt-crossproject adding epoch scala version
-      // sources? it should
-      val scalaMajor = if (isScala3.value) "scala-3" else "scala-2"
-      baseDirectory.value / "shared" / "src" / "main" / scalaMajor
-    },
-  ).dependsOn(pprint).jvmSettings(jvmReleaseSettings).jsSettings(
+  ).settings(libraryDependencies += {
+    val reflectVersion = if (isScala3.value) scala213 else scalaVersion.value
+    "org.scala-lang" % "scala-reflect" % reflectVersion
+  }).dependsOn(pprint).nativeSettings(nativeSources("metaconfig-core"))
+  .jvmSettings(jvmReleaseSettings, jvmSources("metaconfig-core")).jsSettings(
     sharedJSSettings,
+    jsSources("metaconfig-core"),
     libraryDependencies +=
       smorg %%% "io" % "4.17.3" cross CrossVersion.for3Use2_13,
   )
@@ -176,7 +196,8 @@ lazy val cli = crossProject(JVMPlatform, NativePlatform)
     mimaSettings,
     moduleName := "metaconfig-cli",
     depPaiges,
-  ).jvmSettings(jvmReleaseSettings).dependsOn(core)
+  ).jvmSettings(jvmReleaseSettings, jvmSources("metaconfig-cli"))
+  .nativeSettings(nativeSources("metaconfig-cli")).dependsOn(core)
 
 lazy val typesafe = project.in(file("metaconfig-typesafe-config")).settings(
   sharedSettings,
@@ -199,7 +220,9 @@ lazy val sconfig = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     ),
   ).platformsSettings(JSPlatform, NativePlatform)(
     libraryDependencies += "org.ekrich" %%% "sjavatime" % "1.5.0",
-  ).jvmSettings(jvmReleaseSettings).jsSettings(sharedJSSettings).dependsOn(core)
+  ).jvmSettings(jvmReleaseSettings, jvmSources("metaconfig-sconfig"))
+  .jsSettings(sharedJSSettings, jsSources("metaconfig-sconfig"))
+  .nativeSettings(nativeSources("metaconfig-sconfig")).dependsOn(core)
 
 lazy val tests = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .in(file("metaconfig-tests")).disablePlugins(MimaPlugin).settings(
@@ -208,7 +231,9 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform, NativePlatform)
     Compile / packageDoc / publishArtifact := false,
     testFrameworks := List(new TestFramework("munit.Framework")),
     depScalacheck,
-  ).jsSettings(sharedJSSettings).jvmSettings(
+  ).jsSettings(sharedJSSettings, jsSources("metaconfig-tests"))
+  .nativeSettings(nativeSources("metaconfig-tests")).jvmSettings(
+    jvmSources("metaconfig-tests"),
     GraalVMNativeImage / mainClass := Some("metaconfig.tests.ExampleMain"),
     Compile / doc / sources := Seq.empty,
     libraryDependencies ++= {
