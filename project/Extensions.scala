@@ -1,8 +1,5 @@
 import sbt.Keys._
 import sbt._
-import sbt.internal.ProjectMatrix
-
-import sbtprojectmatrix.ProjectMatrixPlugin.autoImport.projectMatrixBaseDirectory
 
 object Extensions {
 
