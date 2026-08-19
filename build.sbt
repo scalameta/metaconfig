@@ -31,6 +31,9 @@ inThisBuild(List(
     url("https://geirsson.com"),
   ),
   resolvers += Resolver.sonatypeCentralSnapshots,
+  // munit and scalacheck pull older test-interface builds than the Native
+  // plugin does, and sbt 2 treats that as an error rather than a warning
+  evictionErrorLevel := Level.Warn,
   versionScheme := Some("early-semver"),
 ))
 
@@ -113,17 +116,17 @@ LocalRootProject / publish / skip := true
 disablePlugins(MimaPlugin)
 
 lazy val depPaiges = libraryDependencies +=
-  "org.typelevel" %%% "paiges-core" % "0.4.4"
+  "org.typelevel" %% "paiges-core" % "0.4.4"
 def depScalacheck = libraryDependencies ++= List(
-  "org.scalacheck" %%% "scalacheck" % "1.19.0",
-  smorg %%% "munit-scalacheck" % "1.3.0" % Test,
+  "org.scalacheck" %% "scalacheck" % "1.19.0",
+  smorg %% "munit-scalacheck" % "1.3.0" % Test,
 )
 
 def pprintSettings = Def.settings(
   sharedSettings,
   mimaSettings,
   moduleName := "metaconfig-pprint",
-  libraryDependencies += "com.lihaoyi" %%% "fansi" % "0.5.1",
+  libraryDependencies += "com.lihaoyi" %% "fansi" % "0.5.1",
   libraryDependencies ++= {
     if (scalaVersion.value.startsWith("2.")) List(
       "org.scala-lang" % "scala-reflect" % scalaVersion.value,
@@ -142,7 +145,7 @@ def coreSettings = Def.settings(
   moduleName := "metaconfig-core",
   depPaiges,
   libraryDependencies +=
-    "org.scala-lang.modules" %%% "scala-collection-compat" % "2.14.0",
+    "org.scala-lang.modules" %% "scala-collection-compat" % "2.14.0",
   libraryDependencies += {
     val reflectVersion = if (isScala3.value) scala213 else scalaVersion.value
     "org.scala-lang" % "scala-reflect" % reflectVersion
@@ -152,7 +155,7 @@ def coreSettings = Def.settings(
 def coreJsSettings = Def.settings(
   sharedJSSettings,
   libraryDependencies +=
-    (smorg %%% "io" % "4.17.3").cross(CrossVersion.for3Use2_13),
+    (smorg %% "io" % "4.17.3").cross(CrossVersion.for3Use2_13),
 )
 
 lazy val core = projectMatrix.in(file("metaconfig-core")).settings(coreSettings)
@@ -186,14 +189,14 @@ def sconfigSettings = Def.settings(
   mimaSettings,
   moduleName := "metaconfig-sconfig",
   description := "Integration for HOCON using ekrich/sconfig.",
-  libraryDependencies += ("org.ekrich" %%% "sconfig" % "2.0.0").excludeAll(
+  libraryDependencies += ("org.ekrich" %% "sconfig" % "2.0.0").excludeAll(
     "org.scala-lang.modules" %
       s"scala-collection-compat_${scalaBinaryVersion.value}",
   ),
 )
 
 def sjavatime = Def
-  .settings(libraryDependencies += "org.ekrich" %%% "sjavatime" % "1.5.0")
+  .settings(libraryDependencies += "org.ekrich" %% "sjavatime" % "1.5.0")
 
 lazy val sconfig = projectMatrix.in(file("metaconfig-sconfig"))
   .settings(sconfigSettings).crossJvm(jvmReleaseSettings)
@@ -214,7 +217,7 @@ def testsJvmSettings = Def.settings(
   Compile / doc / sources := Seq.empty,
   libraryDependencies += {
     if (isScala3.value) "org.typelevel" %% "shapeless3-deriving" % "3.6.0"
-    else "com.github.alexarchambault" %%% "scalacheck-shapeless_1.15" % "1.3.0"
+    else "com.github.alexarchambault" %% "scalacheck-shapeless_1.15" % "1.3.0"
   },
   graalVMNativeImageOptions ++= {
     val reflectionFile = srcDir("jvm").value / "main" / "graal" /
@@ -247,7 +250,7 @@ lazy val tests = projectMatrix.in(file("metaconfig-tests"))
 def docsSettings = Def.settings(
   sharedSettings,
   depScalacheck,
-  libraryDependencies += "com.lihaoyi" %%% "scalatags" % "0.13.1",
+  libraryDependencies += "com.lihaoyi" %% "scalatags" % "0.13.1",
   publish / skip := true,
   dependencyOverrides +=
     smorg %% "metaconfig-typesafe-config" % (ThisBuild / version).value,
