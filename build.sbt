@@ -2,10 +2,6 @@ import com.typesafe.tools.mima.core._
 
 import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
-lazy val V = new {
-  def munit = "1.3.0"
-  def scalacheck = "1.19.0"
-}
 val scala212 = "2.12.21"
 
 val scala213 = "2.13.18"
@@ -151,8 +147,8 @@ disablePlugins(MimaPlugin)
 lazy val depPaiges = libraryDependencies +=
   "org.typelevel" %%% "paiges-core" % "0.4.4"
 def depScalacheck = libraryDependencies ++= List(
-  "org.scalacheck" %%% "scalacheck" % V.scalacheck,
-  smorg %%% "munit-scalacheck" % V.munit % Test,
+  "org.scalacheck" %%% "scalacheck" % "1.19.0",
+  smorg %%% "munit-scalacheck" % "1.3.0" % Test,
 )
 
 lazy val pprint = crossProject(JVMPlatform, JSPlatform, NativePlatform)
