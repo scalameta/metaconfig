@@ -119,7 +119,7 @@ lazy val sharedJSSettings = Def.settings(
   scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)),
 )
 
-publish / skip := true
+LocalRootProject / publish / skip := true
 disablePlugins(MimaPlugin)
 
 lazy val depPaiges = libraryDependencies +=
