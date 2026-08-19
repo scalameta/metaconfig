@@ -125,6 +125,7 @@ lazy val sharedSettings = Def.settings(
 )
 
 lazy val mimaSettings = Def.settings(
+  // the last tag, so the baseline cannot go stale; CI has to fetch tags for it
   mimaPreviousArtifacts :=
     previousStableVersion.value.map(smorg %% moduleName.value % _).toSet,
 )
@@ -155,7 +156,7 @@ def depScalacheck = libraryDependencies ++= List(
 )
 
 lazy val pprint = crossProject(JVMPlatform, JSPlatform, NativePlatform)
-  .in(file("metaconfig-pprint")).settings(
+  .withoutSuffixFor(JVMPlatform).in(file("metaconfig-pprint")).settings(
     sharedSettings,
     mimaSettings,
     moduleName := "metaconfig-pprint",
@@ -172,7 +173,7 @@ lazy val pprint = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .nativeSettings(nativeSources("metaconfig-pprint"))
 
 lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
-  .in(file("metaconfig-core")).settings(
+  .withoutSuffixFor(JVMPlatform).in(file("metaconfig-core")).settings(
     sharedSettings,
     mimaSettings,
     moduleName := "metaconfig-core",
@@ -191,7 +192,7 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   )
 
 lazy val cli = crossProject(JVMPlatform, NativePlatform)
-  .in(file("metaconfig-cli")).settings(
+  .withoutSuffixFor(JVMPlatform).in(file("metaconfig-cli")).settings(
     sharedSettings,
     mimaSettings,
     moduleName := "metaconfig-cli",
@@ -209,7 +210,7 @@ lazy val typesafe = project.in(file("metaconfig-typesafe-config")).settings(
 ).dependsOn(core.jvm)
 
 lazy val sconfig = crossProject(JVMPlatform, JSPlatform, NativePlatform)
-  .in(file("metaconfig-sconfig")).settings(
+  .withoutSuffixFor(JVMPlatform).in(file("metaconfig-sconfig")).settings(
     sharedSettings,
     mimaSettings,
     moduleName := "metaconfig-sconfig",
@@ -225,7 +226,8 @@ lazy val sconfig = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .nativeSettings(nativeSources("metaconfig-sconfig")).dependsOn(core)
 
 lazy val tests = crossProject(JVMPlatform, JSPlatform, NativePlatform)
-  .in(file("metaconfig-tests")).disablePlugins(MimaPlugin).settings(
+  .withoutSuffixFor(JVMPlatform).in(file("metaconfig-tests"))
+  .disablePlugins(MimaPlugin).settings(
     sharedSettings,
     publish / skip := true,
     Compile / packageDoc / publishArtifact := false,

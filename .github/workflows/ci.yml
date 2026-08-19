@@ -41,6 +41,9 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v7
+        with:
+          # the mima baseline is the last tag
+          fetch-depth: 0
       - uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
