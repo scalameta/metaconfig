@@ -1,5 +1,8 @@
 import sbt.Keys._
 import sbt._
+import sbt.internal.ProjectMatrix
+
+import sbtprojectmatrix.ProjectMatrixPlugin.autoImport.projectMatrixBaseDirectory
 
 object Extensions {
 
@@ -14,28 +17,56 @@ object Extensions {
   def isScala213 = Def.setting(scalaBinaryVersion.value == "2.13")
   def isScala3 = Def.setting(scalaVersion.value.startsWith("3."))
 
-  def srcWithRoot(root: File, dir: String) = root / dir / "src"
+  // sbt gives every matrix cell a generated baseDirectory, so a source tree
+  // starts from the matrix base instead
+  def srcDir(tree: String) = Def.setting(matrixBase.value / tree / "src")
+
+  // `in` records the file it is given, so the base can be relative
+  private def matrixBase = Def.setting(IO.resolve(
+    (ThisBuild / baseDirectory).value,
+    projectMatrixBaseDirectory.value,
+  ))
 
   // crossProject's layout, wired by hand: a matrix has one base directory, so
   // each cell names the trees it shares. Absent directories are harmless.
-  private def roots(name: String, cfg: String, dirs: String*) = Def.setting {
+  private def roots(cfg: String, trees: Seq[String]) = Def.setting {
     val variants =
       List("scala", "java", if (isScala3.value) "scala-3" else "scala-2")
-    val root = (ThisBuild / baseDirectory).value / name
-    for (dir <- dirs; base = srcWithRoot(root, dir) / cfg; variant <- variants)
-      yield base / variant
+    val base = matrixBase.value
+    for (tree <- trees; src = base / tree / "src" / cfg; variant <- variants)
+      yield src / variant
   }
 
-  private def unmanagedSources(name: String, dirs: String*) = Def.settings(
-    Compile / unmanagedSourceDirectories ++= roots(name, "main", dirs: _*).value,
-    Test / unmanagedSourceDirectories ++= roots(name, "test", dirs: _*).value,
+  private def unmanagedSources(trees: String*) = Def.settings(
+    Compile / unmanagedSourceDirectories ++= roots("main", trees).value,
+    Test / unmanagedSourceDirectories ++= roots("test", trees).value,
   )
 
-  def jvmSources(name: String) =
-    unmanagedSources(name, "shared", "jvm", "js-jvm", "jvm-native")
-  def jsSources(name: String) =
-    unmanagedSources(name, "shared", "js", "js-jvm", "js-native")
-  def nativeSources(name: String) =
-    unmanagedSources(name, "shared", "native", "jvm-native", "js-native")
+  private def jvmSources =
+    unmanagedSources("shared", "jvm", "js-jvm", "jvm-native")
+  private def jsSources = unmanagedSources("shared", "js", "js-jvm", "js-native")
+  private def nativeSources =
+    unmanagedSources("shared", "native", "jvm-native", "js-native")
+
+  implicit class ProjectMatrixExtensions(private val self: ProjectMatrix)
+      extends AnyVal {
+
+    def crossJvm(ss: Def.SettingsDefinition*): ProjectMatrix = self
+      .jvmPlatform(ScalaVersions, jvmSources ++ ss.flatMap(_.settings))
+
+    def crossJs(ss: Def.SettingsDefinition*): ProjectMatrix = self
+      .jsPlatform(ScalaVersions, jsSources ++ ss.flatMap(_.settings))
+
+    def crossNative(ss: Def.SettingsDefinition*): ProjectMatrix = self
+      .nativePlatform(ScalaVersions, nativeSources ++ ss.flatMap(_.settings))
+
+    // one row per Scala version, for rows that name their own dependencies
+    def crossJvmRows(configure: String => Project => Project): ProjectMatrix =
+      ScalaVersions.foldLeft(self) { (matrix, version) =>
+        val func = configure(version).andThen(_.settings(jvmSources))
+        matrix.jvmPlatform(Seq(version), Nil, func)
+      }
+
+  }
 
 }
