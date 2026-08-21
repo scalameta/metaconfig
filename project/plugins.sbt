@@ -15,3 +15,4 @@ addSbtPlugin("org.portable-scala" % "sbt-scala-native-crossproject" % crossProje
 addSbtPlugin("org.scalameta" % "sbt-mdoc" % "2.9.1")
 addSbtPlugin("org.scala-js" % "sbt-scalajs" % "1.22.0")
 addSbtPlugin("org.scala-native" % "sbt-scala-native" % "0.5.12")
+addSbtPlugin("com.eed3si9n" % "sbt-projectmatrix" % "0.11.0")

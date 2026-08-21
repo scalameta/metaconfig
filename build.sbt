@@ -1,7 +1,6 @@
 import com.typesafe.tools.mima.core._
 
 import Extensions._
-import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
 val smorg = "org.scalameta"
 inThisBuild(List(
@@ -35,14 +34,19 @@ inThisBuild(List(
   versionScheme := Some("early-semver"),
 ))
 
-addCommandAlias(
-  "scalafixAll",
-  s"; ++$scala212 ; scalafixEnable ; all scalafix test:scalafix",
-)
-addCommandAlias(
-  "scalafixCheckAll",
-  s"; ++$scala212 ;  scalafixEnable ; scalafix --check ; test:scalafix --check",
-)
+def onEach(ps: Seq[Project], tasks: String*) = tasks
+  .flatMap(t => ps.map(p => s"${p.id}/$t")).mkString("; ", "; ", "")
+
+// ++ sets one Scala version for the whole build, and a row of another version
+// then resolves its siblings at that suffix, so scalafix names its rows
+def scalafixOn(args: String) = {
+  val targets = Seq(pprint, core, cli, sconfig, typesafe, tests, docs)
+    .map(_.jvm(scala212))
+  "; scalafixEnable" + onEach(targets, s"scalafix $args", s"Test/scalafix $args")
+}
+
+addCommandAlias("scalafixAll", scalafixOn(""))
+addCommandAlias("scalafixCheckAll", scalafixOn("--check"))
 
 addCommandAlias(
   "native-image",
@@ -83,8 +87,6 @@ lazy val sharedSettings = Def.settings(
   scalacOptions ++=
     { if (isScala3.value) Nil else "-Wconf:cat=feature:is" :: Nil },
   mimaBinaryIssueFilters += languageAgnosticCompatibilityPolicy,
-  crossScalaVersions := ScalaVersions,
-  scalaVersion := scala213,
 )
 
 lazy val mimaSettings = Def.settings(
@@ -103,7 +105,6 @@ lazy val jvmReleaseSettings = Def.settings(
 )
 
 lazy val sharedJSSettings = Def.settings(
-  crossScalaVersions := ScalaVersions,
   // to support Node.JS functionality
   scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)),
 )
@@ -132,12 +133,8 @@ def pprintSettings = Def.settings(
   },
 )
 
-lazy val pprint = crossProject(JVMPlatform, JSPlatform, NativePlatform)
-  .withoutSuffixFor(JVMPlatform).in(file("metaconfig-pprint"))
-  .settings(pprintSettings)
-  .jvmSettings(jvmReleaseSettings, jvmSources("metaconfig-pprint"))
-  .jsSettings(jsSources("metaconfig-pprint"))
-  .nativeSettings(nativeSources("metaconfig-pprint"))
+lazy val pprint = projectMatrix.in(file("metaconfig-pprint"))
+  .settings(pprintSettings).crossJvm(jvmReleaseSettings).crossJs().crossNative()
 
 def coreSettings = Def.settings(
   sharedSettings,
@@ -154,17 +151,13 @@ def coreSettings = Def.settings(
 
 def coreJsSettings = Def.settings(
   sharedJSSettings,
-  jsSources("metaconfig-core"),
   libraryDependencies +=
     (smorg %%% "io" % "4.17.3").cross(CrossVersion.for3Use2_13),
 )
 
-lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
-  .withoutSuffixFor(JVMPlatform).in(file("metaconfig-core"))
-  .settings(coreSettings).dependsOn(pprint)
-  .nativeSettings(nativeSources("metaconfig-core"))
-  .jvmSettings(jvmReleaseSettings, jvmSources("metaconfig-core"))
-  .jsSettings(coreJsSettings)
+lazy val core = projectMatrix.in(file("metaconfig-core")).settings(coreSettings)
+  .dependsOn(pprint).crossNative().crossJvm(jvmReleaseSettings)
+  .crossJs(coreJsSettings)
 
 def cliSettings = Def.settings(
   sharedSettings,
@@ -173,10 +166,8 @@ def cliSettings = Def.settings(
   depPaiges,
 )
 
-lazy val cli = crossProject(JVMPlatform, NativePlatform)
-  .withoutSuffixFor(JVMPlatform).in(file("metaconfig-cli")).settings(cliSettings)
-  .jvmSettings(jvmReleaseSettings, jvmSources("metaconfig-cli"))
-  .nativeSettings(nativeSources("metaconfig-cli")).dependsOn(core)
+lazy val cli = projectMatrix.in(file("metaconfig-cli")).settings(cliSettings)
+  .crossJvm(jvmReleaseSettings).crossNative().dependsOn(core)
 
 def typesafeSettings = Def.settings(
   sharedSettings,
@@ -187,8 +178,8 @@ def typesafeSettings = Def.settings(
   libraryDependencies += "com.typesafe" % "config" % "1.4.9",
 )
 
-lazy val typesafe = project.in(file("metaconfig-typesafe-config"))
-  .settings(typesafeSettings).dependsOn(core.jvm)
+lazy val typesafe = projectMatrix.in(file("metaconfig-typesafe-config"))
+  .settings(typesafeSettings).jvmPlatform(ScalaVersions).dependsOn(core)
 
 def sconfigSettings = Def.settings(
   sharedSettings,
@@ -204,12 +195,9 @@ def sconfigSettings = Def.settings(
 def sjavatime = Def
   .settings(libraryDependencies += "org.ekrich" %%% "sjavatime" % "1.5.0")
 
-lazy val sconfig = crossProject(JVMPlatform, JSPlatform, NativePlatform)
-  .withoutSuffixFor(JVMPlatform).in(file("metaconfig-sconfig"))
-  .settings(sconfigSettings)
-  .jvmSettings(jvmReleaseSettings, jvmSources("metaconfig-sconfig"))
-  .jsSettings(sharedJSSettings, jsSources("metaconfig-sconfig"), sjavatime)
-  .nativeSettings(nativeSources("metaconfig-sconfig"), sjavatime).dependsOn(core)
+lazy val sconfig = projectMatrix.in(file("metaconfig-sconfig"))
+  .settings(sconfigSettings).crossJvm(jvmReleaseSettings)
+  .crossJs(sharedJSSettings, sjavatime).crossNative(sjavatime).dependsOn(core)
 
 def testsSettings = Def.settings(
   sharedSettings,
@@ -219,8 +207,9 @@ def testsSettings = Def.settings(
   depScalacheck,
 )
 
+// typesafe has only JVM rows and cli has no JS row, so the JVM rows name the
+// version they depend on rather than the matrix
 def testsJvmSettings = Def.settings(
-  jvmSources("metaconfig-tests"),
   GraalVMNativeImage / mainClass := Some("metaconfig.tests.ExampleMain"),
   Compile / doc / sources := Seq.empty,
   libraryDependencies += {
@@ -228,7 +217,7 @@ def testsJvmSettings = Def.settings(
     else "com.github.alexarchambault" %%% "scalacheck-shapeless_1.15" % "1.3.0"
   },
   graalVMNativeImageOptions ++= {
-    val reflectionFile = (Compile / Keys.sourceDirectory).value / "graal" /
+    val reflectionFile = srcDir("jvm").value / "main" / "graal" /
       "reflection.json"
     assert(reflectionFile.exists, "no such file: " + reflectionFile)
     List(
@@ -248,13 +237,12 @@ def testsJvmSettings = Def.settings(
   },
 )
 
-lazy val tests = crossProject(JVMPlatform, JSPlatform, NativePlatform)
-  .withoutSuffixFor(JVMPlatform).in(file("metaconfig-tests"))
-  .disablePlugins(MimaPlugin).settings(testsSettings)
-  .jsSettings(sharedJSSettings, jsSources("metaconfig-tests"))
-  .nativeSettings(nativeSources("metaconfig-tests"))
-  .jvmSettings(testsJvmSettings).jvmEnablePlugins(GraalVMNativeImagePlugin)
-  .jvmConfigure(_.dependsOn(typesafe, cli.jvm)).dependsOn(core, sconfig)
+lazy val tests = projectMatrix.in(file("metaconfig-tests"))
+  .settings(testsSettings).crossJs(sharedJSSettings).crossNative()
+  .crossJvmRows(v =>
+    _.enablePlugins(GraalVMNativeImagePlugin).settings(testsJvmSettings)
+      .dependsOn(typesafe.jvm(v), cli.jvm(v)),
+  ).disablePlugins(MimaPlugin).dependsOn(core, sconfig)
 
 def docsSettings = Def.settings(
   sharedSettings,
@@ -274,6 +262,6 @@ def docsSettings = Def.settings(
   evictionErrorLevel := Level.Warn,
 )
 
-lazy val docs = project.in(file("metaconfig-docs")).settings(docsSettings)
-  .dependsOn(core.jvm, typesafe, sconfig.jvm).enablePlugins(DocusaurusPlugin)
-  .disablePlugins(MimaPlugin)
+lazy val docs = projectMatrix.in(file("metaconfig-docs")).settings(docsSettings)
+  .jvmPlatform(ScalaVersions).dependsOn(core, typesafe, sconfig)
+  .enablePlugins(DocusaurusPlugin).disablePlugins(MimaPlugin)
