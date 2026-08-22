@@ -87,15 +87,6 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
-      # Windows commits reserved memory up front, unlike Unix, and the runner's
-      # own pagefile is too small for the native tests. The maximum has to fit
-      # the temp disk, which holds 14GB in total.
-      - name: Configure Pagefile
-        if: startsWith(matrix.os, 'windows')
-        uses: al-cheb/configure-pagefile-action@v1.5
-        with:
-          minimum-size: 4GB
-          maximum-size: 8GB
       # one step per version: each is its own group in the log, and Windows
       # cannot commit the heaps for two versions' native binaries at once
       - if: ${{ !cancelled() && contains(matrix.versions, ' 2.13 ') }}
