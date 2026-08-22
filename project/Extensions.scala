@@ -45,6 +45,12 @@ object Extensions {
   private def nativeSources =
     unmanagedSources("shared", "native", "jvm-native", "js-native")
 
+  // a test binary commits a bytemap of a sixteenth of its maximum heap before
+  // it runs, and Windows cannot overcommit; the maximum defaults to the memory
+  // of the machine, so a few binaries at once fill the commit limit
+  private def nativeHeap = Def
+    .settings(Test / envVars += "GC_MAXIMUM_HEAP_SIZE" -> "512m")
+
   implicit class ProjectMatrixExtensions(private val self: ProjectMatrix)
       extends AnyVal {
 
@@ -55,7 +61,10 @@ object Extensions {
       .jsPlatform(ScalaVersions, jsSources ++ ss.flatMap(_.settings))
 
     def crossNative(ss: Def.SettingsDefinition*): ProjectMatrix = self
-      .nativePlatform(ScalaVersions, nativeSources ++ ss.flatMap(_.settings))
+      .nativePlatform(
+        ScalaVersions,
+        nativeSources ++ nativeHeap ++ ss.flatMap(_.settings),
+      )
 
     // one row per Scala version, for rows that name their own dependencies
     def crossJvmRows(configure: String => Project => Project): ProjectMatrix =
