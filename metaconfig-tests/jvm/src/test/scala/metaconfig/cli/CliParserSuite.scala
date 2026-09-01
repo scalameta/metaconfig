@@ -283,4 +283,15 @@ class CliParserSuite extends BaseCliParserSuite {
        |""".stripMargin,
   )
 
+  // https://github.com/scalameta/metaconfig/issues/515
+  test("large-cli-no-stackoverflow") {
+    val n = 10000
+    val files = List.tabulate(n)(i => s"file$i.scala")
+    val jars = List.tabulate(n)(i => s"lib$i.jar")
+    val args = files.flatMap(List("--classpath", _)) ::: jars
+    val obtained = Conf.parseCliArgs[Options](args).andThen(_.as[Options]).get
+    assertEquals(obtained.classpath, files)
+    assertEquals(obtained.remainingArgs, jars)
+  }
+
 }
