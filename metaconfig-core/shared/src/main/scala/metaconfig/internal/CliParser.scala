@@ -33,15 +33,19 @@ class CliParser[T](settings: Settings[T]) {
         loop(curr, key :: value :: tail, NoFlag)
       } else if (head.startsWith("-"))
         tryFlag(curr, head, tail, defaultBooleanValue = true) match {
-          case nok: NotOk if head.startsWith("--") =>
+          case Continue(newCurr, newXs, newState) =>
+            loop(newCurr, newXs, newState)
+          case Stop(nok: NotOk) if head.startsWith("--") =>
             val withoutNoPrefix = head.stripPrefix(noPrefix)
             val fallbackFlag =
               if (head ne withoutNoPrefix) "--" + withoutNoPrefix
               else noPrefix + head.stripPrefix("--")
-            val fallback =
-              tryFlag(curr, fallbackFlag, tail, defaultBooleanValue = false)
-            fallback.orElse(nok)
-          case ok => ok
+            tryFlag(curr, fallbackFlag, tail, defaultBooleanValue = false) match {
+              case Continue(newCurr, newXs, newState) =>
+                loop(newCurr, newXs, newState)
+              case Stop(fallback) => fallback.orElse(nok)
+            }
+          case Stop(result) => result
         }
       else {
         val positionalArgs =
@@ -60,14 +64,15 @@ class CliParser[T](settings: Settings[T]) {
       head: String,
       tail: List[String],
       defaultBooleanValue: Boolean,
-  ): Configured[Conf.Obj] = {
+  ): Step = {
     val camel = Case.kebabToCamel(dash.replaceFirstIn(head, ""))
     camel.split("\\.").toList match {
-      case Nil => ConfError.message(s"Flag '$head' must not be empty").notOk
+      case Nil =>
+        Stop(ConfError.message(s"Flag '$head' must not be empty").notOk)
       case flag :: flags =>
         val (key, keys) = toInline.get(flag)
           .fold(flag -> flags)(_.name -> (flag :: flags))
-        settings.get(key, keys).fold {
+        settings.get(key, keys).fold[Step] {
           if (!settings.settings.exists(_.isCatchInvalidFlags)) {
             val closestCandidate = Levenshtein
               .closestCandidate(camel, settings.nonHiddenNames)
@@ -77,23 +82,25 @@ class CliParser[T](settings: Settings[T]) {
                 val kebab = Case.camelToKebab(candidate)
                 s"\n\tDid you mean '--$kebab'?"
             }
-            ConfError.message(s"found argument '--$flag' which wasn't expected, or isn't valid in this context.$didYouMean")
-              .notOk
+            Stop(
+              ConfError.message(s"found argument '--$flag' which wasn't expected, or isn't valid in this context.$didYouMean")
+                .notOk,
+            )
           } else {
             val values = appendValues(
               curr,
               PositionalArgument,
               (head :: tail).map(Conf.fromString),
             )
-            ok(add(curr, PositionalArgument, values))
+            Stop(ok(add(curr, PositionalArgument, values)))
           }
         } { setting =>
           val prefix = toInline.get(flag).fold("")(_.name + ".")
           val toAdd = prefix + camel
           if (setting.isBoolean) {
             val newCurr = add(curr, toAdd, Conf.fromBoolean(defaultBooleanValue))
-            loop(newCurr, tail, NoFlag)
-          } else loop(curr, tail, Flag(toAdd, setting))
+            Continue(newCurr, tail, NoFlag)
+          } else Continue(curr, tail, Flag(toAdd, setting))
         }
     }
   }
@@ -135,6 +142,12 @@ object CliParser {
   private sealed trait State
   private case class Flag(flag: String, setting: Setting) extends State
   private case object NoFlag extends State
+
+  private sealed trait Step
+  private case class Continue(curr: Conf.Obj, xs: List[String], state: State)
+      extends Step
+  private case class Stop(result: Configured[Conf.Obj]) extends Step
+
   private val dash = "--?".r
 
 }
