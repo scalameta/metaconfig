@@ -119,7 +119,7 @@ lazy val depPaiges = libraryDependencies +=
   "org.typelevel" %% "paiges-core" % "0.4.4"
 def depScalacheck = libraryDependencies ++= List(
   "org.scalacheck" %% "scalacheck" % "1.20.0",
-  smorg %% "munit-scalacheck" % "1.3.0" % Test,
+  smorg %% "munit-scalacheck" % "1.3.1" % Test,
 )
 
 def pprintSettings = Def.settings(
