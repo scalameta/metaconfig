@@ -39,11 +39,19 @@ object Extensions {
     Test / unmanagedSourceDirectories ++= roots("test", trees).value,
   )
 
-  private def jvmSources =
-    unmanagedSources("shared", "jvm", "js-jvm", "jvm-native")
-  private def jsSources = unmanagedSources("shared", "js", "js-jvm", "js-native")
-  private def nativeSources =
-    unmanagedSources("shared", "native", "jvm-native", "js-native")
+  private def platformSources(
+      platform: String,
+      ss: Seq[Def.SettingsDefinition],
+      platforms: String*,
+  ) = unmanagedSources("shared" +: platform +: platforms *) ++
+    ideSkip(platform) ++ ss.flatMap(_.settings)
+
+  private def jvmSources(ss: Seq[Def.SettingsDefinition]) =
+    platformSources("jvm", ss, "js-jvm", "jvm-native")
+  private def jsSources(ss: Seq[Def.SettingsDefinition]) =
+    platformSources("js", ss, "js-jvm", "js-native")
+  private def nativeSources(ss: Seq[Def.SettingsDefinition]) =
+    platformSources("native", ss, "jvm-native", "js-native")
 
   // a test binary commits a bytemap of a sixteenth of its maximum heap before
   // it runs, and Windows cannot overcommit; the maximum defaults to the memory
@@ -51,25 +59,48 @@ object Extensions {
   private def nativeHeap = Def
     .settings(Test / envVars += "GC_MAXIMUM_HEAP_SIZE" -> "512m")
 
+  /* IntelliJ folds the source roots that matrix cells share into one module,
+   * so the whole matrix compiles scala-2 and scala-3 together. Only IntelliJ's
+   * importer reads `ide-skip-project`, so these properties change what the IDE
+   * sees and never what sbt builds. */
+  private val ideSkipProject = SettingKey[Boolean]("ide-skip-project")
+
+  private val ideScala = {
+    val prop = sys.props.getOrElse("ide.scala", "").trim
+    if (prop.isEmpty) scala213 else prop
+  }
+
+  // the platforms to import besides the JVM, which the IDE always gets
+  private val idePlatforms = {
+    val prop = sys.props.getOrElse("ide.platform", "").trim
+    if (prop.isEmpty) Set.empty else prop.split("\\s*,\\s*").toSet + "jvm"
+  }
+
+  private def ideSkip(platform: String) = Seq(ideSkipProject := {
+    val versions = Set(scalaBinaryVersion.value, scalaVersion.value)
+    !versions(ideScala) || idePlatforms.nonEmpty && !idePlatforms(platform)
+  })
+
   implicit class ProjectMatrixExtensions(private val self: ProjectMatrix)
       extends AnyVal {
 
     def crossJvm(ss: Def.SettingsDefinition*): ProjectMatrix = self
-      .jvmPlatform(ScalaVersions, jvmSources ++ ss.flatMap(_.settings))
+      .jvmPlatform(ScalaVersions, jvmSources(ss))
 
     def crossJs(ss: Def.SettingsDefinition*): ProjectMatrix = self
-      .jsPlatform(ScalaVersions, jsSources ++ ss.flatMap(_.settings))
+      .jsPlatform(ScalaVersions, jsSources(ss))
 
     def crossNative(ss: Def.SettingsDefinition*): ProjectMatrix = self
-      .nativePlatform(
-        ScalaVersions,
-        nativeSources ++ nativeHeap ++ ss.flatMap(_.settings),
-      )
+      .nativePlatform(ScalaVersions, nativeSources(ss) ++ nativeHeap)
+
+    // a JVM row for a project laid out the standard way, not as a crossProject
+    def crossJvmPlain: ProjectMatrix = self
+      .jvmPlatform(ScalaVersions, ideSkip("jvm"))
 
     // one row per Scala version, for rows that name their own dependencies
     def crossJvmRows(configure: String => Project => Project): ProjectMatrix =
       ScalaVersions.foldLeft(self) { (matrix, version) =>
-        val func = configure(version).andThen(_.settings(jvmSources))
+        val func = configure(version).andThen(_.settings(jvmSources(Nil)))
         matrix.jvmPlatform(Seq(version), Nil, func)
       }
 

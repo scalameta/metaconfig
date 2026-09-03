@@ -5,6 +5,22 @@ Please refer to the
 contributing guidelines to learn more about how to report tickets and open pull
 requests.
 
+## IntelliJ
+
+IntelliJ imports the project for one Scala version, 2.13 by default,
+because it puts the sources that the matrix cells share into a single
+module: importing every cell compiles the Scala 2 and the Scala 3 copies
+of `metaconfig.generic` and `metaconfig.pprint` together. If you need to
+modify the defaults, set the properties below under
+`Settings -> Build, Execution, Deployment -> Build Tools -> sbt -> VM parameters`
+and reload the sbt project:
+
+- `-Dide.scala=X`: imports Scala version `X` instead (could be `2.12`, `2.13`,
+  or `3`). `-Dide.scala=`, with no value, imports the default.
+- `-Dide.platform=Y`: if `Y` is empty, imports all platforms; otherwise, `Y` is
+  a comma-separated list of platforms to import, and `jvm` is implied, whether
+  or not it is explicitly listed, while `js` and `native` are optional.
+
 ## Website
 
 The website is built with [GitBook](https://www.npmjs.com/package/gitbook-cli).
