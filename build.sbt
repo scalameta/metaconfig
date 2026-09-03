@@ -182,7 +182,7 @@ def typesafeSettings = Def.settings(
 )
 
 lazy val typesafe = projectMatrix.in(file("metaconfig-typesafe-config"))
-  .settings(typesafeSettings).jvmPlatform(ScalaVersions).dependsOn(core)
+  .settings(typesafeSettings).crossJvmPlain.dependsOn(core)
 
 def sconfigSettings = Def.settings(
   sharedSettings,
@@ -266,5 +266,5 @@ def docsSettings = Def.settings(
 )
 
 lazy val docs = projectMatrix.in(file("metaconfig-docs")).settings(docsSettings)
-  .jvmPlatform(ScalaVersions).dependsOn(core, typesafe, sconfig)
+  .crossJvmPlain.dependsOn(core, typesafe, sconfig)
   .enablePlugins(DocusaurusPlugin).disablePlugins(MimaPlugin)
