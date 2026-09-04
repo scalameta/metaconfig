@@ -31,9 +31,9 @@ jobs:
           distribution: 'temurin'
           java-version: 17
       - if: ${{ !cancelled() }}
-        run: sbt '++2.13; tests/testFull'
+        run: sbt test-jvm-2_13
       - if: ${{ !cancelled() }}
-        run: sbt '++2.13; docs/testFull'
+        run: sbt test-docs-2_13
       - if: ${{ !cancelled() }}
         run: ./bin/scalafmt --check
       - if: ${{ !cancelled() }}
@@ -41,7 +41,7 @@ jobs:
       - if: ${{ !cancelled() }}
         run: sbt mimaReportBinaryIssues
       - if: ${{ !cancelled() }}
-        run: sbt docs/docusaurusCreateSite
+        run: sbt docsJVM2_13/docusaurusCreateSite
 
   pr-all3-nonjvm213: # 2.13 on JS and Native, 3.x everywhere, 2.12 compiled
     name: All-3, nonJVM-213, 2.12 compile
@@ -53,13 +53,13 @@ jobs:
           distribution: 'temurin'
           java-version: 17
       - if: ${{ !cancelled() }}
-        run: sbt '++2.13; testsJS/testFull'
+        run: sbt test-js-2_13
       - if: ${{ !cancelled() }}
-        run: sbt '++2.13; testsNative/testFull'
+        run: sbt test-native-2_13
       - if: ${{ !cancelled() }}
-        run: sbt '++2.12; Test/compile'
+        run: sbt compile-2_12
       - if: ${{ !cancelled() }}
-        run: sbt '++3.x; testFull'
+        run: sbt test-3
 
   post-cross: # every Scala version, on both JDKs and both operating systems
     name: ${{ matrix.os }} jdk-${{ matrix.java }} tests
@@ -90,8 +90,8 @@ jobs:
       # one step per version: each is its own group in the log, and Windows
       # cannot commit the heaps for two versions' native binaries at once
       - if: ${{ !cancelled() && contains(matrix.versions, ' 2.13 ') }}
-        run: sbt '++2.13; testFull'
+        run: sbt test-2_13
       - if: ${{ !cancelled() && contains(matrix.versions, ' 2.12 ') }}
-        run: sbt '++2.12; testFull'
+        run: sbt test-2_12
       - if: ${{ !cancelled() && contains(matrix.versions, ' 3.x ') }}
-        run: sbt '++3.x; testFull'
+        run: sbt test-3

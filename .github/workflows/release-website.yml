@@ -21,6 +21,6 @@ jobs:
       - uses: sbt/setup-sbt@v1
       - name: Publish
         run: |
-          sbt docs/docusaurusPublishGhpages
+          sbt docsJVM2_13/docusaurusPublishGhpages
         env:
           GIT_DEPLOY_KEY: ${{ secrets.GIT_DEPLOY_KEY }}

@@ -53,7 +53,7 @@ addCommandAlias("scalafixCheckAll", scalafixOn("--check"))
 
 addCommandAlias(
   "native-image",
-  "; tests/graalvm-native-image:packageBin ; taskready",
+  s"; ${tests.jvm(scala213).id}/graalvm-native-image:packageBin ; taskready",
 )
 
 commands += Command.command("taskready") { s =>
@@ -136,7 +136,7 @@ def pprintSettings = Def.settings(
   },
 )
 
-lazy val pprint = projectMatrix.in(file("metaconfig-pprint"))
+lazy val pprint = projectMatrix.in(file("metaconfig-pprint")).defaultAxes()
   .settings(pprintSettings).crossJvm(jvmReleaseSettings).crossJs().crossNative()
 
 def coreSettings = Def.settings(
@@ -158,9 +158,9 @@ def coreJsSettings = Def.settings(
     (smorg %% "io" % "4.17.3").cross(CrossVersion.for3Use2_13),
 )
 
-lazy val core = projectMatrix.in(file("metaconfig-core")).settings(coreSettings)
-  .dependsOn(pprint).crossNative().crossJvm(jvmReleaseSettings)
-  .crossJs(coreJsSettings)
+lazy val core = projectMatrix.in(file("metaconfig-core")).defaultAxes()
+  .settings(coreSettings).dependsOn(pprint).crossNative()
+  .crossJvm(jvmReleaseSettings).crossJs(coreJsSettings)
 
 def cliSettings = Def.settings(
   sharedSettings,
@@ -169,8 +169,9 @@ def cliSettings = Def.settings(
   depPaiges,
 )
 
-lazy val cli = projectMatrix.in(file("metaconfig-cli")).settings(cliSettings)
-  .crossJvm(jvmReleaseSettings).crossNative().dependsOn(core)
+lazy val cli = projectMatrix.in(file("metaconfig-cli")).defaultAxes()
+  .settings(cliSettings).crossJvm(jvmReleaseSettings).crossNative()
+  .dependsOn(core)
 
 def typesafeSettings = Def.settings(
   sharedSettings,
@@ -182,7 +183,7 @@ def typesafeSettings = Def.settings(
 )
 
 lazy val typesafe = projectMatrix.in(file("metaconfig-typesafe-config"))
-  .settings(typesafeSettings).crossJvmPlain.dependsOn(core)
+  .defaultAxes().settings(typesafeSettings).crossJvmPlain.dependsOn(core)
 
 def sconfigSettings = Def.settings(
   sharedSettings,
@@ -198,7 +199,7 @@ def sconfigSettings = Def.settings(
 def sjavatime = Def
   .settings(libraryDependencies += "org.ekrich" %% "sjavatime" % "1.5.0")
 
-lazy val sconfig = projectMatrix.in(file("metaconfig-sconfig"))
+lazy val sconfig = projectMatrix.in(file("metaconfig-sconfig")).defaultAxes()
   .settings(sconfigSettings).crossJvm(jvmReleaseSettings)
   .crossJs(sharedJSSettings, sjavatime).crossNative(sjavatime).dependsOn(core)
 
@@ -240,7 +241,7 @@ def testsJvmSettings = Def.settings(
   },
 )
 
-lazy val tests = projectMatrix.in(file("metaconfig-tests"))
+lazy val tests = projectMatrix.in(file("metaconfig-tests")).defaultAxes()
   .settings(testsSettings).crossJs(sharedJSSettings).crossNative()
   .crossJvmRows(v =>
     _.enablePlugins(GraalVMNativeImagePlugin).settings(testsJvmSettings)
@@ -265,6 +266,10 @@ def docsSettings = Def.settings(
   evictionErrorLevel := Level.Warn,
 )
 
-lazy val docs = projectMatrix.in(file("metaconfig-docs")).settings(docsSettings)
-  .crossJvmPlain.dependsOn(core, typesafe, sconfig)
+lazy val docs = projectMatrix.in(file("metaconfig-docs")).defaultAxes()
+  .settings(docsSettings).crossJvmPlain.dependsOn(core, typesafe, sconfig)
   .enablePlugins(DocusaurusPlugin).disablePlugins(MimaPlugin)
+
+testAliases(ScalaVersions, tests)
+crossAliases(ScalaVersions, pprint, core, cli, typesafe, sconfig, tests, docs)
+addCommandAlias("test-docs-2_13", s"${docs.jvm(scala213).id}/testFull")
