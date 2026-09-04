@@ -81,6 +81,36 @@ object Extensions {
     !versions(ideScala) || idePlatforms.nonEmpty && !idePlatforms(platform)
   })
 
+  // sbt runs a `;`-separated list; the leading separator is required
+  def tasks(ts: Iterable[String]): String = ts.mkString("; ", "; ", "")
+
+  private def idSuffix(v: String) = VirtualAxis.scalaABIVersion(v).idSuffix
+
+  // `++<version>` selects no row, so every version gets its own alias. Cell ids
+  // are generated, so the names are taken from them rather than spelled out.
+  def testAliases(versions: Seq[String], matrices: ProjectMatrix*) = versions
+    .flatMap { v =>
+      def alias(name: String, f: ProjectMatrix => ProjectFinder) =
+        addCommandAlias(
+          s"test-$name-${idSuffix(v)}",
+          tasks(matrices.map(m => s"${f(m)(v).id}/testFull")),
+        )
+      alias("jvm", _.jvm) ++ alias("js", _.js) ++ alias("native", _.native)
+    }
+
+  // every row of a version, whatever its platform: what a cross-build job runs
+  def crossAliases(versions: Seq[String], matrices: ProjectMatrix*) = versions
+    .flatMap { v =>
+      val rows = matrices.flatMap(_.allProjects().collect {
+        case (p, axes) if axes.contains(VirtualAxis.scalaABIVersion(v)) => p.id
+      })
+      def alias(name: String, task: String) = addCommandAlias(
+        s"$name-${idSuffix(v)}",
+        tasks(rows.map(id => s"$id/$task")),
+      )
+      alias("test", "testFull") ++ alias("compile", "Test/compile")
+    }
+
   implicit class ProjectMatrixExtensions(private val self: ProjectMatrix)
       extends AnyVal {
 

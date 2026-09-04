@@ -5,6 +5,15 @@ Please refer to the
 contributing guidelines to learn more about how to report tickets and open pull
 requests.
 
+## sbt
+
+Every matrix cell carries its platform and its Scala version, so a command has
+to name one: `testsJVM2_13/testFull`, not `tests/testFull`. The build generates
+an alias per version for the sets CI runs, such as `test-jvm-2_13`, `test-2_13`
+and `compile-2_12`, so no workflow step spells out a cell id. `++` selects
+nothing: it switches the Scala version on the cells that accept it and leaves
+aggregation alone.
+
 ## IntelliJ
 
 IntelliJ imports the project for one Scala version, 2.13 by default,
