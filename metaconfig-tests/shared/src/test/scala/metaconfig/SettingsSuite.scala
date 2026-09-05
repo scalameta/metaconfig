@@ -68,6 +68,16 @@ class SettingsSuite extends munit.FunSuite {
     )
   }
 
+  test("toCliHelp") {
+    assertNoDiff(
+      Settings[Nested2].toCliHelp(Nested2(), 60),
+      """|--a: String = "nested2"
+         |--b: OneParam = {"param": 82}
+         |--c: Map[String, OneParam] = {"k2": {"param": 2}}
+         |""".stripMargin,
+    )
+  }
+
   test("overlapping names") {
     def asList(x: Surface[_]) = x.fields.flatten.map(new Setting(_))
     val foo = asList(generic.deriveSurface[Foo])

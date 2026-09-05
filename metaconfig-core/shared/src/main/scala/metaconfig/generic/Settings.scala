@@ -65,7 +65,7 @@ final class Settings[T](
   def toCliHelp(default: T)(implicit ev: ConfEncoder[T]): String =
     toCliHelp(default, 80)
   def toCliHelp(default: T, width: Int)(implicit ev: ConfEncoder[T]): String =
-    Cli.help[T](default)(ev, this).renderTrim(width)
+    Cli.help[T](default)(using ev, this).renderTrim(width)
 
   def cliDescription: Option[Doc] = annotations.collectFirst {
     case DescriptionDoc(doc) => doc

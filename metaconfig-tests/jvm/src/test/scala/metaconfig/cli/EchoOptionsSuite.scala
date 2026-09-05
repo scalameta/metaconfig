@@ -7,7 +7,8 @@ class EchoOptionsSuite extends munit.FunSuite {
   def checkError(name: String, input: String, expectedError: String)(implicit
       loc: munit.Location,
   ): Unit = test(name) {
-    val parsed = Hocon.parseFilename("hello.conf", input)(EchoOptions.decoder)
+    val parsed = Hocon
+      .parseFilename("hello.conf", input)(using EchoOptions.decoder)
     assert(clue(parsed).isNotOk)(munit.Location.generate)
     assertNoDiff(parsed.getError.toString, expectedError)
 
