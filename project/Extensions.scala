@@ -7,7 +7,7 @@ object Extensions {
 
   val scala213 = "2.13.18"
 
-  val scala3 = "3.3.8"
+  val scala3 = "3.9.0"
 
   val ScalaVersions = List(scala213, scala212, scala3)
 
