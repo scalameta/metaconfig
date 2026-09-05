@@ -96,13 +96,15 @@ scope.</p>
 <h2><a class="anchor" aria-hidden="true" id="conf"></a><a href="#conf" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Conf</h2>
 <p><code>Conf</code> is a JSON-like data structure that is the foundation of metaconfig.</p>
 <pre><code class="hljs css language-scala"><span class="hljs-keyword">val</span> string = <span class="hljs-type">Conf</span>.fromString(<span class="hljs-string">"string"</span>)
-<span class="hljs-comment">// string: Conf = Str("string")</span>
+<span class="hljs-comment">// string: Conf = Str(value = "string")</span>
 <span class="hljs-keyword">val</span> int = <span class="hljs-type">Conf</span>.fromInt(<span class="hljs-number">42</span>)
-<span class="hljs-comment">// int: Conf = Num(42)</span>
+<span class="hljs-comment">// int: Conf = Num(value = 42)</span>
 <span class="hljs-type">Conf</span>.fromList(int :: string :: <span class="hljs-type">Nil</span>)
-<span class="hljs-comment">// res0: Conf = Lst(List(Num(42), Str("string")))</span>
+<span class="hljs-comment">// res0: Conf = Lst(values = List(Num(value = 42), Str(value = "string")))</span>
 <span class="hljs-type">Conf</span>.fromMap(<span class="hljs-type">Map</span>(<span class="hljs-string">"a"</span> -&gt; string, <span class="hljs-string">"b"</span> -&gt; int))
-<span class="hljs-comment">// res1: Conf = Obj(List(("a", Str("string")), ("b", Num(42))))</span>
+<span class="hljs-comment">// res1: Conf = Obj(</span>
+<span class="hljs-comment">//   values = List(("a", Str(value = "string")), ("b", Num(value = 42)))</span>
+<span class="hljs-comment">// )</span>
 </code></pre>
 <h2><a class="anchor" aria-hidden="true" id="confparse"></a><a href="#confparse" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Conf.parse</h2>
 <p>You need an implicit <code>MetaconfigParser</code> to convert HOCON into <code>Conf</code>. Assuming
@@ -114,23 +116,29 @@ a.d = [ 1, 2, 3 ]
 reference = ${a}
 """)
 // res2: Configured[Conf] = Ok(
-//   Obj(
-//     List(
+//   value = Obj(
+//     values = List(
 //       (
 //         "a",
 //         Obj(
-//           List(
-//             ("d", Lst(List(Num(1), Num(2), Num(3)))),
-//             ("b", Obj(List(("c", Num(2)))))
+//           values = List(
+//             (
+//               "d",
+//               Lst(values = List(Num(value = 1), Num(value = 2), Num(value = 3)))
+//             ),
+//             ("b", Obj(values = List(("c", Num(value = 2)))))
 //           )
 //         )
 //       ),
 //       (
 //         "reference",
 //         Obj(
-//           List(
-//             ("d", Lst(List(Num(1), Num(2), Num(3)))),
-//             ("b", Obj(List(("c", Num(2)))))
+//           values = List(
+//             (
+//               "d",
+//               Lst(values = List(Num(value = 1), Num(value = 2), Num(value = 3)))
+//             ),
+//             ("b", Obj(values = List(("c", Num(value = 2)))))
 //           )
 //         )
 //       )
@@ -139,53 +147,54 @@ reference = ${a}
 // )
 Conf.parseFile(new java.io.File(".scalafmt.conf"))
 // res3: Configured[Conf] = Ok(
-//   Obj(
-//     List(
+//   value = Obj(
+//     values = List(
 //       (
 //         "fileOverride",
 //         Obj(
-//           List(
+//           values = List(
 //             (
 //               "glob:**/scala-3*/**",
-//               Obj(List(("runner", Obj(List(("dialect", Str("scala3")))))))
+//               Obj(
+//                 values = List(
+//                   (
+//                     "runner",
+//                     Obj(values = List(("dialect", Str(value = "scala3"))))
+//                   )
+//                 )
+//               )
 //             )
 //           )
 //         )
 //       ),
-//       ("assumeStandardLibraryStripMargin", Bool(true)),
+//       ("assumeStandardLibraryStripMargin", Bool(value = true)),
 //       (
 //         "project",
-//         Obj(List(("layout", Str("StandardConvention")), ("git", Bool(true))))
-//       ),
-//       ("binPack", Obj(List(("importSelectors", Str("fold"))))),
-//       ("runner", Obj(List(("dialect", Str("scala213"))))),
-//       ("version", Str("3.11.5")),
-//       (
-//         "newlines",
 //         Obj(
-//           List(
-//             ("avoidForSimpleOverflow", Str("all")),
-//             ("inInterpolation", Str("avoid")),
-//             ("source", Str("fold")),
-//             ("ignoreInSyntax", Bool(false))
+//           values = List(
+//             ("layout", Str(value = "StandardConvention")),
+//             ("git", Bool(value = true))
 //           )
 //         )
 //       ),
-//       ("optIn", Obj(List(("selfAnnotationNewline", Bool(false))))),
-//       ("align", Obj(List(("preset", Str("none")), ("stripMargin", Bool(true))))),
+//       ("binPack", Obj(values = List(("importSelectors", Str(value = "fold"))))),
+//       ("runner", Obj(values = List(("dialect", Str(value = "scala213"))))),
+//       ("version", Str(value = "3.11.5")),
 //       (
-//         "onTestFailure",
-//         Str("To fix this, run ./scalafmt from the project root directory")
+//         "newlines",
+//         Obj(
+//           values = List(
+//             ("avoidForSimpleOverflow", Str(value = "all")),
+//             ("inInterpolation", Str(value = "avoid")),
+//             ("source", Str(value = "fold")),
+//             ("ignoreInSyntax", Bool(value = false))
+//           )
+//         )
 //       ),
 //       (
-//         "rewrite",
-//         Obj(
-//           List(
-//             ("redundantParens", Obj(List(("preset", Str("all"))))),
-//             ("trailingCommas", Obj(List(("style", Str("always"))))),
-//             ("redundantBraces", Obj(List(("preset", Str("all"))))),
-//             ("sortModifiers", Obj(List(("preset", Str("styleGuide"))))),
-//             (
+//         "optIn",
+//         Obj(values = List(("selfAnnotationNewline", Bool(value = false))))
+//       ),
 // ...
 </code></pre>
 <p>Note. The example above is JVM-only. For a Scala.js alternative, depend on the
@@ -232,8 +241,11 @@ revised <code>Conf</code>.</p>
   ),
   <span class="hljs-string">"f"</span> -&gt; <span class="hljs-type">Conf</span>.<span class="hljs-type">Bool</span>(<span class="hljs-literal">true</span>)
 )
-<span class="hljs-comment">// original: Obj = Obj(</span>
-<span class="hljs-comment">//   List(("a", Obj(List(("b", Str("c")), ("d", Str("e"))))), ("f", Bool(true)))</span>
+<span class="hljs-comment">// original: Conf.Obj = Obj(</span>
+<span class="hljs-comment">//   values = List(</span>
+<span class="hljs-comment">//     ("a", Obj(values = List(("b", Str(value = "c")), ("d", Str(value = "e"))))),</span>
+<span class="hljs-comment">//     ("f", Bool(value = true))</span>
+<span class="hljs-comment">//   )</span>
 <span class="hljs-comment">// )</span>
 <span class="hljs-keyword">val</span> revised = <span class="hljs-type">Conf</span>.<span class="hljs-type">Obj</span>(
   <span class="hljs-string">"a"</span> -&gt; <span class="hljs-type">Conf</span>.<span class="hljs-type">Obj</span>(
@@ -242,12 +254,18 @@ revised <code>Conf</code>.</p>
   ),
   <span class="hljs-string">"f"</span> -&gt; <span class="hljs-type">Conf</span>.<span class="hljs-type">Bool</span>(<span class="hljs-literal">true</span>)
 )
-<span class="hljs-comment">// revised: Obj = Obj(</span>
-<span class="hljs-comment">//   List(("a", Obj(List(("b", Str("c")), ("d", Str("ee"))))), ("f", Bool(true)))</span>
+<span class="hljs-comment">// revised: Conf.Obj = Obj(</span>
+<span class="hljs-comment">//   values = List(</span>
+<span class="hljs-comment">//     ("a", Obj(values = List(("b", Str(value = "c")), ("d", Str(value = "ee"))))),</span>
+<span class="hljs-comment">//     ("f", Bool(value = true))</span>
+<span class="hljs-comment">//   )</span>
 <span class="hljs-comment">// )</span>
 <span class="hljs-keyword">val</span> patch = <span class="hljs-type">Conf</span>.patch(original, revised)
 <span class="hljs-comment">// patch: Conf = Obj(</span>
-<span class="hljs-comment">//   List(("a", Obj(List(("b", Str("c")), ("d", Str("ee"))))), ("f", Bool(true)))</span>
+<span class="hljs-comment">//   values = List(</span>
+<span class="hljs-comment">//     ("a", Obj(values = List(("b", Str(value = "c")), ("d", Str(value = "ee"))))),</span>
+<span class="hljs-comment">//     ("f", Bool(value = true))</span>
+<span class="hljs-comment">//   )</span>
 <span class="hljs-comment">// )</span>
 <span class="hljs-type">Conf</span>.printHocon(patch)
 <span class="hljs-comment">// res5: String = """a.b = c</span>
@@ -255,7 +273,10 @@ revised <code>Conf</code>.</p>
 <span class="hljs-comment">// f = true"""</span>
 <span class="hljs-keyword">val</span> revised2 = <span class="hljs-type">Conf</span>.applyPatch(original, patch)
 <span class="hljs-comment">// revised2: Conf = Obj(</span>
-<span class="hljs-comment">//   List(("f", Bool(true)), ("a", Obj(List(("d", Str("ee")), ("b", Str("c"))))))</span>
+<span class="hljs-comment">//   values = List(</span>
+<span class="hljs-comment">//     ("f", Bool(value = true)),</span>
+<span class="hljs-comment">//     ("a", Obj(values = List(("d", Str(value = "ee")), ("b", Str(value = "c")))))</span>
+<span class="hljs-comment">//   )</span>
 <span class="hljs-comment">// )</span>
 assert(revised == revised2)
 </code></pre>
@@ -271,10 +292,10 @@ instance. Convert a partial function from <code>Conf</code> to your target type 
 }
 </code></pre>
 <pre><code class="hljs css language-scala">number2.read(<span class="hljs-type">Conf</span>.fromString(<span class="hljs-string">"2"</span>))
-<span class="hljs-comment">// res7: Configured[Int] = Ok(2)</span>
+<span class="hljs-comment">// res7: Configured[Int] = Ok(value = 2)</span>
 number2.read(<span class="hljs-type">Conf</span>.fromInt(<span class="hljs-number">2</span>))
 <span class="hljs-comment">// res8: Configured[Int] = NotOk(</span>
-<span class="hljs-comment">//   Type mismatch;</span>
+<span class="hljs-comment">//   error = Type mismatch;</span>
 <span class="hljs-comment">//   found    : Number (value: 2)</span>
 <span class="hljs-comment">//   expected : String</span>
 <span class="hljs-comment">// )</span>
@@ -292,23 +313,23 @@ number2.read(<span class="hljs-type">Conf</span>.fromInt(<span class="hljs-numbe
 name = "Susan"
 age = 29
 """))
-// res9: Configured[User] = Ok(User(name = "Susan", age = 29))
+// res9: Configured[User] = Ok(value = User(name = "Susan", age = 29))
 decoder.read(Conf.parseString("""
 name = 42
 age = "Susan"
 """))
 // res10: Configured[User] = NotOk(
-//   2 errors
+//   error = 2 errors
 // [E0] &lt;input&gt;:2:0 error: Type mismatch;
 //   found    : Number (value: 42)
 //   expected : String
-//   name = 42
+// name = 42
 // ^
 // 
 // [E1] &lt;input&gt;:3:0 error: Type mismatch;
 //   found    : String (value: "Susan")
 //   expected : Number
-//   age = "Susan"
+// age = "Susan"
 // ^
 // 
 // 
@@ -320,12 +341,12 @@ age = "Susan"
   <span class="hljs-keyword">if</span> (file.exists()) <span class="hljs-type">Configured</span>.ok(file)
   <span class="hljs-keyword">else</span> <span class="hljs-type">ConfError</span>.fileDoesNotExist(file).notOk
 }
-<span class="hljs-comment">// fileDecoder: ConfDecoder[File] = metaconfig.ConfDecoder$$anon$2@4f751c8d</span>
+<span class="hljs-comment">// fileDecoder: ConfDecoder[java.io.File] = metaconfig.ConfDecoder$$anon$2@171c3679</span>
 fileDecoder.read(<span class="hljs-type">Conf</span>.fromString(<span class="hljs-string">".scalafmt.conf"</span>))
-<span class="hljs-comment">// res11: Configured[File] = Ok(.scalafmt.conf)</span>
+<span class="hljs-comment">// res11: Configured[java.io.File] = Ok(value = .scalafmt.conf)</span>
 fileDecoder.read(<span class="hljs-type">Conf</span>.fromString(<span class="hljs-string">".foobar"</span>))
-<span class="hljs-comment">// res12: Configured[File] = NotOk(</span>
-<span class="hljs-comment">//   File /home/runner/work/metaconfig/metaconfig/.foobar does not exist.</span>
+<span class="hljs-comment">// res12: Configured[java.io.File] = NotOk(</span>
+<span class="hljs-comment">//   error = File /home/runner/work/metaconfig/metaconfig/.foobar does not exist.</span>
 <span class="hljs-comment">// )</span>
 </code></pre>
 <h2><a class="anchor" aria-hidden="true" id="confdecoderex-and-confdecoderext"></a><a href="#confdecoderex-and-confdecoderext" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>ConfDecoderEx and ConfDecoderExT</h2>
@@ -363,10 +384,12 @@ decoders for <code>Option[T]</code>, <code>Seq[T]</code> and <code>Map[String, T
 automatically derive a <code>ConfEncoder[T]</code> instance for any case class with
 <code>generic.deriveEncoder</code>.</p>
 <pre><code class="hljs css language-scala"><span class="hljs-keyword">implicit</span> <span class="hljs-keyword">val</span> encoder: <span class="hljs-type">ConfEncoder</span>[<span class="hljs-type">User</span>] = generic.deriveEncoder[<span class="hljs-type">User</span>]
-<span class="hljs-comment">// encoder: ConfEncoder[User] = repl.MdocSession$MdocApp$$anon$24@32054643</span>
+<span class="hljs-comment">// encoder: ConfEncoder[User] = repl.MdocSession$MdocApp$$anon$1@6f44e8f7</span>
 
 <span class="hljs-type">ConfEncoder</span>[<span class="hljs-type">User</span>].write(<span class="hljs-type">User</span>(<span class="hljs-string">"John"</span>, <span class="hljs-number">42</span>))
-<span class="hljs-comment">// res13: Conf = Obj(List(("name", Str("John")), ("age", Num(42))))</span>
+<span class="hljs-comment">// res13: Conf = Obj(</span>
+<span class="hljs-comment">//   values = List(("name", Str(value = "John")), ("age", Num(value = 42)))</span>
+<span class="hljs-comment">// )</span>
 </code></pre>
 <p>It's possible to compose <code>ConfEncoder</code> instances with <code>contramap</code></p>
 <pre><code class="hljs css language-scala"><span class="hljs-keyword">val</span> ageEncoder = <span class="hljs-type">ConfEncoder</span>.<span class="hljs-type">IntEncoder</span>.contramap[<span class="hljs-type">User</span>](user =&gt; user.age)
@@ -382,17 +405,17 @@ automatically derive a <code>ConfEncoder[T]</code> instance for any case class w
 <span class="hljs-keyword">implicit</span> <span class="hljs-keyword">val</span> codec: <span class="hljs-type">ConfCodec</span>[<span class="hljs-type">Bijective</span>] = generic.deriveCodec[<span class="hljs-type">Bijective</span>](<span class="hljs-keyword">new</span> <span class="hljs-type">Bijective</span>(<span class="hljs-string">"default"</span>))
 </code></pre>
 <pre><code class="hljs css language-scala"><span class="hljs-type">ConfEncoder</span>[<span class="hljs-type">Bijective</span>].write(<span class="hljs-type">Bijective</span>(<span class="hljs-string">"John"</span>))
-<span class="hljs-comment">// res14: Conf = Obj(List(("name", Str("John"))))</span>
+<span class="hljs-comment">// res14: Conf = Obj(values = List(("name", Str(value = "John"))))</span>
 <span class="hljs-type">ConfDecoder</span>[<span class="hljs-type">Bijective</span>].read(<span class="hljs-type">Conf</span>.<span class="hljs-type">Obj</span>(<span class="hljs-string">"name"</span> -&gt; <span class="hljs-type">Conf</span>.<span class="hljs-type">Str</span>(<span class="hljs-string">"Susan"</span>)))
-<span class="hljs-comment">// res15: Configured[Bijective] = Ok(Bijective("Susan"))</span>
+<span class="hljs-comment">// res15: Configured[Bijective] = Ok(value = Bijective(name = "Susan"))</span>
 </code></pre>
 <p>It's possible to compose <code>ConfCodec</code> instances with <code>bimap</code></p>
 <pre><code class="hljs css language-scala"><span class="hljs-keyword">val</span> bijectiveString = <span class="hljs-type">ConfCodec</span>.<span class="hljs-type">StringCodec</span>.bimap[<span class="hljs-type">Bijective</span>](_.name, <span class="hljs-type">Bijective</span>(_))
 </code></pre>
 <pre><code class="hljs css language-scala">bijectiveString.write(<span class="hljs-type">Bijective</span>(<span class="hljs-string">"write"</span>))
-<span class="hljs-comment">// res16: Conf = Str("write")</span>
+<span class="hljs-comment">// res16: Conf = Str(value = "write")</span>
 bijectiveString.read(<span class="hljs-type">Conf</span>.<span class="hljs-type">Str</span>(<span class="hljs-string">"write"</span>))
-<span class="hljs-comment">// res17: Configured[Bijective] = Ok(Bijective("write"))</span>
+<span class="hljs-comment">// res17: Configured[Bijective] = Ok(value = Bijective(name = "write"))</span>
 </code></pre>
 <h2><a class="anchor" aria-hidden="true" id="confcodecex-and-confcodecext"></a><a href="#confcodecex-and-confcodecext" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>ConfCodecEx and ConfCodecExT</h2>
 <p>Similar to <code>ConfCodec</code> but derives from <code>ConfDecoderExT</code> instead of <code>ConfDecoder</code>.</p>
@@ -403,7 +426,7 @@ messages.</p>
 <span class="hljs-comment">// res18: ConfError = Not good!</span>
 <span class="hljs-type">ConfError</span>.exception(<span class="hljs-keyword">new</span> <span class="hljs-type">IllegalArgumentException</span>(<span class="hljs-string">"Expected String!"</span>), stackSize = <span class="hljs-number">2</span>)
 <span class="hljs-comment">// res19: ConfError = java.lang.IllegalArgumentException: Expected String!</span>
-<span class="hljs-comment">//  at repl.MdocSession$MdocApp.&lt;init&gt;(reference.md:242)</span>
+<span class="hljs-comment">//  at repl.MdocSession$MdocApp.&lt;init&gt;(reference.md:206)</span>
 <span class="hljs-comment">//  at repl.MdocSession$.app(reference.md:3)</span>
 <span class="hljs-comment">// </span>
 <span class="hljs-type">ConfError</span>.typeMismatch(<span class="hljs-string">"Int"</span>, <span class="hljs-string">"String"</span>, <span class="hljs-string">"field"</span>)
@@ -440,21 +463,22 @@ val pos = Position.Range(input, i, i)
 throughout the metaconfig API to either represent a successfully parsed/decoded
 value or a failure.</p>
 <pre><code class="hljs css language-scala"><span class="hljs-type">Configured</span>.ok(<span class="hljs-string">"Hello world!"</span>)
-<span class="hljs-comment">// res23: Configured[String] = Ok("Hello world!")</span>
+<span class="hljs-comment">// res23: Configured[String] = Ok(value = "Hello world!")</span>
 <span class="hljs-type">Configured</span>.ok(<span class="hljs-type">List</span>(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>))
-<span class="hljs-comment">// res24: Configured[List[Int]] = Ok(List(1, 2))</span>
+<span class="hljs-comment">// res24: Configured[List[Int]] = Ok(value = List(1, 2))</span>
 <span class="hljs-keyword">val</span> error = <span class="hljs-type">ConfError</span>.message(<span class="hljs-string">"Boom!"</span>)
 <span class="hljs-comment">// error: ConfError = Boom!</span>
 <span class="hljs-keyword">val</span> configured = error.notOk
-<span class="hljs-comment">// configured: Configured[Nothing] = NotOk(Boom!)</span>
+<span class="hljs-comment">// configured: Configured[Nothing] = NotOk(error = Boom!)</span>
 configured.toEither
-<span class="hljs-comment">// res25: Either[ConfError, Nothing] = Left(Boom!)</span>
+<span class="hljs-comment">// res25: Either[ConfError, Nothing] = Left(value = Boom!)</span>
 </code></pre>
 <p>To skip error handling, use the nuclear <code>.get</code></p>
 <pre><code class="hljs css language-scala">configured.get
 <span class="hljs-comment">// java.util.NoSuchElementException: Boom!</span>
 <span class="hljs-comment">//  at metaconfig.Configured.get(Configured.scala:14)</span>
-<span class="hljs-comment">//  at repl.MdocSession$MdocApp.$init$$$anonfun$6(reference.md:312)</span>
+<span class="hljs-comment">//  at repl.MdocSession$MdocApp$$anonfun$7.apply(reference.md:262)</span>
+<span class="hljs-comment">//  at repl.MdocSession$MdocApp$$anonfun$7.apply(reference.md:262)</span>
 </code></pre>
 <pre><code class="hljs css language-scala"><span class="hljs-type">Configured</span>.ok(<span class="hljs-number">42</span>).get
 <span class="hljs-comment">// res26: Int = 42</span>
@@ -483,15 +507,15 @@ true when you have documentation to keep up-to-date as well.</p>
 name = Susan
 age = 34
 """))
-// res27: Configured[User] = Ok(User(name = "Susan", age = 34))
+// res27: Configured[User] = Ok(value = User(name = "Susan", age = 34))
 ConfDecoder[User].read(Conf.parseString("""
 nam = John
 age = 23
 """))
 // res28: Configured[User] = NotOk(
-//   &lt;input&gt;:2:0 error: found option 'nam' which wasn't expected, or isn't valid in this context.
+//   error = &lt;input&gt;:2:0 error: found option 'nam' which wasn't expected, or isn't valid in this context.
 //  Did you mean 'name'?
-//     nam = John
+// nam = John
 // ^
 // 
 // )
@@ -500,10 +524,10 @@ name = John
 age = Old
 """))
 // res29: Configured[User] = NotOk(
-//   &lt;input&gt;:3:0 error: Type mismatch;
+//   error = &lt;input&gt;:3:0 error: Type mismatch;
 //   found    : String (value: "Old")
 //   expected : Number
-//     age = Old
+// age = Old
 // ^
 // 
 // )
@@ -511,12 +535,12 @@ ConfDecoderEx[User].read(
   Some(User(name = "Jack", age = 33)),
   Conf.parseString("name = John")
 )
-// res30: Configured[User] = Ok(User(name = "John", age = 33))
+// res30: Configured[User] = Ok(value = User(name = "John", age = 33))
 ConfDecoderEx[User].read(
   None,
   Conf.parseString("name = John")
 )
-// res31: Configured[User] = Ok(User(name = "John", age = 24))
+// res31: Configured[User] = Ok(value = User(name = "John", age = 24))
 </code></pre>
 <p>Sometimes automatic derivation fails, for example if your class contains fields
 that have no <code>ConfDecoder</code> instance</p>
@@ -527,8 +551,13 @@ that have no <code>ConfDecoder</code> instance</p>
 </code></pre>
 <p>This will fail with a fail cryptic compile error</p>
 <pre><code class="hljs css language-scala"><span class="hljs-keyword">implicit</span> <span class="hljs-keyword">val</span> decoder = generic.deriveDecoder[<span class="hljs-type">Funky</span>](<span class="hljs-type">Funky</span>(<span class="hljs-keyword">new</span> <span class="hljs-type">File</span>(<span class="hljs-string">""</span>)))
-<span class="hljs-comment">// error: </span>
-<span class="hljs-comment">// decoder is already defined as value decoder</span>
+<span class="hljs-comment">// error: decoder is already defined as value decoder</span>
+<span class="hljs-comment">// error: could not find implicit value for parameter ev: metaconfig.ConfDecoder[repl.MdocSession.MdocApp.User]</span>
+<span class="hljs-comment">// error: could not find implicit value for parameter ev: metaconfig.ConfDecoder[repl.MdocSession.MdocApp.User]</span>
+<span class="hljs-comment">// error: could not find implicit value for parameter ev: metaconfig.ConfDecoder[repl.MdocSession.MdocApp.User]</span>
+<span class="hljs-comment">// error: could not find implicit value for evidence parameter of type metaconfig.ConfDecoder[java.io.File]</span>
+<span class="hljs-comment">// implicit val decoder = generic.deriveDecoder[Funky](Funky(new File("")))</span>
+<span class="hljs-comment">//                                                    ^</span>
 </code></pre>
 <p>Observe that the error message is complaining about a missing
 <code>metaconfig.ConfDecoder[java.io.File]</code> implicit.</p>
@@ -629,9 +658,11 @@ the compiler</li>
   )
 ))
 <span class="hljs-comment">// res33: Configured[Human] = Ok(</span>
-<span class="hljs-comment">//   Human(</span>
+<span class="hljs-comment">//   value = Human(</span>
 <span class="hljs-comment">//     name = "",</span>
-<span class="hljs-comment">//     family = Some(Family(spouse = "Jane Doe (spouse)", children = List()))</span>
+<span class="hljs-comment">//     family = Some(</span>
+<span class="hljs-comment">//       value = Family(spouse = "Jane Doe (spouse)", children = List())</span>
+<span class="hljs-comment">//     )</span>
 <span class="hljs-comment">//   )</span>
 <span class="hljs-comment">// )</span>
 <span class="hljs-type">Human</span>.decoder.read(<span class="hljs-type">Conf</span>.<span class="hljs-type">Obj</span>(
@@ -643,9 +674,9 @@ the compiler</li>
   )
 ))
 <span class="hljs-comment">// res34: Configured[Human] = Ok(</span>
-<span class="hljs-comment">//   Human(</span>
+<span class="hljs-comment">//   value = Human(</span>
 <span class="hljs-comment">//     name = "",</span>
-<span class="hljs-comment">//     family = Some(Family(spouse = "Jane Doe 2", children = List()))</span>
+<span class="hljs-comment">//     family = Some(value = Family(spouse = "Jane Doe 2", children = List()))</span>
 <span class="hljs-comment">//   )</span>
 <span class="hljs-comment">// )</span>
 <span class="hljs-type">Human</span>.decoder.read(<span class="hljs-type">Conf</span>.<span class="hljs-type">Obj</span>(
@@ -658,10 +689,10 @@ the compiler</li>
   )
 ))
 <span class="hljs-comment">// res35: Configured[Human] = Ok(</span>
-<span class="hljs-comment">//   Human(</span>
+<span class="hljs-comment">//   value = Human(</span>
 <span class="hljs-comment">//     name = "Bob Parr",</span>
 <span class="hljs-comment">//     family = Some(</span>
-<span class="hljs-comment">//       Family(</span>
+<span class="hljs-comment">//       value = Family(</span>
 <span class="hljs-comment">//         spouse = "Elastigirl",</span>
 <span class="hljs-comment">//         children = List("#0 Violet", "#1 Dash", "#2 Jack-Jack")</span>
 <span class="hljs-comment">//       )</span>
@@ -695,9 +726,13 @@ definitions.</p>
   generic.deriveDecoder[<span class="hljs-type">EvolvingConfig</span>](<span class="hljs-type">EvolvingConfig</span>(<span class="hljs-literal">true</span>)).noTypos
 </code></pre>
 <pre><code class="hljs css language-scala">decoder.read(<span class="hljs-type">Conf</span>.<span class="hljs-type">Obj</span>(<span class="hljs-string">"isGoodName"</span> -&gt; <span class="hljs-type">Conf</span>.fromBoolean(<span class="hljs-literal">false</span>)))
-<span class="hljs-comment">// res36: Configured[EvolvingConfig] = Ok(EvolvingConfig(false))</span>
+<span class="hljs-comment">// res36: Configured[EvolvingConfig] = Ok(</span>
+<span class="hljs-comment">//   value = EvolvingConfig(isGoodName = false)</span>
+<span class="hljs-comment">// )</span>
 decoder.read(<span class="hljs-type">Conf</span>.<span class="hljs-type">Obj</span>(<span class="hljs-string">"isValidName"</span> -&gt; <span class="hljs-type">Conf</span>.fromBoolean(<span class="hljs-literal">false</span>)))
-<span class="hljs-comment">// res37: Configured[EvolvingConfig] = Ok(EvolvingConfig(false))</span>
+<span class="hljs-comment">// res37: Configured[EvolvingConfig] = Ok(</span>
+<span class="hljs-comment">//   value = EvolvingConfig(isGoodName = false)</span>
+<span class="hljs-comment">// )</span>
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="metaconfigannotationdeprecatedname"></a><a href="#metaconfigannotationdeprecatedname" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>@metaconfig.annotation.DeprecatedName</h3>
 <p>This annotation behaves similarly to <a href="#metaconfigannotationextraname">ExtraName</a>
@@ -715,12 +750,16 @@ applies.</p>
   generic.deriveDecoder[<span class="hljs-type">EvolvingConfig</span>](<span class="hljs-type">EvolvingConfig</span>(<span class="hljs-literal">true</span>)).noTypos
 </code></pre>
 <pre><code class="hljs css language-scala">decoder.read(<span class="hljs-type">Conf</span>.<span class="hljs-type">Obj</span>(<span class="hljs-string">"goodName"</span> -&gt; <span class="hljs-type">Conf</span>.fromBoolean(<span class="hljs-literal">false</span>)))
-<span class="hljs-comment">// res38: Configured[EvolvingConfig] = Ok(EvolvingConfig(false))</span>
+<span class="hljs-comment">// res38: Configured[EvolvingConfig] = Ok(</span>
+<span class="hljs-comment">//   value = EvolvingConfig(isGoodName = false)</span>
+<span class="hljs-comment">// )</span>
 decoder.read(<span class="hljs-type">Conf</span>.<span class="hljs-type">Obj</span>(<span class="hljs-string">"isGoodName"</span> -&gt; <span class="hljs-type">Conf</span>.fromBoolean(<span class="hljs-literal">false</span>)))
-<span class="hljs-comment">// res39: Configured[EvolvingConfig] = Ok(EvolvingConfig(false))</span>
+<span class="hljs-comment">// res39: Configured[EvolvingConfig] = Ok(</span>
+<span class="hljs-comment">//   value = EvolvingConfig(isGoodName = false)</span>
+<span class="hljs-comment">// )</span>
 decoder.read(<span class="hljs-type">Conf</span>.<span class="hljs-type">Obj</span>(<span class="hljs-string">"gooodName"</span> -&gt; <span class="hljs-type">Conf</span>.fromBoolean(<span class="hljs-literal">false</span>)))
 <span class="hljs-comment">// res40: Configured[EvolvingConfig] = NotOk(</span>
-<span class="hljs-comment">//   found option 'gooodName' which wasn't expected, or isn't valid in this context.</span>
+<span class="hljs-comment">//   error = found option 'gooodName' which wasn't expected, or isn't valid in this context.</span>
 <span class="hljs-comment">//  Did you mean 'isGoodName'?</span>
 <span class="hljs-comment">// )</span>
 </code></pre>
@@ -745,11 +784,11 @@ decoder.read(<span class="hljs-type">Conf</span>.<span class="hljs-type">Obj</sp
   <span class="hljs-string">"input.txt"</span>
 ))
 <span class="hljs-comment">// conf: Configured[Conf] = Ok(</span>
-<span class="hljs-comment">//   Obj(</span>
-<span class="hljs-comment">//     List(</span>
-<span class="hljs-comment">//       ("remainingArgs", Lst(List(Str("input.txt")))),</span>
-<span class="hljs-comment">//       ("target", Str("/tmp")),</span>
-<span class="hljs-comment">//       ("verbose", Bool(true))</span>
+<span class="hljs-comment">//   value = Obj(</span>
+<span class="hljs-comment">//     values = List(</span>
+<span class="hljs-comment">//       ("remainingArgs", Lst(values = List(Str(value = "input.txt")))),</span>
+<span class="hljs-comment">//       ("target", Str(value = "/tmp")),</span>
+<span class="hljs-comment">//       ("verbose", Bool(value = true))</span>
 <span class="hljs-comment">//     )</span>
 <span class="hljs-comment">//   )</span>
 <span class="hljs-comment">// )</span>
@@ -757,7 +796,7 @@ decoder.read(<span class="hljs-type">Conf</span>.<span class="hljs-type">Obj</sp
 <p>Decode the cli args into <code>App</code> like normal</p>
 <pre><code class="hljs css language-scala"><span class="hljs-keyword">val</span> app = decoder.read(conf.get)
 <span class="hljs-comment">// app: Configured[EvolvingConfig] = NotOk(</span>
-<span class="hljs-comment">//   3 errors</span>
+<span class="hljs-comment">//   error = 3 errors</span>
 <span class="hljs-comment">// [E0] found option 'remainingArgs' which wasn't expected, or isn't valid in this context.</span>
 <span class="hljs-comment">// [E1] found option 'target' which wasn't expected, or isn't valid in this context.</span>
 <span class="hljs-comment">// [E2] found option 'verbose' which wasn't expected, or isn't valid in this context.</span>
@@ -807,17 +846,33 @@ example above, it's possible to pass in <code>--out target</code> instead of
 <code>--common.out target</code> to override the common output directory.</p>
 <pre><code class="hljs css language-scala"><span class="hljs-type">Conf</span>.parseCliArgs[<span class="hljs-type">NameApp</span>](<span class="hljs-type">List</span>(<span class="hljs-string">"--out"</span>, <span class="hljs-string">"/tmp"</span>, <span class="hljs-string">"--cwd"</span>, <span class="hljs-string">"working-dir"</span>))
 <span class="hljs-comment">// res42: Configured[Conf] = Ok(</span>
-<span class="hljs-comment">//   Obj(</span>
-<span class="hljs-comment">//     List(</span>
-<span class="hljs-comment">//       ("common", Obj(List(("cwd", Str("working-dir")), ("out", Str("/tmp")))))</span>
+<span class="hljs-comment">//   value = Obj(</span>
+<span class="hljs-comment">//     values = List(</span>
+<span class="hljs-comment">//       (</span>
+<span class="hljs-comment">//         "common",</span>
+<span class="hljs-comment">//         Obj(</span>
+<span class="hljs-comment">//           values = List(</span>
+<span class="hljs-comment">//             ("cwd", Str(value = "working-dir")),</span>
+<span class="hljs-comment">//             ("out", Str(value = "/tmp"))</span>
+<span class="hljs-comment">//           )</span>
+<span class="hljs-comment">//         )</span>
+<span class="hljs-comment">//       )</span>
 <span class="hljs-comment">//     )</span>
 <span class="hljs-comment">//   )</span>
 <span class="hljs-comment">// )</span>
 <span class="hljs-keyword">val</span> conf = <span class="hljs-type">Conf</span>.parseCliArgs[<span class="hljs-type">AgeApp</span>](<span class="hljs-type">List</span>(<span class="hljs-string">"--out"</span>, <span class="hljs-string">"target"</span>, <span class="hljs-string">"--cwd"</span>, <span class="hljs-string">"working-dir"</span>))
 <span class="hljs-comment">// conf: Configured[Conf] = Ok(</span>
-<span class="hljs-comment">//   Obj(</span>
-<span class="hljs-comment">//     List(</span>
-<span class="hljs-comment">//       ("common", Obj(List(("cwd", Str("working-dir")), ("out", Str("target")))))</span>
+<span class="hljs-comment">//   value = Obj(</span>
+<span class="hljs-comment">//     values = List(</span>
+<span class="hljs-comment">//       (</span>
+<span class="hljs-comment">//         "common",</span>
+<span class="hljs-comment">//         Obj(</span>
+<span class="hljs-comment">//           values = List(</span>
+<span class="hljs-comment">//             ("cwd", Str(value = "working-dir")),</span>
+<span class="hljs-comment">//             ("out", Str(value = "target"))</span>
+<span class="hljs-comment">//           )</span>
+<span class="hljs-comment">//         )</span>
+<span class="hljs-comment">//       )</span>
 <span class="hljs-comment">//     )</span>
 <span class="hljs-comment">//   )</span>
 <span class="hljs-comment">// )</span>
@@ -879,22 +934,22 @@ renderings by inspecting <code>Settings[T]</code> directly.</p>
 <span class="hljs-comment">//   Setting(Field(name="home",tpe="Home",annotations=List(),underlying=List(List(Field(name="address",tpe="String",annotations=List(@Description(Address description)),underlying=List()), Field(name="country",tpe="String",annotations=List(@Description(Country description)),underlying=List())))))</span>
 <span class="hljs-comment">// )</span>
 <span class="hljs-keyword">val</span> flat = <span class="hljs-type">Settings</span>[<span class="hljs-type">User</span>].flat(<span class="hljs-type">ConfEncoder</span>[<span class="hljs-type">User</span>].writeObj(<span class="hljs-type">User</span>()))
-<span class="hljs-comment">// flat: List[Tuple2[Setting, Conf]] = List(</span>
+<span class="hljs-comment">// flat: List[(Setting, Conf)] = List(</span>
 <span class="hljs-comment">//   (</span>
 <span class="hljs-comment">//     Setting(Field(name="name",tpe="String",annotations=List(@Description(Name description)),underlying=List())),</span>
-<span class="hljs-comment">//     Str("John")</span>
+<span class="hljs-comment">//     Str(value = "John")</span>
 <span class="hljs-comment">//   ),</span>
 <span class="hljs-comment">//   (</span>
 <span class="hljs-comment">//     Setting(Field(name="age",tpe="Int",annotations=List(@Description(Age description)),underlying=List())),</span>
-<span class="hljs-comment">//     Num(42)</span>
+<span class="hljs-comment">//     Num(value = 42)</span>
 <span class="hljs-comment">//   ),</span>
 <span class="hljs-comment">//   (</span>
 <span class="hljs-comment">//     Setting(Field(name="home.address",tpe="String",annotations=List(@Description(Address description)),underlying=List())),</span>
-<span class="hljs-comment">//     Str("Lakelands 2")</span>
+<span class="hljs-comment">//     Str(value = "Lakelands 2")</span>
 <span class="hljs-comment">//   ),</span>
 <span class="hljs-comment">//   (</span>
 <span class="hljs-comment">//     Setting(Field(name="home.country",tpe="String",annotations=List(@Description(Country description)),underlying=List())),</span>
-<span class="hljs-comment">//     Str("Iceland")</span>
+<span class="hljs-comment">//     Str(value = "Iceland")</span>
 <span class="hljs-comment">//   )</span>
 <span class="hljs-comment">// )</span>
 flat.map { <span class="hljs-keyword">case</span> (setting, defaultValue) =&gt;
