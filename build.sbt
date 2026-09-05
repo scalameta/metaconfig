@@ -107,12 +107,12 @@ lazy val jvmReleaseSettings = Def.settings(
   javacOptions ++= Seq("--release", jvmRelease.value),
 )
 
-/* -release sets -java-output-version, and Scala 3.9 dropped 8 from its
- * choices; 17 is the lowest it takes. A row that 3.9 builds cannot keep the
+/* -release sets -java-output-version, and Scala 3.8 dropped 8 from its
+ * choices; 17 is the lowest it takes. A row that 3.8 builds cannot keep the
  * JDK 8 floor above, so it gets the lowest floor that compiler still offers. */
 def jvmRelease = Def.setting {
   val dropsJdk8 = CrossVersion.partialVersion(scalaVersion.value)
-    .exists { case (major, minor) => major == 3 && minor >= 9 }
+    .exists { case (major, minor) => major == 3 && minor >= 8 }
   if (dropsJdk8) "17" else "8"
 }
 
