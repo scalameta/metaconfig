@@ -34,7 +34,7 @@ case class CliApp(
           .find(_.matchesName(subcommand)) match {
           case Some(command) =>
             val configured: Configured[command.Value] = Conf
-              .parseCliArgs[command.Value](tail)(command.settings)
+              .parseCliArgs[command.Value](tail)(using command.settings)
               .andThen(_.as[command.Value](command.decoder))
             configured.fold { error =>
               error.all.foreach(message => app.error(message))
