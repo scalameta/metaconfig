@@ -81,7 +81,7 @@ lazy val sharedSettings = Def.settings(
     else "-Ywarn-unused-import"
   },
   scalacOptions += "-deprecation",
-  scalacOptions += "-Xfatal-warnings",
+  scalacOptions += "-Werror",
   scalacOptions ++= {
     if (isScala213.value) "-Wconf:cat=deprecation:is" :: Nil
     else if (isScala3.value) "-Wconf:cat=deprecation:silent" :: Nil
