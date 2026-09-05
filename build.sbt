@@ -103,9 +103,18 @@ lazy val mimaSettings = Def.settings(
 // visible JDK API, so building on a newer JDK cannot leak newer APIs in.
 // JVM-only: -release is meaningless for the Scala.js/Native back ends.
 lazy val jvmReleaseSettings = Def.settings(
-  scalacOptions ++= Seq("-release", "8"),
-  javacOptions ++= Seq("--release", "8"),
+  scalacOptions ++= Seq("-release", jvmRelease.value),
+  javacOptions ++= Seq("--release", jvmRelease.value),
 )
+
+/* -release sets -java-output-version, and Scala 3.9 dropped 8 from its
+ * choices; 17 is the lowest it takes. A row that 3.9 builds cannot keep the
+ * JDK 8 floor above, so it gets the lowest floor that compiler still offers. */
+def jvmRelease = Def.setting {
+  val dropsJdk8 = CrossVersion.partialVersion(scalaVersion.value)
+    .exists { case (major, minor) => major == 3 && minor >= 9 }
+  if (dropsJdk8) "17" else "8"
+}
 
 lazy val sharedJSSettings = Def.settings(
   // to support Node.JS functionality
