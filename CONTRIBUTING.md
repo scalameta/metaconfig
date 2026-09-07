@@ -17,18 +17,22 @@ aggregation alone.
 ## IntelliJ
 
 IntelliJ imports the project for one Scala version, 2.13 by default,
-because it puts the sources that the matrix cells share into a single
-module: importing every cell compiles the Scala 2 and the Scala 3 copies
-of `metaconfig.generic` and `metaconfig.pprint` together. If you need to
-modify the defaults, set the properties below under
+because it cannot import the whole matrix: it puts the sources that
+several rows use into one module, and then compiles the Scala 2 and the
+Scala 3 copies of `metaconfig.generic` and `metaconfig.pprint` together.
+To change what it imports, set the properties below under
 `Settings -> Build, Execution, Deployment -> Build Tools -> sbt -> VM parameters`
 and reload the sbt project:
 
-- `-Dide.scala=X`: imports Scala version `X` instead (could be `2.12`, `2.13`,
-  or `3`). `-Dide.scala=`, with no value, imports the default.
-- `-Dide.platform=Y`: if `Y` is empty, imports all platforms; otherwise, `Y` is
-  a comma-separated list of platforms to import, and `jvm` is implied, whether
-  or not it is explicitly listed, while `js` and `native` are optional.
+- `-Dide.scala=X`: sbt keeps only the rows for Scala version `X`, such as
+  `2.12`, `2.13` or `3`. Without it, IntelliJ gets 2.13 and every other tool
+  gets every version.
+- `-Dide.platform=Y`: sbt keeps only the rows for the platforms in `Y`, a
+  comma-separated list such as `jvm,js`. Without it sbt keeps every platform.
+
+The build sets `bspEnabled := false` on the rows it drops. An sbt server that
+is already running uses the properties from its own command line, so run `sbt
+shutdown` before you test a change from the shell.
 
 ## Website
 
