@@ -14,7 +14,7 @@ and `compile-2_12`, so no workflow step spells out a cell id. `++` selects
 nothing: it switches the Scala version on the cells that accept it and leaves
 aggregation alone.
 
-## IntelliJ
+## Narrowing what an IDE imports
 
 sbt builds each project of this build once per Scala version and platform.
 Several of those rows use the same source directories. Two system properties
