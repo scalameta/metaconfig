@@ -14,21 +14,34 @@ and `compile-2_12`, so no workflow step spells out a cell id. `++` selects
 nothing: it switches the Scala version on the cells that accept it and leaves
 aggregation alone.
 
-## IntelliJ
+## Narrowing what an IDE imports
 
-IntelliJ imports the project for one Scala version, 2.13 by default,
-because it puts the sources that the matrix cells share into a single
-module: importing every cell compiles the Scala 2 and the Scala 3 copies
-of `metaconfig.generic` and `metaconfig.pprint` together. If you need to
-modify the defaults, set the properties below under
-`Settings -> Build, Execution, Deployment -> Build Tools -> sbt -> VM parameters`
-and reload the sbt project:
+sbt builds each project of this build once per Scala version and platform.
+Several of those rows use the same source directories. Two system properties
+control which rows an IDE imports: the build sets `bspEnabled := false` on the
+other rows, and sbt then leaves them out of the BSP workspace.
 
-- `-Dide.scala=X`: imports Scala version `X` instead (could be `2.12`, `2.13`,
-  or `3`). `-Dide.scala=`, with no value, imports the default.
-- `-Dide.platform=Y`: if `Y` is empty, imports all platforms; otherwise, `Y` is
-  a comma-separated list of platforms to import, and `jvm` is implied, whether
-  or not it is explicitly listed, while `js` and `native` are optional.
+- `-Dide.scala=X` — sbt keeps only the rows for Scala version `X`.
+  - matches full or binary version
+  - if unspecified or empty: keep all scala versions
+    - IntelliJ only: will be forced to `2.13`; see below why IntelliJ can't
+      load multiple versions.
+- `-Dide.platform=Y` — sbt keeps only the rows for the platforms in `Y`, a
+  comma-separated list.
+  - matches `jvm`, `js`, or `native`
+  - if unspecified or empty: keep every platform
+
+IntelliJ cannot import the whole matrix. It puts the sources that several rows
+use into one module, and then compiles the Scala 2 and the Scala 3 copies of
+`metaconfig.generic` and `metaconfig.pprint` together. It starts sbt with
+`-Didea.managed=true`. If you do not set `-Dide.scala`, that property selects
+2.13. To choose another version, add `-Dide.scala=X` under
+`Settings -> Build, Execution, Deployment -> Build Tools -> sbt -> VM parameters`,
+then reload the sbt project.
+
+An sbt server uses the system properties from its own command line. It ignores
+a property that you pass to a later command. Run `sbt shutdown` before you test
+a change to these properties from the shell.
 
 ## Website
 
