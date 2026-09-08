@@ -14,8 +14,7 @@ object Extensions {
   def isScala213 = Def.setting(scalaBinaryVersion.value == "2.13")
   def isScala3 = Def.setting(scalaVersion.value.startsWith("3."))
 
-  // sbt gives every matrix cell a generated baseDirectory, so a source tree
-  // starts from the matrix base instead
+  // a cell's baseDirectory is generated, so a source tree starts from the base
   def srcDir(tree: String) = Def.setting(matrixBase.value / tree / "src")
 
   // `in` records the file it is given, so the base can be relative
@@ -24,8 +23,8 @@ object Extensions {
     projectMatrixBaseDirectory.value,
   ))
 
-  // crossProject's layout, wired by hand: a matrix has one base directory, so
-  // each cell names the trees it shares. Absent directories are harmless.
+  /* crossProject's layout, wired by hand: a matrix has one base directory, so
+   * each cell names the trees it shares. Absent directories are harmless. */
   private def roots(cfg: String, trees: Seq[String]) = Def.setting {
     val variants =
       List("scala", "java", if (isScala3.value) "scala-3" else "scala-2")
@@ -40,22 +39,23 @@ object Extensions {
   )
 
   private def platformSources(
-      platform: String,
+      platform: VirtualAxis.PlatformAxis,
+      version: String,
       ss: Seq[Def.SettingsDefinition],
       platforms: String*,
-  ) = unmanagedSources("shared" +: platform +: platforms *) ++
-    ideImport(platform) ++ ss.flatMap(_.settings)
+  ) = unmanagedSources("shared" +: platform.value +: platforms *) ++
+    ideSkip(platform, version) ++ ss.flatMap(_.settings)
 
-  private def jvmSources(ss: Seq[Def.SettingsDefinition]) =
-    platformSources("jvm", ss, "js-jvm", "jvm-native")
-  private def jsSources(ss: Seq[Def.SettingsDefinition]) =
-    platformSources("js", ss, "js-jvm", "js-native")
-  private def nativeSources(ss: Seq[Def.SettingsDefinition]) =
-    platformSources("native", ss, "jvm-native", "js-native")
+  private def jvmSources(v: String, ss: Seq[Def.SettingsDefinition]) =
+    platformSources(VirtualAxis.jvm, v, ss, "js-jvm", "jvm-native")
+  private def jsSources(v: String, ss: Seq[Def.SettingsDefinition]) =
+    platformSources(VirtualAxis.js, v, ss, "js-jvm", "js-native")
+  private def nativeSources(v: String, ss: Seq[Def.SettingsDefinition]) =
+    platformSources(VirtualAxis.native, v, ss, "jvm-native", "js-native")
 
-  // a test binary commits a bytemap of a sixteenth of its maximum heap before
-  // it runs, and Windows cannot overcommit; the maximum defaults to the memory
-  // of the machine, so a few binaries at once fill the commit limit
+  /* a test binary commits a bytemap of a sixteenth of its maximum heap before
+   * it runs, and Windows cannot overcommit; the maximum defaults to the memory
+   * of the machine, so a few binaries at once fill the commit limit */
   private def nativeHeap = Def
     .settings(Test / envVars += "GC_MAXIMUM_HEAP_SIZE" -> "512m")
 
@@ -70,25 +70,29 @@ object Extensions {
     else None
   }
 
-  // an empty set is no filter, so every platform
-  private val idePlatforms = {
-    val prop = sys.props.getOrElse("ide.platform", "").trim
-    if (prop.isEmpty) Set.empty else prop.split("\\s*,\\s*").toSet
-  }
+  // this build exposes every platform; one that does not names its own set
+  private val defaultPlatforms = Set.empty[String]
 
-  private def ideImport(platform: String) = Seq(bspEnabled := ! {
-    val versions = Set(scalaBinaryVersion.value, scalaVersion.value)
-    ideScala.exists(!versions(_)) ||
-    idePlatforms.nonEmpty && !idePlatforms(platform)
-  })
+  // an empty set is no filter, so every platform
+  private val idePlatforms = sys.props.get("ide.platform")
+    .fold(defaultPlatforms)(_.split(',').map(_.trim).filter(_.nonEmpty).toSet)
+
+  // only ever disables a row, so it never overrides another setting
+  private def ideSkip(platform: VirtualAxis.PlatformAxis, version: String) = {
+    val skip = idePlatforms.nonEmpty && !idePlatforms(platform.value) ||
+      version.nonEmpty && ideScala.exists(s =>
+        s != version && s != CrossVersion.binaryScalaVersion(version),
+      )
+    if (skip) Seq(bspEnabled := false) else Nil
+  }
 
   // sbt runs a `;`-separated list; the leading separator is required
   def tasks(ts: Iterable[String]): String = ts.mkString("; ", "; ", "")
 
   private def idSuffix(v: String) = VirtualAxis.scalaABIVersion(v).idSuffix
 
-  // `++<version>` selects no row, so every version gets its own alias. Cell ids
-  // are generated, so the names are taken from them rather than spelled out.
+  /* `++<version>` selects no row, so every version gets its own alias. Cell ids
+   * are generated, so the names are taken from them rather than spelled out. */
   def testAliases(versions: Seq[String], matrices: ProjectMatrix*) = versions
     .flatMap { v =>
       def alias(name: String, f: ProjectMatrix => ProjectFinder) =
@@ -115,24 +119,27 @@ object Extensions {
   implicit class ProjectMatrixExtensions(private val self: ProjectMatrix)
       extends AnyVal {
 
-    def crossJvm(ss: Def.SettingsDefinition*): ProjectMatrix = self
-      .jvmPlatform(ScalaVersions, jvmSources(ss))
+    // one row at a time, so each one knows the version it is built for
+    def crossJvm(ss: Def.SettingsDefinition*): ProjectMatrix = ScalaVersions
+      .foldLeft(self)((m, v) => m.jvmPlatform(Seq(v), jvmSources(v, ss)))
 
-    def crossJs(ss: Def.SettingsDefinition*): ProjectMatrix = self
-      .jsPlatform(ScalaVersions, jsSources(ss))
+    def crossJs(ss: Def.SettingsDefinition*): ProjectMatrix = ScalaVersions
+      .foldLeft(self)((m, v) => m.jsPlatform(Seq(v), jsSources(v, ss)))
 
-    def crossNative(ss: Def.SettingsDefinition*): ProjectMatrix = self
-      .nativePlatform(ScalaVersions, nativeSources(ss) ++ nativeHeap)
+    def crossNative(ss: Def.SettingsDefinition*): ProjectMatrix = ScalaVersions
+      .foldLeft(self)((m, v) =>
+        m.nativePlatform(Seq(v), nativeSources(v, ss) ++ nativeHeap),
+      )
 
     // a JVM row for a project laid out the standard way, not as a crossProject
-    def crossJvmPlain: ProjectMatrix = self
-      .jvmPlatform(ScalaVersions, ideImport("jvm"))
+    def crossJvmPlain: ProjectMatrix = ScalaVersions
+      .foldLeft(self)((m, v) => m.jvmPlatform(Seq(v), ideSkip(VirtualAxis.jvm, v)))
 
     // one row per Scala version, for rows that name their own dependencies
     def crossJvmRows(configure: String => Project => Project): ProjectMatrix =
-      ScalaVersions.foldLeft(self) { (matrix, version) =>
-        val func = configure(version).andThen(_.settings(jvmSources(Nil)))
-        matrix.jvmPlatform(Seq(version), Nil, func)
+      ScalaVersions.foldLeft(self) { (m, v) =>
+        val func = configure(v).andThen(_.settings(jvmSources(v, Nil)))
+        m.jvmPlatform(Seq(v), Nil, func)
       }
 
   }
