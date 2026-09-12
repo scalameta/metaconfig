@@ -164,7 +164,7 @@ def coreSettings = Def.settings(
 def coreJsSettings = Def.settings(
   sharedJSSettings,
   libraryDependencies +=
-    (smorg %% "io" % "4.17.3").cross(CrossVersion.for3Use2_13),
+    (smorg %% "io" % "4.17.4").cross(CrossVersion.for3Use2_13),
 )
 
 lazy val core = projectMatrix.in(file("metaconfig-core")).defaultAxes()
