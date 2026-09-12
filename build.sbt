@@ -62,17 +62,11 @@ commands += Command.command("taskready") { s =>
   s
 }
 
-val languageAgnosticCompatibilityPolicy: ProblemFilter = (problem: Problem) => {
-  val public = problem match {
-    case problem: TemplateProblem => problem.ref.isPublic
-    case problem: MemberProblem => problem.ref.isPublic
+val languageAgnosticCompatibilityPolicy: ProblemFilter = _.matchName
+  .exists { fullName =>
+    fullName.startsWith("metaconfig.") && !fullName.contains(".internal.") &&
+    !fullName.startsWith("metaconfig.cli")
   }
-  val fullName = problem.matchName.getOrElse("")
-  val include = fullName.startsWith("metaconfig.")
-  val exclude = fullName.contains(".internal.") ||
-    fullName.startsWith("metaconfig.cli")
-  public && include && !exclude
-}
 
 lazy val sharedSettings = Def.settings(
   scalacOptions ++= { if (isScala3.value) Nil else Seq("-Yrangepos") },
