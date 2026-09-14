@@ -4,6 +4,7 @@ addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.14.9")
 
 addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.12.0")
 addSbtPlugin("com.github.sbt" % "sbt-ci-release" % "1.12.1")
+addSbtPlugin("com.github.sbt" % "sbt-matrix-sources" % "0.1.0")
 
 addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "1.2.1")
 

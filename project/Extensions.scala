@@ -23,35 +23,18 @@ object Extensions {
     projectMatrixBaseDirectory.value,
   ))
 
-  /* crossProject's layout, wired by hand: a matrix has one base directory, so
-   * each cell names the trees it shares. Absent directories are harmless. */
-  private def roots(cfg: String, trees: Seq[String]) = Def.setting {
-    val variants =
-      List("scala", "java", if (isScala3.value) "scala-3" else "scala-2")
-    val base = matrixBase.value
-    for (tree <- trees; src = base / tree / "src" / cfg; variant <- variants)
-      yield src / variant
-  }
-
-  private def unmanagedSources(trees: String*) = Def.settings(
-    Compile / unmanagedSourceDirectories ++= roots("main", trees).value,
-    Test / unmanagedSourceDirectories ++= roots("test", trees).value,
-  )
-
   private def platformSources(
       platform: VirtualAxis.PlatformAxis,
       version: String,
       ss: Seq[Def.SettingsDefinition],
-      platforms: String*,
-  ) = unmanagedSources("shared" +: platform.value +: platforms *) ++
-    ideSkip(platform, version) ++ ss.flatMap(_.settings)
+  ) = ideSkip(platform, version) ++ ss.flatMap(_.settings)
 
   private def jvmSources(v: String, ss: Seq[Def.SettingsDefinition]) =
-    platformSources(VirtualAxis.jvm, v, ss, "js-jvm", "jvm-native")
+    platformSources(VirtualAxis.jvm, v, ss)
   private def jsSources(v: String, ss: Seq[Def.SettingsDefinition]) =
-    platformSources(VirtualAxis.js, v, ss, "js-jvm", "js-native")
+    platformSources(VirtualAxis.js, v, ss)
   private def nativeSources(v: String, ss: Seq[Def.SettingsDefinition]) =
-    platformSources(VirtualAxis.native, v, ss, "jvm-native", "js-native")
+    platformSources(VirtualAxis.native, v, ss)
 
   /* a test binary commits a bytemap of a sixteenth of its maximum heap before
    * it runs, and Windows cannot overcommit; the maximum defaults to the memory
