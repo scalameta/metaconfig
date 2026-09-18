@@ -1,9 +1,17 @@
 # Contributing
 
-Please refer to the
-[Scalameta](https://github.com/scalameta/scalameta/blob/master/CONTRIBUTING.md)
-contributing guidelines to learn more about how to report tickets and open pull
-requests.
+Pull requests follow the
+[contributing guide](https://github.com/scalameta/.github/blob/main/CONTRIBUTING.md)
+of the scalameta organization. For tickets, see the
+[Scalameta](https://github.com/scalameta/scalameta/blob/main/CONTRIBUTING.md#ticket-guidelines)
+ticket guidelines.
+
+## Contributing with agents
+
+Your agent reads [`AGENTS.md`](AGENTS.md) in this repository, which points at
+the organization's [`AGENTS.md`](https://github.com/scalameta/.github/blob/main/AGENTS.md).
+The section "Contributing with agents" of the organization's guide applies to
+you and to the agent.
 
 ## sbt
 
