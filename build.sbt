@@ -193,7 +193,7 @@ def sconfigSettings = Def.settings(
   mimaSettings,
   moduleName := "metaconfig-sconfig",
   description := "Integration for HOCON using ekrich/sconfig.",
-  libraryDependencies += ("org.ekrich" %% "sconfig" % "2.0.0").excludeAll(
+  libraryDependencies += ("org.ekrich" %% "sconfig" % "2.1.0").excludeAll(
     "org.scala-lang.modules" %
       s"scala-collection-compat_${scalaBinaryVersion.value}",
   ),
