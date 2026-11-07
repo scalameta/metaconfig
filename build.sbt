@@ -182,7 +182,7 @@ def typesafeSettings = Def.settings(
   jvmReleaseSettings,
   moduleName := "metaconfig-typesafe-config",
   description := "Integration for HOCON using typesafehub/config.",
-  libraryDependencies += "com.typesafe" % "config" % "1.4.9",
+  libraryDependencies += "com.typesafe" % "config" % "1.4.10",
 )
 
 lazy val typesafe = projectMatrix.in(file("metaconfig-typesafe-config"))
