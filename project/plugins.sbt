@@ -1,6 +1,6 @@
 // scalafmt: { maxColumn = 100 }
 
-addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.14.9")
+addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.14.10")
 
 addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.13.0")
 addSbtPlugin("com.github.sbt" % "sbt-ci-release" % "1.12.1")
