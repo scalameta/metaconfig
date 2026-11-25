@@ -8,6 +8,6 @@ addSbtPlugin("com.github.sbt" % "sbt-matrix-sources" % "0.1.0")
 
 addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "1.2.1")
 
-addSbtPlugin("org.scalameta" % "sbt-mdoc" % "2.9.2")
+addSbtPlugin("org.scalameta" % "sbt-mdoc" % "2.9.3")
 addSbtPlugin("org.scala-js" % "sbt-scalajs" % "1.23.0")
 addSbtPlugin("org.scala-native" % "sbt-scala-native" % "0.5.12")
